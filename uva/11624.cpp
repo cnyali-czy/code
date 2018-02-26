@@ -10,19 +10,37 @@
 using namespace std;
 const int maxn = 1000 + 10, maxm = 1000 + 10;
 
-int n, m, T, sx, sy;
+int DFS;
+
+template <typename T> T read()
+{
+	T ans(0), p(1);
+	char c = getchar();
+	while (!isdigit(c))
+	{
+		if (c == '-') p = -1;
+		c = getchar();
+	}
+	while (isdigit(c))
+	{
+		ans = ans * 10 + c - 48;
+		c = getchar();
+	}
+	return ans * p;
+}
+
+int m, n, k, sx, sy;
+char s[maxn][maxm];
 
 struct node
 {
 	int x, y, t;
-	node(int _x, int _y, int _t = 0):x(_x), y(_y), t(_t) {};
+	node(int _x, int _y, int _t = 0) : x(_x), y(_y), t(_t) {}
 };
 
-int fire[maxn][maxm];
-bool a[maxn][maxm], vis[maxn][maxn];
-int d[][2] = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
-
-queue <node> q;
+bool vis[maxn][maxm];
+int fire[maxn][maxm], d[][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+#define inside(x, y) (1 <= x && x <= n && 1 <= y && y <= m)
 
 int main()
 {
@@ -30,57 +48,56 @@ int main()
 	freopen("11624.in", "r", stdin);
 	freopen("11624.out", "w", stdout);
 #endif
-	cin >> T;
-	
+	register int T = read<int>();
 	while (T--)
 	{
-		while (!q.empty()) q.pop();	
-		scanf("%d %d\n", &n, &m);
+		queue <node> q;
+		n = read<int>();
+		m = read<int>();
 		REP(i, 1, n)
-		{
+			scanf("%s", s[i] + 1);
+		REP(i, 1, n)
 			REP(j, 1, m)
-			{
-				register char c = getchar();
-				if (c == '#') a[i][j] == 1;
-				if (c == 'J') {sx = i;sy = j;}
-				if (c == 'F') {q.push(node(i, j, 0));}
-			}
-			if (i ^ n) getchar();
-		}
-		memset(fire, 127 / 3, sizeof(fire));
+				if (s[i][j] == 'J') {sx = i;sy = j;}
+				else if (s[i][j] == 'F') {q.push(node(i, j));}
+		memset(vis, 0, sizeof(vis));
+		REP(i, 1, n)
+			REP(j, 1, m)
+				if (s[i][j] == '#') fire[i][j] = 1e9;
+				else fire[i][j] = 0;
 		while (!q.empty())
 		{
-			node f = q.front();
-			int x(f.x), y(f.y), t(f.t);
+			register node f = q.front();
 			q.pop();
+			register int x(f.x), y(f.y), t(f.t);
+			fire[x][y] = t;
 			REP(i, 0, 3)
 			{
 				int tx = x + d[i][0];
 				int ty = y + d[i][1];
-				if (tx < 1 || tx > n || ty < 1 || ty > m) continue;
-				if (!a[tx][ty] && t + 1 < fire[tx][ty]) q.push(node(tx, ty, fire[tx][ty] = t + 1));
+				if (inside(tx, ty) && s[tx][ty] ^ '#' && !fire[tx][ty])
+					q.push(node(tx, ty, t + 1));
 			}
 		}
-		q.push(node(sx, sy, 0));
-		memset(vis, 0, sizeof(vis));
 		bool flag = 0;
+		q.push(node(sx, sy, 0));
 		while (!q.empty())
 		{
-			node f = q.front();
-			int x(f.x), y(f.y), t(f.t);
-			if (x == 1 || x == n || y == 1 || y == n)
+			register node f = q.front();
+			q.pop();
+			register int x(f.x), y(f.y), t(f.t);
+			if (x == 1 || x == n || y == 1 || y == m)
 			{
+				printf("%d\n", t + 1);
 				flag = 1;
-				printf("%d\n", t);
 				break;
 			}
-			q.pop();
+			if (fire[x][y] - 1<= t) continue;
 			REP(i, 0, 3)
 			{
 				int tx = x + d[i][0];
 				int ty = y + d[i][1];
-				if (tx < 1 || tx > n || ty < 1 || ty > m) continue;
-				if (!a[tx][ty] && !vis[tx][ty] && fire[tx][ty] >= t + 1)
+				if (inside(tx, ty) && s[tx][ty] ^ '#' && !vis[tx][ty] && fire[tx][ty] > t + 1)
 				{
 					vis[tx][ty] = 1;
 					q.push(node(tx, ty, t + 1));
@@ -88,6 +105,8 @@ int main()
 			}
 		}
 		if (!flag) printf("IMPOSSIBLE\n");
+		fprintf(stderr, "%d\n", ++DFS);
 	}
+
 	return 0;
 }
