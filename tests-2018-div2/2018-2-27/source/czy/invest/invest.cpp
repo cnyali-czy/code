@@ -88,10 +88,11 @@ inline void Report()
 	int temp1(-inf), temp2(-inf);
 	if (pos > 1) temp1 = T.query(1, 1, n, 1, pos - 1);
 	if (pos < n) temp2 = T.query(1, 1, n, pos + 1, n);
+	T.update(1, 1, n, pos, -inf);
 	if (temp1 >= temp2) cout << T.find_pos(1, 1, n, temp1);
 	else cout << T.find_pos(1, 1, n, temp2); 
-	printf(" %d %d", T.find_pos(1, 1, pos - 1, temp1), T.find_pos(1, , temp2));
-
+//	printf(" %d %d", T.find_pos(1, 1, n, temp1), T.find_pos(1, 1, n, temp2));
+	T.update(1, 1, n, pos, Maxx);
 	cout << '\n';
 }
 

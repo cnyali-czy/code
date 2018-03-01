@@ -60,6 +60,7 @@ int main()
 			cho = i;
 		}
 	}
+	if (!Max) {cout << "0\n";return 0;}
 	memset(DP, 0, sizeof(DP));
 	memset(path, -1, sizeof(path));
 	dp(cho);
