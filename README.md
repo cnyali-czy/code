@@ -1,5 +1,9 @@
 # 这是我的部分OI代码
 
+# 先[推广博客](https://cnyali-czy.cn)
+
+---
+
 现存：
 
 [UVa Online Judge](https://uva.onlinejudge.org/)
