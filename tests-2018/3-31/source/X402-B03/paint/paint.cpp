@@ -43,7 +43,7 @@ inline void calc()
 		if (face[i] == 3) chkmin(ty, p[i].second);
 		if (face[i] == 4) chkmax(sy, p[i].second);
 	}
-	chkmax(ans, (2 + tx - sx + ty - sy) << 1);
+	chkmax(ans, (tx - sx + ty - sy) << 1);
 }
 void dfs(int x)
 {
