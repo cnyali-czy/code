@@ -35,7 +35,7 @@ int face[maxn];
 
 inline void calc()
 {
-	int sx(1), sy(1), tx(w), ty(h);
+	int sx(0), sy(0), tx(w), ty(h);
 	REP(i, 1, n)
 	{
 		if (face[i] == 1) chkmin(tx, p[i].first);
