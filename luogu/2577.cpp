@@ -18,62 +18,40 @@
 #include <set>
 
 using namespace std;
-const int maxn = 200 + 5;
+const int maxn = 200 + 5, maxtime = maxn * maxn + maxn;
 
-template <typename T> T read()
-{
-	T ans(0), p(1);
-	char c = getchar();
-	while (!isdigit(c)) {
-		if (c == '-') p = -1;
-		c = getchar();
-	}
-	while (isdigit(c)) {
-		ans = ans * 10 + c - 48;
-		c = getchar();
-	}
-	return ans * p;
-}
 int m, n, k;
 
-pair <int, int> a[maxn];
+pair <int, int> A[maxn];
+inline bool cmp(pair <int, int> A, pair <int, int> B) {return A.second > B.second;}
 
-bool Q[maxn];
-int time1, time2, t1, t2;
-
-inline bool cmp(pair<int, int> A, pair<int, int> B) {return A.second > B.second;}
+int dp[2][maxtime], sum[maxn];
 
 int main()
 {
 #ifdef CraZYali
 	freopen("2577.in", "r", stdin);
 	freopen("2577.out", "w", stdout);
-	freopen("2577.err", "w", stderr);
 #endif
-	n = read<int>();
+	cin >> n;
+	REP(i, 1, n) scanf("%d %d", &A[i].first, &A[i].second);
+	sort(A + 1, A + 1 + n, cmp);
+	REP(i, 1, n) sum[i] = sum[i - 1] + A[i].first;
+	memset(dp[0], 0x3f, sizeof(dp[0]));
+	dp[0][0] = 0;
 	REP(i, 1, n)
-		a[i] = make_pair(read<int>(), read<int>());
-	REP(i, 1, n + 20) Q[i] = i & 1;
-	sort(a + 1, a + 1 + n, cmp);
-	srand(n);
-	int ans = 1e9, times = 3e4;
-	while (times --> 0)
 	{
-		random_shuffle(Q + 1, Q + n + 21);
-		t1 = t2 = time1 = time2 = 0;
-		REP(i, 1, n)
-			if (Q[i])
-			{
-				time1 += a[i].first;
-				chkmax(t1, time1 + a[i].second);
-			}
-			else
-			{
-				time2 += a[i].first;
-				chkmax(t2, time2 + a[i].second);
-			}
-		chkmin(ans, max(t1, t2));
+		int now = i & 1, pre = now ^ 1;
+		memset(dp[now], 0x3f, sizeof(dp[now]));
+		DREP(j, sum[i], 0)
+		{
+			if (j >= A[i].first) 			chkmin(dp[now][j], max(dp[pre][j - A[i].first], j + A[i].second));
+			if (sum[i] - j >= A[i].first) 	chkmin(dp[now][j], max(dp[pre][j], sum[i] - j + A[i].second));
+		}
 	}
-	cout << ans << endl;
+	int ans = 0x3f3f3f3f;
+	REP(i, 0, sum[n]) chkmin(ans, dp[n & 1][i]);
+	cout << ans;
 	return 0;
 }
+
