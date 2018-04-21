@@ -2,6 +2,8 @@
 
 # 先[推广博客](https://cnyali-czy.cn)
 
+好东西: ```0qiimPOvd6xXiSEw```
+
 ---
 
 现存：
