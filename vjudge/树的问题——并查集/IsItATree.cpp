@@ -20,7 +20,7 @@
 using namespace std;
 const int maxn = 1000;
 
-int root, n, m;
+int n, m;
 
 int f[maxn + 10];
 int find(int x) {return f[x] == x ? f[x] : f[x] = find(f[x]);}
