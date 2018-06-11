@@ -6,6 +6,7 @@
 #define chkmin(a, b) a = min(a, b)
 
 #include <iostream>
+#include <cstring>
 #include <cstdio>
 
 using namespace std;
