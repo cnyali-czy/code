@@ -87,9 +87,9 @@ int main()
 	freopen("最小树形图.in", "r", stdin);
 	freopen("最小树形图.out", "w", stdout);
 #endif
-	memset(cost, 127 / 3, sizeof(cost));
 	cin >> n;
 	int root = n + 1;
+	REP(i, 1, n) cost[i] = inf;
 	REP(i, 1, n) {scanf("%lf%d", a + i, b + i);if (!b[i]) continue;add(root, i, a[i]);cost[i] = a[i];}
 	V = root;
 
@@ -107,6 +107,6 @@ int main()
 	}
 	double ans = solve(root);
 	REP(i, 1, n) ans += b[i] * cost[i] - cost[i];
-	printf("%.2lf\n", ans);
+	printf("%.2f\n", ans);
 	return 0;
 }
