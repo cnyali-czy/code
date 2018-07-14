@@ -90,7 +90,15 @@ int main()
 	cin >> n;
 	int root = n + 1;
 	REP(i, 1, n) cost[i] = inf;
-	REP(i, 1, n) {scanf("%lf%d", a + i, b + i);if (!b[i]) continue;add(root, i, a[i]);cost[i] = a[i];}
+	REP(i, 1, n)
+	{
+		scanf("%lf%d", a + i, b + i);
+		if (!b[i])
+		{
+			add(root, i, a[i]);
+			cost[i] = a[i];
+		}
+	}
 	V = root;
 
 	cin >> m;
