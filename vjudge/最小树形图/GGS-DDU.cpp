@@ -9,7 +9,7 @@
 #include <iostream>
 
 using namespace std;
-const int maxV = 1000 + 10, maxE = 1000000 + 10, N = 60, M = 6000, inf = 0x3f3f3f;
+const int maxV = 500 + 10, maxE = 10000 + 10, N = 60, M = 2000 + 10, inf = 0x3f3f3f;
 
 struct Edge
 {
@@ -63,7 +63,7 @@ struct Graph
 					id[v] = cnt++;
 				}
 			}
-			if (cnt == 0) return ans;
+			if (!cnt) return ans;
 
 			REP(i, 0, n - 1) if (id[i] == -1) id[i] = cnt++;
 
@@ -90,15 +90,12 @@ void init()
 	REP(i, 1, n)
 	{
 		scanf("%d", level + i);
-		level[i]++;
-		if (i == 1) TEMPID[i] = level[i];
-		else TEMPID[i] = TEMPID[i - 1] + level[i];
+		TEMPID[i] = TEMPID[i - 1] + (++level[i]);
 	}
 
 	G.init(TEMPID[n + 1] = TEMPID[n] + 1);
 	G.add(0, 1, 0);
-	REP(i, 1, n)
-		G.add(0, TEMPID[i - 1] + 1, 0);
+	REP(i, 1, n) G.add(0, TEMPID[i - 1] + 1, 0);
 
 	REP(i, 1, n)
 		DREP(j, level[i] - 1, 1)
@@ -112,7 +109,7 @@ void init()
 		REP(u, TEMPID[c - 1] + 1 + l1, TEMPID[c]) chkmin(dis[u][TEMPID[d - 1] + l2 + 1], money);
 	}
 	REP(i, 1, TEMPID[n + 1] - 1)
-		REP(j, 1, TEMPID[n + 1] - 1) if (dis[i][j] ^ inf) G.add(i, j, dis[i][j]);
+		REP(j, 1, TEMPID[n + 1] - 1) if (dis[i][j] ^ inf && i ^ j) G.add(i, j, dis[i][j]);
 	printf("%d\n", G.sovle(0));
 }
 
