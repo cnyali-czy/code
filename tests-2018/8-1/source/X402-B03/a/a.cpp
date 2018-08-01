@@ -8,7 +8,7 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-const int maxn = 1e6 + 10, maxm = 1e6 + 10, maxL = 1e7 + 10;
+const int maxn = 1e6 + 10, maxm = 1e6 + 10, maxL = 1e7 + 10, maxli = 5000 + 10;
 
 int m, n, L, P;
 
@@ -63,6 +63,16 @@ namespace bf
 	}
 }
 
+void exgcd(int a, int b, int &x, int &y)
+{
+	if (!b) {x = 1;y = 0;}
+	else
+	{
+		exgcd(b, a % b, y, x);
+		y -= a / b * x;
+	}
+}
+
 int main()
 {
 	freopen("a.in", "r", stdin);
@@ -70,6 +80,5 @@ int main()
 	cin >> n >> m >> P;
 	REP(i, 1, n) scanf("%d", l + i), L += l[i];
 	if (L <= 10) bf::work();
-
 	return 0;
 }
