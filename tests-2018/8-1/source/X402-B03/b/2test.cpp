@@ -8,7 +8,7 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-const int maxn = 3000 + 10, maxE = maxn * maxn, maxm = maxn * maxn;
+const int maxn = 300000 + 10, maxE = maxn, maxm = maxn;
 
 int m, n, k;
 
@@ -47,7 +47,7 @@ void dfs(int x)
 
 bool is[maxn];
 
-long long ans[maxn];
+int ans[maxn];
 
 template <typename T> T read()
 {
@@ -66,41 +66,48 @@ template <typename T> T read()
 	return lca * p;
 }
 
+map <pair<int, int> , int> LCA;
+
+int AAA[maxn], BBB[maxn];
+
+pair <int, int> opts[maxm];
+
+bool need[maxn];
+
+int ABC[maxn], DEF[maxn];
+int ABCcnt, DEFcnt;
+
 int main()
 {
 	freopen("b.in", "r", stdin);
 	freopen("b.out", "w", stdout);
 	cin >> n >> m;
-	REP(i, 1, n) is[i] = read<int>();
+	REP(i, 1, n) need[i] = is[i] = read<int>();
 	REP(i, 2, n)
 	{
 		register int x, y;
 		scanf("%d%d", &x, &y);
 		Tree.add(x, y);Tree.add(y, x);
 	}
-	while (m --> 0)
-	{
-		register int x, y;
-		scanf("%d%d", &x, &y);
-		if (x == 2) is[y] ^= 1;
-		else
+	REP(i, 1, m) scanf("%d%d", &opts[i].first, &opts[i].second);
+	int lca_cnt(0);
+	REP(i, 1, m) if (opts[i].first == 2) need[opts[i].second] = 1;
+	REP(i, 1, n) if (need[i]) ABC[++ABCcnt] = i;
+	REP(i, 1, m) if (opts[i].first == 1) DEF[++DEFcnt] = opts[i].second;
+	REP(i, 1, ABCcnt)
+		REP(j, 1, DEFcnt)
 		{
-			memset(Que.bg, 0, sizeof(Que.bg));
-			REP(i, 1, n) vis[f[i] = i] = 0;
-			Que.e = 1;
-			int CNT(0);
-			REP(i, 1, n)
-				if (is[i])
-				{
-					++CNT;
-					Que.add(i, y, CNT);
-					Que.add(y, i, CNT);
-				}
-			dfs(1);
-			CNT = 0;
-			REP(i, 1, n) if (is[i]) ans[lca[++CNT]] += i;
+			++lca_cnt;
+			Que.add(ABC[i], DEF[j], lca_cnt);
+			Que.add(DEF[j], ABC[i], lca_cnt);
+			AAA[lca_cnt] = ABC[i];
+			BBB[lca_cnt] = DEF[j];
 		}
-	}
-	REP(i, 1, n) printf("%lld\n", ans[i]);
+	dfs(1);
+	REP(i, 1, lca_cnt) LCA[make_pair(AAA[i], BBB[i])] = LCA[make_pair(BBB[i], AAA[i])] = lca[i];
+	REP(i, 1, m)
+		if (opts[i].first == 2) is[opts[i].second] ^= 1;
+		else REP(j, 1, n) if (is[j]) ans[LCA[make_pair(j, opts[i].second)]] += j;
+	REP(i, 1, n) printf("%d\n", ans[i]);
 	return 0;
 }

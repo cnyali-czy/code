@@ -38,7 +38,7 @@ namespace bf
 		}
 		REP(i, 2, n)
 			if (s[i - 1] == s[i]) return;
-		ans++;
+		ans++;ans %= P;
 	}
 
 	void dfs(int x)
