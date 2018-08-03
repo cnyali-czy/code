@@ -96,3 +96,4 @@ int main()
 	while (cnt <= n + m) write(V[cnt]+ sig), putchar(' '), cnt += t;
 	return 0;
 }
+
