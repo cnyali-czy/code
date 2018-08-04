@@ -1,0 +1,4 @@
+关于help
+windows下使用help.exe
+ubuntu下使用help（如果ubuntu系统终端打开 help 显示权限不够，请尝试运行 chmod +x help 后再打开）
+
