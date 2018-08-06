@@ -1,7 +1,7 @@
 #define  REP(i, s, e) for(register long long i = s; i <= e ;i++)
 #define DREP(i, s, e) for(register long long i = s; i >= e ;i--)
 
-#define DEBUG fprintf(stderr, "Passing [%s] in LINE %d\n", __FUNCTION__, __LINE__)
+#define DEBUG fprintf(stderr, "Passing [%s] in lINE %d\n", __FUNCTION__, __lINE__)
 #define chkmin(a, b) a = min(a, b)
 #define chkmax(a, b) a = max(a, b)
 
@@ -28,11 +28,13 @@ template <typename T> T read()
 
 long long l, r, k;
 
+int i;
+
 namespace bf
 {
 	inline bool check(int x)
 	{
-		for (register int i = 2; i * i <= x && i <= k; i++)
+		for (i = 2; i * i <= x && i <= k; i++)
 			if (x % i == 0) return 0;
 		return 1;
 	}
@@ -40,7 +42,7 @@ namespace bf
 	inline void work()
 	{
 		int ans = 0;
-		REP(i, l, r)
+		for (i = l ; i <= r ; i++)
 			if (check(i)) ans ^= i;
 		cout << ans;
 	}
@@ -50,7 +52,7 @@ namespace bf1
 {
 	const int maxr = 1e7 + 10;
 	int prime[maxr], cnt;
-	bool notprime[maxr];
+	char notprime[maxr];
 
 	inline void get_prime()
 	{
@@ -84,17 +86,34 @@ namespace bf1
 	}
 }
 
+const int maxn = 1e7 + 10;
+
+int prime[maxn];
+bool notprime[maxn];
+
+bool mark[maxn];
+
+inline void work()
+{
+	REP(i, 2, k)
+		if (!notprime[i])
+		{
+			for (register long long j = i << 1; j <= k; j += i) notprime[j] = 1;
+			for (register long long j = max(2ll, ((l - 1) / i + 1)) * i; j <= r; j += i)
+				mark[j - l + 1] = 1;
+		}
+	long long ans = 0;
+	REP(i, l, r) if (!mark[i - l + 1]) ans ^= i;
+	cout << ans;
+}
+
+
 int main()
 {
 	freopen("prime.in", "r", stdin);
 	freopen("prime.out", "w", stdout);
 	cin >> l >> r >> k;
-	if (k ^ 1) bf1::work();
-	else 
-	{
-		long long ans = 0;
-		REP(i, l, r) ans ^= i;
-		cout << ans;
-	}
+	k = min(k, (long long)(sqrt(r)) + 5);
+	work();
 	return 0;
 }
