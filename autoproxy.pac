@@ -5,7 +5,7 @@
  * GFWList From: online[https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt]
  */
 
-var proxy = 'SOCKS5 45.32.67.230:23333';
+var proxy = 'SOCKS5 127.0.0.1:23333';
 var rules = [
     [
         [], 
