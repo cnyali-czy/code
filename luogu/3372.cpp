@@ -1,15 +1,24 @@
-#define DREP(i, s, e) for(register int i = s; i >= e ;i--)
-#define  REP(i, s, e) for(register int i = s; i <= e ;i++)
+#define DREP(i, s, e) for(register long long i = s; i >= e ;i--)
+#define  REP(i, s, e) for(register long long i = s; i <= e ;i++)
 
-#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
+#define DEBUG fprintf(stderr, "Passing [%s] in Line %lld\n", __FUNCTION__, __LINE__)
 #define chkmax(a, b) a = max(a, b)
 #define chkmin(a, b) a = min(a, b)
 
+#include <algorithm>
 #include <iostream>
+#include <cstdlib>
+#include <cstring>
 #include <cstdio>
+#include <bitset>
+#include <vector>
+#include <cmath>
+#include <queue>
+#include <map>
+#include <set>
 
 using namespace std;
-const int maxn = 100000 + 10;
+const long long maxn = 100010;
 
 #define mid (l + r >> 1)
 #define ls p << 1
@@ -17,13 +26,10 @@ const int maxn = 100000 + 10;
 #define lson ls, l, mid
 #define rson rs, mid + 1, r
 
-typedef long long ll;
-ll m, n, k;
-
-struct SegTree
+struct SMT
 {
-	ll sum[maxn << 2], lazy[maxn << 2];;
-	inline void build(ll p, ll l, ll r)
+	long long sum[maxn << 2], tag[maxn << 2];
+	void build(long long p, long long l, long long r)
 	{
 		if (l == r) scanf("%lld", sum + p);
 		else
@@ -33,50 +39,51 @@ struct SegTree
 			sum[p] = sum[ls] + sum[rs];
 		}
 	}
-	inline ll pushdown(ll x, ll p, ll l, ll r)
+
+	inline void mark(long long x, long long p, long long l, long long r)
 	{
 		sum[p] += (r - l + 1) * x;
-		lazy[p] += x;
+		tag[p] += x;
 	}
-	inline ll query(ll p, ll l, ll r, ll L, ll R)
+	
+	void add(long long p, long long l, long long r, long long L, long long R, long long val)
+	{
+		if (L <= l && r <= R) mark(val, p, l, r);
+		else
+		{
+			if (tag[p])
+			{
+				mark(tag[p], lson);
+				mark(tag[p], rson);
+				tag[p] = 0;
+			}
+			if (L <= mid) add(lson, L, R, val);
+			if (R >  mid) add(rson, L, R, val);
+			sum[p] = sum[ls] + sum[rs];				
+		}
+	}
+
+	long long query(long long p, long long l, long long r, long long L, long long R)
 	{
 		if (L <= l && r <= R) return sum[p];
 		else
 		{
-			if (lazy[p])
+			if (tag[p])
 			{
-				pushdown(lazy[p], lson);
-				pushdown(lazy[p], rson);
-				lazy[p] = 0;
+				mark(tag[p], lson);
+				mark(tag[p], rson);
+				tag[p] = 0;
 			}
-			ll temp = 0;
+			register long long temp = 0;
 			if (L <= mid) temp += query(lson, L, R);
 			if (R >  mid) temp += query(rson, L, R);
 			return temp;
 		}
 	}
-	inline void update(ll p, ll l, ll r, ll L, ll R, ll x)
-	{
-		if (L <= l && r <= R)
-		{
-			sum[p] += (r - l + 1) * x;
-			lazy[p] += x;
-		}
-		else
-		{
-			if (lazy[p])
-			{
-				pushdown(lazy[p], lson);
-				pushdown(lazy[p], rson);
-				lazy[p] = 0;
-			}
-			if (L <= mid) update(lson, L, R, x);
-			if (R >  mid) update(rson, L, R, x);
-			sum[p] = sum[ls] + sum[rs];
-		}
-	}
 }T;
 
+
+long long m, n, k;
 
 int main()
 {
@@ -88,10 +95,16 @@ int main()
 	T.build(1, 1, n);
 	while (m --> 0)
 	{
-		ll opt, x, y;
+		register long long opt, x, y, z;
 		scanf("%lld%lld%lld", &opt, &x, &y);
-		if (opt == 1) {scanf("%lld", &k);; T.update(1, 1, n, x, y, k);}
-		if (opt == 2) printf("%lld\n", T.query(1, 1, n, x, y));
+		if (opt == 1)
+		{
+			scanf("%lld", &z);
+			T.add(1, 1, n, x, y, z);
+		}
+		else printf("%lld\n", T.query(1, 1, n, x, y));
 	}
+
 	return 0;
 }
+
