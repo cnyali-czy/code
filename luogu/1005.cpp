@@ -5,60 +5,55 @@
 #define chkmax(a, b) a = max(a, b)
 #define chkmin(a, b) a = min(a, b)
 
-#include <algorithm>
 #include <iostream>
-#include <cstdlib>
-#include <cstring>
 #include <cstdio>
-#include <bitset>
-#include <vector>
-#include <cmath>
-#include <queue>
-#include <map>
-#include <set>
+#include <cstring>
 
 using namespace std;
-const int maxn = 100, maxm = 100;
 
-template <typename T> T read()
+template <typename T> inline T read()
 {
 	T ans(0), p(1);
 	char c = getchar();
-	while (!isdigit(c)) {
+	while (!isdigit(c))
+	{
 		if (c == '-') p = -1;
 		c = getchar();
 	}
-	while (isdigit(c)) {
+	while (isdigit(c))
+	{
 		ans = ans * 10 + c - 48;
 		c = getchar();
 	}
 	return ans * p;
 }
-template <typename T> void write(T num)
+
+template <typename T> void write(T x)
 {
-	if (!num) return;
-	else if (num < 0)
-	{
-		putchar('-');
-		write(-num);
-	}
-	else
-	{
-		write(num / 10);
-		putchar(num % 10 + '0');
-	}
+	if (x < 0) putchar('-'), write(-x);
+	else if (x / 10) write(x / 10);
+	putchar(x % 10 + '0');
 }
+const int maxn = 100;
 
 int m, n, k;
-typedef __int128 BigInt;
-BigInt a[maxn][maxm], re[maxm][maxm];
 
-BigInt dp(int l, int r, int LINE)
+typedef __int128 BigInt;
+
+BigInt a[maxn], dp[maxn][maxn];
+
+BigInt power_pow(BigInt x)
 {
-	if (l > r) return 0;
-	if (re[l][r]) return re[l][r];
-	else return re[l][r] = max(	dp(l + 1, r, LINE) + a[LINE][l] * ((BigInt)1 << (BigInt)(m - (r - l))),
-								dp(l, r - 1, LINE) + a[LINE][r] * ((BigInt)1 << (BigInt)(m - (r - l))));
+	BigInt ans = 1;
+	ans <<= x;
+	return ans;
+}
+
+BigInt dfs(BigInt now, BigInt l, BigInt r)
+{
+	if (dp[l][r] != -1) return dp[l][r];
+	if (r - l + 1 >= 2) return dp[l][r] = max(a[l] * power_pow(now) + dfs(now + 1, l + 1, r), a[r] * power_pow(now) + dfs(now + 1, l, r - 1));
+	else return dp[l][r] = a[l] * power_pow(now);
 }
 
 int main()
@@ -67,18 +62,18 @@ int main()
 	freopen("1005.in", "r", stdin);
 	freopen("1005.out", "w", stdout);
 #endif
-	n = read<int>();
-	m = read<int>();
-	REP(i, 1, n)
-		REP(j, 1, m)
-			a[i][j] = read<BigInt>();
-	BigInt ans = 0;
-	REP(i, 1, n)
+	register BigInt ans = 0;
+	cin >> m >> n;
+	while (m --> 0)
 	{
-		memset(re, 0, sizeof(re));
-		ans += dp(1, m, i);
+		REP(i, 1, n)
+		{
+			a[i] = read<BigInt>();
+			REP(j, 1, n) dp[i][j] = -1;
+		}
+		ans += dfs(1, 1, n);
 	}
-	if (ans) write(ans);
-	else cout << 0;
+	write(ans);
+	
 	return 0;
 }
