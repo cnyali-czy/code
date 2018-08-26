@@ -69,10 +69,43 @@ void pre_grand(int x)
 		}
 }
 
+int lca[maxm];
+
+int get_lca(int x, int y)
+{
+	if (depth[x] < depth[y]) swap(x, y);
+	DREP(i, LOG, 0)
+		if (depth[grand[x][i]] >= depth[y]) x = grand[x][i];
+	if (x == y) return x;
+	else
+	{
+		DREP(i, LOG, 0)
+			if (grand[x][i] ^ grand[y][i])
+			{
+				x = grand[x][i];
+				y = grand[y][i];
+			}
+		return grand[x][0];
+	}
+}
+
 pair <int, int> Q[maxm];
 
-int dist[maxn][19];
+int dist[maxn];
 
+void dfs(int x, int y)
+{
+	dist[x] = y;
+	for (register int i = bg[x]; i ; i = ne[i])
+		if (to[i] ^ grand[x][0]) dfs(to[i], y + w[i]);
+}
+
+#define get_dist() dfs(1, 0)
+
+int x, y, z;
+
+int ans = 1e9;
+/*
 void pre_dist(int x)
 {
 	for (register int i = bg[x]; i ; i = ne[i])
@@ -82,43 +115,14 @@ void pre_dist(int x)
 			pre_dist(to[i]);
 		}
 }
-
-int x, y, z;
-
-int ans = 1e9;
-
+*/
 void calc()
 {
-	pre_dist(1);
-	REP(j, 1, LOG)
-		REP(i, 1, n)
-			dist[i][j] = dist[i][j-1] + dist[grand[i][j-1]][j-1];
-
 	register int Max = -1;
 
-	REP(i, 1, m)
-	{
-		register int tot = 0;
-		x = Q[i].first;y = Q[i].second;
-		if (depth[x] < depth[y]) swap(x, y);
-		DREP(i, LOG, 0)
-			if (depth[grand[x][i]] >= depth[y])
-			{
-				tot += dist[x][i];
-				x = grand[x][i];
-			}
-		if (x ^ y)
-		{
-			DREP(i, LOG, 0)
-				if (grand[x][i] ^ grand[y][i])
-				{
-					tot += dist[x][i] + dist[y][i];
-					x = grand[x][i];y = grand[y][i];
-				}
-			tot += dist[x][0] + dist[y][0];
-		}
-		chkmax(Max, tot);
-	}
+	get_dist();
+
+	REP(i, 1, m) chkmax(Max, dist[Q[i].first] + dist[Q[i].second] - 2 * dist[lca[i]]);
 	chkmin(ans, Max);
 }
 
@@ -141,7 +145,11 @@ int main()
 	REP(j, 1, LOG)
 		REP(i, 1, n)
 			grand[i][j] = grand[grand[i][j-1]][j-1];
+
+	REP(i, 1, n) lca[i] = get_lca(Q[i].first, Q[i].second);
 	
+	get_dist();
+
 	REP(E, 1, n - 1)
 	{
 		register int W = w[E << 1];
@@ -149,6 +157,16 @@ int main()
 		calc();
 		w[E << 1] = w[E << 1 | 1] = W;
 	}
+	
+/*
+	REP(E, 1, n - 1)
+	{
+		register int W = w[E << 1];
+		w[E << 1] = w[E << 1 | 1] = 0;
+		calc();
+		w[E << 1] = w[E << 1 | 1] = W;
+	}
+*/
 	cout << ans;
 	return 0;
 }
