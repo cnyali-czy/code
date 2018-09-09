@@ -8,70 +8,49 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-const int maxn = 11, maxN = 4 << maxn, maxm = 40;
+const int maxlen = 60, maxm = 100 + 10, maxN = maxlen * maxlen * maxlen;
 
-struct Graph
-{
-	int bg[maxN];
-	vector <int> to, ne;
-	void add(int x, int y)
-	{
-		if (to.empty()) to.push_back(0);
-		to.push_back(y);
-		if (ne.empty()) ne.push_back(0);
-		ne.push_back(bg[x]);
-		bg[x] = ne.size() - 1;
-	}
-}G1, G2;
-template <typename T> inline T read()
-{
-	T ans(0), p(1);
-	char c = getchar();
-	while (!isdigit(c))
-	{
-		if (c == '-') p = -1;
-		c = getchar();
-	}
-	while (isdigit(c))
-	{
-		ans = ans * 10 + c - 48;
-		c = getchar();
-	}
-	return ans * p;
-}
+int in[maxN];
+long double dp[maxN];
 
-template <typename T> void write(T x)
+int bg[maxN];
+vector <int> ne, to, v;
+inline void add(int x, int y)
 {
-	if (x < 0) putchar('-'), write(-x);
-	else if (x / 10) write(x / 10);
-	putchar(x % 10 + '0');
+	if (to.empty()) to.push_back(0);
+	to.push_back(y);
+	if (ne.empty()) ne.push_back(0);
+	ne.push_back(bg[x]);
+	bg[x] = ne.size() - 1;
 }
 
 int m, n, k;
 
-map <string, int> M;
-string S[4 << maxn];
+#define idof(a, b, c) (a + b * (n + 1) + c * (n + 1) * (n + 1))
 
-int cnt = 0;
-void dfs_s(int u, string now = "")
+char sa[maxlen], sb[maxlen];
+int xa[maxm], xb[maxm], xc[maxm], xd[maxm];
+int ya[maxm], yb[maxm], yc[maxm], yd[maxm];
+
+long double siz[maxN];
+
+long double C[maxlen][maxlen];
+
+void init_c()
 {
-	if (u == n) M[S[++cnt] = now] = cnt;
-	else
-	{
-		u++;
-		REP(i, 1, 4)
-		{
-			register string SSS = now;
-			SSS += (char)i + 'A' - 1;
-			dfs_s(u, SSS);
-		}
-	}
+	C[1][1] = 1;
+	REP(i, 2, n + 5)
+		REP(j, 1, i + 5)
+			C[i][j] = C[i-1][j] + C[i-1][j-1];
 }
 
-pair <string, string> P[maxm];
+long double CCC(int x, int y)
+{
+	if (x == 0 || y == 0) return 1;
+	return C[x][y];
+}
 
 int pre[maxN], low[maxN], dfs_clock;
-
 stack <int> s;
 bool vis[maxN];
 
@@ -80,130 +59,120 @@ int belong[maxN], scc_cnt;
 void dfs(int u)
 {
 	pre[u] = low[u] = ++dfs_clock;
-	s.push(u);
 	vis[u] = 1;
-	for (register int i = G1.bg[u]; i ; i = G1.ne[i])
-		if (!pre[G1.to[i]])
+	s.push(u);
+	for (register int i = bg[u]; i ; i = ne[i])
+		if (!pre[to[i]])
 		{
-			dfs(G1.to[i]);
-			chkmin(low[u], low[G1.to[i]]);
+			dfs(to[i]);
+			chkmin(low[u], low[to[i]]);
 		}
-		else if (vis[G1.to[i]]) chkmin(low[u], low[G1.to[i]]);
+		else if (vis[to[i]]) chkmin(low[u], low[to[i]]);
 	if (pre[u] == low[u])
 	{
-		belong[u] = ++scc_cnt;
 		vis[u] = 0;
+		belong[u] = ++scc_cnt;
 		while (s.top() ^ u)
 		{
-			register int x = s.top();
+			vis[s.top()] = 0;
+			belong[s.top()] = scc_cnt;
 			s.pop();
-			belong[x] = scc_cnt;
-			vis[x] = 0;
 		}
 		s.pop();
 	}
 }
 
-int size[maxN];
-bool G[maxN][maxN];
-
-int in[maxN], A[maxN], dp[maxN]
-
-;
-
+vector <int> ord;
 queue <int> q;
+
+set <pair<int, int> > S;
+
+vector <int> G[maxN];
+
+long double Finalsize[maxN];
+
 int main()
 {
 #ifdef CraZYali
 	freopen("string.in", "r", stdin);
 	freopen("string.out", "w", stdout);
 #endif
-
-	ios::sync_with_stdio(false);
 	cin >> n >> m;
-
-	REP(i, 1, m) cin >> P[i].first >> P[i].second;
-
-	dfs_s(0);
-
-	REP(x, 1, cnt)
+	init_c();
+	REP(i, 1, m)
 	{
-		string now = S[x], s = now;
-
-		REP(i, 1, n - 1)
-			if (s[i-1] ^ s[i])
-			{
-				swap(s[i-1], s[i]);
-				G1.add(M[now], M[s]);
-				swap(s[i-1], s[i]);
-			}
-
-		REP(i, 1, m)
-			if (P[i].first != P[i].second)
-			{
-				register int pos = -1;
-				while (1)
-				{
-					pos = now.find(P[i].first, pos + 1);
-					if (pos == string::npos) break;
-					else
-					{
-						s = now;
-						REP(j, pos, pos + P[i].first.size() - 1)
-							s[j] = P[i].second[j - pos];
-						if (now != s) G1.add(M[now], M[s]);
-					}
-				}
-			}
+		scanf("%s %s\n", sa + 1, sb + 1);
+		k = strlen(sa + 1);
+		REP(j, 1, k)
+			(sa[j] == 'A' ? xa : (sa[j] == 'B' ? xb : (sa[j] == 'C' ? xc : xd)))[i]++;
+		REP(j, 1, k)
+			(sb[j] == 'A' ? ya : (sb[j] == 'B' ? yb : (sb[j] == 'C' ? yc : yd)))[i]++;
 	}
 
-	REP(i, 1, cnt)
+	int N = -1;
+
+
+	for (register int a = 0 ; a <= n ; a++)
+		for (register int b = 0; a + b <= n ; b++)
+			for (register int c = 0 ; a + b + c <= n ;c++)
+			{
+				siz[idof(a, b, c)] = CCC(n, a) * CCC(n - a, b) * CCC(n - a - b, c);
+				chkmax(N, idof(a, b, c));
+				register int d = n - a - b - c;
+				REP(i, 1, m)
+					if (a >= xa[i] && b >= xb[i] && c >= xc[i] && d >= xd[i] && idof(a, b, c) ^ idof(a - xa[i] + ya[i], b - xb[i] + yb[i], c - xc[i] + yc[i]))
+						add(idof(a, b, c), idof(a - xa[i] + ya[i], b - xb[i] + yb[i], c - xc[i] + yc[i]));
+			}
+	
+	REP(i, 1, N)
 		if (!pre[i]) dfs(i);
 
-	REP(i, 1, cnt) ++size[belong[i]];
-	REP(x, 1, cnt)
-		for (register int i = G1.bg[x]; i ; i = G1.ne[i])
-			if (belong[x] ^ belong[G1.to[i]] && !G[belong[x]][belong[G1.to[i]]])
+
+	register long double ans = 0;
+	REP(i, 1, N) chkmax(ans, Finalsize[belong[i]] += siz[i]);
+
+	REP(x, 1, N)
+		for (register int i = bg[x]; i ; i = ne[i])
+			if (belong[x] ^ belong[to[i]] && S.find(make_pair(belong[x], belong[to[i]])) == S.end())
 			{
-				G[belong[x]][belong[G1.to[i]]] = 1;
-				G2.add(belong[x], belong[G1.to[i]]);
-				in[belong[G1.to[i]]]++;
+				S.insert(make_pair(belong[x], belong[to[i]]));
+				G[belong[x]].push_back(belong[to[i]]);
+				in[belong[to[i]]]++;
 			}
 
 	REP(i, 1, scc_cnt)
 		if (!in[i])
 		{
-			dp[i] = size[i];
 			q.push(i);
+			dp[i] = Finalsize[i];
 		}
+	
+	REP(i, 1, scc_cnt)
+		for (register int j = 0; j < G[i].size(); j++)
+			printf("%d %d\n", i, G[i][j]);
 
-	register int now = 0;
 	while (!q.empty())
 	{
-		register int x = q.front();
-		A[++now] = x;
+		register int i = q.front();
 		q.pop();
-		for (register int i = G2.bg[x]; i ; i = G2.ne[i])
-			if (in[G2.to[i]])
+		v.push_back(i);
+		for (int j = 0; j < G[i].size(); j++)
+			if (in[G[i][j]])
 			{
-				in[G2.to[i]]--;
-				if (!in[G2.to[i]]) q.push(G2.to[i]);
-			}	
+				in[G[i][j]]--;
+				if (!in[G[i][j]]) q.push(G[i][j]);
+			}
 	}
 
-	REP(i, 1, now)
+	for (register int i = 0 ; i < v.size() ; i++)
 	{
-
-		register int x = A[i];
-		for (register int i = G2.bg[x]; i ; i = G2.ne[i])
-		{
-			if (dp[G2.to[i]] < dp[x] + size[G2.to[i]])
-				dp[G2.to[i]] = dp[x] + size[G2.to[i]];
-		}
+		register int now = v[i];
+		for (register int j = 0; j < G[now].size() ; j++)
+			dp[G[now][j]] = dp[now] + Finalsize[G[now][j]];
 	}
 
-	int Max = dp[1];
-	REP(i, 2, scc_cnt) chkmax(Max, dp[i]);
-	cout << Max;
+	REP(i, 1, scc_cnt) chkmax(ans, dp[i]);
+	printf("%.0LF", ans);
+	
 	return 0;
 }
