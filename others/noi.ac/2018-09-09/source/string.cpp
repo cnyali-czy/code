@@ -12,16 +12,16 @@ const int maxn = 11, maxN = 4 << maxn, maxm = 40;
 
 struct Graph
 {
-int bg[maxN];
-vector <int> to, ne;
-void add(int x, int y)
-{
-	if (to.empty()) to.push_back(0);
-	to.push_back(y);
-	if (ne.empty()) ne.push_back(0);
-	ne.push_back(bg[x]);
-	bg[x] = ne.size() - 1;
-}
+	int bg[maxN];
+	vector <int> to, ne;
+	void add(int x, int y)
+	{
+		if (to.empty()) to.push_back(0);
+		to.push_back(y);
+		if (ne.empty()) ne.push_back(0);
+		ne.push_back(bg[x]);
+		bg[x] = ne.size() - 1;
+	}
 }G1, G2;
 template <typename T> inline T read()
 {
@@ -79,29 +79,29 @@ int belong[maxN], scc_cnt;
 
 void dfs(int u)
 {
-    pre[u] = low[u] = ++dfs_clock;
-    s.push(u);
-    vis[u] = 1;
-    for (register int i = G1.bg[u]; i ; i = G1.ne[i])
-        if (!pre[G1.to[i]])
-        {
-            dfs(G1.to[i]);
-            chkmin(low[u], low[G1.to[i]]);
-        }
-        else if (vis[G1.to[i]]) chkmin(low[u], low[G1.to[i]]);
-    if (pre[u] == low[u])
-    {
-        belong[u] = ++scc_cnt;
-        vis[u] = 0;
-        while (s.top() ^ u)
-        {
-            register int x = s.top();
-            s.pop();
-            belong[x] = scc_cnt;
-            vis[x] = 0;
-        }
-        s.pop();
-    }
+	pre[u] = low[u] = ++dfs_clock;
+	s.push(u);
+	vis[u] = 1;
+	for (register int i = G1.bg[u]; i ; i = G1.ne[i])
+		if (!pre[G1.to[i]])
+		{
+			dfs(G1.to[i]);
+			chkmin(low[u], low[G1.to[i]]);
+		}
+		else if (vis[G1.to[i]]) chkmin(low[u], low[G1.to[i]]);
+	if (pre[u] == low[u])
+	{
+		belong[u] = ++scc_cnt;
+		vis[u] = 0;
+		while (s.top() ^ u)
+		{
+			register int x = s.top();
+			s.pop();
+			belong[x] = scc_cnt;
+			vis[x] = 0;
+		}
+		s.pop();
+	}
 }
 
 int size[maxN];
@@ -201,7 +201,7 @@ int main()
 				dp[G2.to[i]] = dp[x] + size[G2.to[i]];
 		}
 	}
- 
+
 	int Max = dp[1];
 	REP(i, 2, scc_cnt) chkmax(Max, dp[i]);
 	cout << Max;
