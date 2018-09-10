@@ -1,70 +1,63 @@
-#define DREP(i, s, e) for(register int i = s; i >= e ;i--)
-#define  REP(i, s, e) for(register int i = s; i <= e ;i++)
-
-#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
-#define chkmax(a, b) a = max(a, b)
-#define chkmin(a, b) a = min(a, b)
+#define REP(i, s, e) for(register int i = s; i <= e ; i++)
 
 #include <bits/stdc++.h>
 
 using namespace std;
-const int maxn = 23, maxnode = 1 << maxn;
 
-int m, n, k, LIM;
+#define mid (l + r >> 1)
+#define ls p << 1
+#define rs p << 1 | 1
+#define lson ls, l, mid
+#define rson rs, mid + 1, r
 
-bool t[maxnode];
-void add(int x)
+const int Max = 8000000 + 10;
+
+int lazy[Max];
+bool mark[Max];
+
+inline void doit(int p, int depth, int mask)
 {
-	while (x <= LIM)
+	lazy[p] ^= mask;
+	if (mask & (1 << depth)) mark[p] ^= 1;
+}
+inline void push_down(int p, int depth)
+{
+	doit(ls, depth + 1, lazy[p]);
+	doit(rs, depth + 1, lazy[p]);
+	lazy[p] = 0;
+}
+void update(int p, int l, int r, int L, int R, int d, int depth)
+{
+	if (L <= l && r <= R)
 	{
-		t[x] ^= 1;
-		x += x & -x;
+		doit(p, depth, 1 << d);
+		return;
+	}
+	if (lazy[p]) push_down(p, depth);
+	if (!mark[p])
+	{
+		if (L <= mid)
+			update(lson, L, R, d, depth + 1);
+		if (R >  mid)
+			update(rson, L, R, d, depth + 1);
+	}
+	else
+	{
+		if (L <= mid)
+			update(rson, L - l + mid + 1, R - l + mid + 1, d, depth + 1);
+		if (R >  mid)
+			update(lson, L - mid - 1 + l, R - mid - 1 + l, d, depth + 1);
 	}
 }
-bool get(int x)
+int query(int p, int l, int r, int pos, int depth)
 {
-	bool now = 0;
-	while (x > 0)
-	{
-		now ^= t[x];
-		x -= x & -x;
-	}
-	return now;
+	if (l == r) return l;
+	if (lazy[p]) push_down(p, depth);
+	if (!mark[p]) return pos <= mid ? query(lson, pos, depth + 1) : query(rson, pos, depth + 1);
+	else return pos <= mid ? query(rson, pos - l + mid + 1, depth + 1) : query(lson, pos - mid - 1 + l, depth + 1);
 }
 
-#define getchar getchar_unlocked
-
-template <typename T> T read()
-{
-	register char c = getchar();
-	T ans(0), p = 1;
-	while (!isdigit(c))
-	{
-		if (c == '-') p = -1;
-		c = getchar();
-	}
-	while (isdigit(c))
-	{
-		ans = ans * 10 + c - '0';
-		c = getchar();
-	}
-	return ans * p;
-}
-
-int L(int x, int floor)
-{
-	if (floor == n + 1) return x;
-	return L(x << 1, floor + 1);
-}
-
-int R(int x, int floor)
-{
-	if (floor == n + 1) return x;
-	return R(x << 1 | 1, floor + 1);
-}
-
-int l[maxnode], r[maxnode];
-int idof[maxnode];
+int n, m, k;
 
 int main()
 {
@@ -73,32 +66,26 @@ int main()
 	freopen("bst.out", "w", stdout);
 #endif
 	cin >> n >> m;
-	LIM = (1 << n + 1) - 1;
-	REP(i, 1, LIM) idof[i] = i;
-	int ret = 1 << n;ret--;
-	REP(i, 1, ret) l[i] = i << 1, r[i] = i << 1 | 1;
 	while (m --> 0)
 	{
-		register int opt = read<int>();
-		if (opt == 1)
+		register int opt;
+		scanf("%d", &opt);
+		if (opt == 2)
 		{
-			register int x = read<int>(), y = read<int>();
-			
+			register int x;
+			scanf("%d", &x);
+			printf("%d\n", query(1, 0, (1 << n) - 1, x - 1, 0) + 1);
 		}
 		else
 		{
-			register int fi = read<int>();
-			fi += (1 << n) -1;
-			register int x = 1, floor = 1, id = 1;
-			while (floor <= n)
+			register int l, r;
+			scanf("%d%d", &l, &r);
+			REP(i, 0, n - 1)
 			{
-				if (L(x << 1, floor + 1) <= fi && fi <= R(x << 1, floor + 1)) x <<= 1, id = l[id];
-				else x = x << 1 | 1, id = r[id];
-				floor++;
+				register int x = max(l, 1 << i) - (1 << i), y = min(r, (1 << i + 1) - 1) - (1 << i);
+				if (x <= y) update(1, 0, (1 << i) - 1, x, y, i, 0);
 			}
-			printf("%d\n", id - (1 << n) + 1);
 		}
 	}
 	return 0;
 }
-
