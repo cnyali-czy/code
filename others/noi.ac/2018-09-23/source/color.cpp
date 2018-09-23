@@ -60,71 +60,62 @@ namespace cheat
 {
 	const int maxn = 5e5 + 10, maxm = 5e5 + 10, maxk = 5e5 + 10;
 	int a[maxn];
-	
-	const int maxsq = 720;
 
-	int belong[maxsq], block_siz, block_cnt, left[maxsq], right[maxsq];
-
-	bitset <maxsq> B[maxsq], A;
-	
-	void getbelong()
+	int C[maxn];
+	void add(int x, int y)
 	{
-		block_siz = sqrt(n);
-		register int l = 1, r = block_siz;
-		while (r <= n)
+		while (x > 0)
 		{
-			block_cnt++;
-			REP(i, l, r) B[belong[i] = block_cnt].set(a[i]);
-			left[block_cnt] = l;
-			right[block_cnt] = r;
-			l += block_siz;r += block_siz;
-		}
-		if (r > n)
-		{
-			block_cnt++;
-			REP(i, l, n) B[belong[i] = block_cnt].set(a[i]);
-			left[block_cnt] = l;right[block_cnt] = r;
+			C[x] += y;
+			x -= x & -x;
 		}
 	}
-
-	int ans[maxn];
-	int vis[maxn];
-
-	void calc(int id)
+	int sum(int x)
 	{
-		REP(i, 1, k) vis[i] = 0;
-		REP(i, left[id], right[id])
-			vis[a[i]]++;
-		ans[id] = 0;
-		REP(i, left[id], right[id])
-			if (vis[a[i]] == 1) ans[id]++;
+		register int y = 0;
+		while (x <= n)
+		{
+			y += C[x];
+			x += x & -x;
+		}
+		return y;
 	}
+
+	vector <int> v[maxn];
+	
+	struct node
+	{
+		int l, r, id;
+		bool operator < (node B) const {return r < B.r;}
+	}t[maxm];
+
+	int pos[maxn], ans[maxm];
 
 	void work()
 	{
-		REP(i, 1, n) a[i] = read<int>();
-		getbelong();
-		REP(i, 1, block_cnt) calc(i);
-		while (m --> 0)
+		REP(i, 1, n) v[a[i] = read<int>()].push_back(i);
+		REP(i, 1, m)
 		{
-			register int l = read<int>(), r = read<int>();
-			register int bl = belong[l], br = belong[r];
-			register int Ans = 0;
-			REP(i, bl + 1, br - 1) Ans += ans[i];
-			REP(i, bl + 2, br - 1)
-			{
-				B[0] = B[i] & B[i-1];
-				Ans -= B[0].count();
-			}
-			B[0].reset();
-			REP(i, bl + 1, br - 1) B[0] |= B[i];
-			A.reset();
-			REP(i, l, left[bl+1] - 1) A.set(a[i]);
-			REP(i, left[br-1] + 1, r) A.set(a[i]);
-			A &= B[0];
-			Ans += A.count();
-			write(Ans);putchar(10);
+			t[i].l = read<int>();
+			t[i].r = read<int>();
+			t[i].id = i;
 		}
+		sort(t + 1, t + 1 + m);
+		register int now = 0;
+		REP(i, 1, n)
+		{
+			register int c = a[i];
+			if (pos[c] - T - 1 >= 0)	add(v[c][pos[c] - T - 1],	1);
+			if (pos[c] - T >= 0)		add(v[c][pos[c] - T], 		-2);
+			if (pos[c] - T + 1 >= 0)	add(v[c][pos[c] - T + 1],	1);
+			for (;t[now + 1].r == i;)
+			{
+				++now;
+				ans[t[now].id] = sum(t[now].l);
+			}
+			pos[c]++;
+		}
+		REP(i, 1, m) printf("%d\n", ans[i]);
 	}
 }
 
