@@ -8,7 +8,8 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-const int maxs = 5e5 + 10, maxq = 5e5 + 10;
+const int maxs = 5e5 + 10, maxq = 5e5 + 10, maxn = maxs;
+const long long inf = 1ll << 60ll;
 
 template <typename T> inline T read()
 {
@@ -34,9 +35,15 @@ template <typename T> void write(T x)
 	putchar(x % 10 + '0');
 }
 
-int m, n, k, s, q;
+long long m, n, k, s, q;
 
-pair <int, int> S[maxs];
+struct node
+{
+	long long x;
+	int d;
+}Q[maxn << 1];
+
+bool cmp(node AAA, node BBB) {return AAA.x < BBB.x;}
 
 int main()
 {
@@ -45,12 +52,58 @@ int main()
 	freopen("4885.out", "w", stdout);
 #endif
 	cin >> n >> m >> s >> q;
+	register long long A = m - 1, B = 0, C = 0, D = m - 1;
+	register int sz = 0;
+
 	REP(i, 1, s)
 	{
-		S[i].first = read<int>();
-		S[i].second = read<int>();
+		register long long a, b, x, y;
+		a = read<long long>();
+		b = read<long long>();
+		x = (a - 1) % m;
+		y = m - b + a - 1;
+		if (y >= x)
+		{
+			Q[++sz] = (node){y - x + 1, 1};
+			Q[++sz] = (node){m - x, -1};
+		}
+		else
+		{
+			chkmax(C, m - x);
+			chkmax(D, D + y - x);
+		}
 	}
-		
-	
+	Q[++sz] = (node){-inf, 1};
+	Q[++sz] = (node){C, -1};
+	Q[++sz] = (node){D + 1, 1};
+	Q[++sz] = (node){inf, -1};
+
+	sort(Q + 1, Q + sz + 1, cmp);
+	long long L = -inf, R, sum = 0, ans = 0;
+	for (register int i = 1; i<=sz; )
+	{
+		if(sum <= 0) ans += Q[i].x - L, k = L;
+		L = Q[i].x;
+		for (;Q[i].x == L && i <= sz; i++)
+			sum += Q[i].d;
+	}
+	if (ans == 0)
+		cout << "Impossible!";
+	else if (ans > 1)
+		cout << "Uncertain!";
+	else
+	{
+		k++;
+		long long anss = 0;
+		REP(i, 1, q)
+		{
+			register long long t = read<long long>();
+			register long long x = (k + t - 2) / m + 1;
+			register long long y = (k + t - 2) % m + 1;
+			if (x < 1 || x > n || y < 1 || y > m) continue;
+			anss ^= x ^ y;
+		}
+		cout << anss;
+	}
 	return 0;
 }
