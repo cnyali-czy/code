@@ -71,8 +71,8 @@ int main()
 				goto next;
 			}
 			x = (a[i] - A) / g * x % (m[i] / g);
-			M = M / g * m[i];
 			A += x * M;
+			M = M / g * m[i];
 			A %= M;
 		}
 		printf("%lld\n", (A + M) % M);
