@@ -8,25 +8,9 @@
 #include <bits/stdc++.h>
 
 using namespace std;
+const int maxn = 1e7 + 5;
 
 #define int unsigned long long
-
-template <typename T> inline T read()
-{
-	T ans(0), p(1);
-	char c = getchar();
-	while (!isdigit(c))
-	{
-		if (c == '-') p = -1;
-		c = getchar();
-	}
-	while (isdigit(c))
-	{
-		ans = ans * 10 + c - 48;
-		c = getchar();
-	}
-	return ans * p;
-}
 
 template <typename T> void write(T x)
 {
@@ -51,6 +35,11 @@ int read()
 
 int T, n, ans, i, p, j, a1, an;
 
+bool notprime[maxn];
+int prime[maxn], p_cnt;
+
+int d[maxn], sp[maxn];
+
 signed main()
 {
 #ifdef CraZYali
@@ -59,30 +48,33 @@ signed main()
 #endif
 	fread(buf, sizeof(buf) / sizeof(char) - 10, 1, stdin);
 	T = read();
+
+	n = 1e7;
+	d[1] = 1;
+
+	REP(i, 2, n)
+	{
+		if (!notprime[i]) d[prime[++p_cnt] = i] = sp[i] = (int)1 + i;
+		REP(j, 1, p_cnt)
+		{
+			if (prime[j] > i || prime[j] * i > n) break;
+			notprime[prime[j] * i] = 1;
+			if (i % prime[j]) d[i * prime[j]] = d[i] * d[prime[j]], sp[i * prime[j]] = prime[j] + 1;
+			else
+			{
+				sp[i * prime[j]] = sp[i] * prime[j] + 1;
+				d[i * prime[j]] = d[i] / sp[i] * sp[i * prime[j]];
+				break;
+			}
+		}
+	}
+
+	REP(i, 2, n) d[i] += d[i-1];
+
 	while (T --> 0)
 	{
 		n = read();
-		ans = 0;
-//		REP(i, 1, n)
-//			ans += n % i;
-		i = 1;
-		while (i <= n)
-		{
-			p = n / i;
-			if(!p) j = n;
-			else j = min(n / p, n);
-			a1 = n % i , an = n % j;
-			ans += (j - i + 1) * (a1 + an) /2;
-			i = j + 1;
-		} 
-		write(ans);putchar(',');
+		write(n * n - d[n]);putchar(10);
 	}
-	/*	
-		REP(i, 1, 100)
-		write(100 % i), putchar( ' ');
-		putchar(10);
-		REP(i, 1, 250)
-		write(250 % i), putchar( ' ');
-		*/
 	return 0;
 }
