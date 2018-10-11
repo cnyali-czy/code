@@ -1,17 +1,14 @@
-#define DREP(i, s, e) for(register int i = s; i >= e ;i--)
 #define  REP(i, s, e) for(register int i = s; i <= e ;i++)
+#define DREP(i, s, e) for(register int i = s; i >= e ;i--)
 
-#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
-#define chkmax(a, b) a = max(a, b)
+#define DEBUG fprintf(stderr, "Passing [%s] in LINE %d\n", __FUNCTION__, __LINE__)
 #define chkmin(a, b) a = min(a, b)
+#define chkmax(a, b) a = max(a, b)
 
-#include <iostream>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
+#include <bits/stdc++.h>
 
 using namespace std;
-const int maxn = 2e5 + 10, maxm = maxn;
+const int maxn = 200000 + 10, maxm = maxn, inf = 1e9;
 
 int bg[maxn], ne[maxm << 1], to[maxm << 1], w[maxm << 1], e = 1;
 inline void add(int x, int y, int z)
@@ -23,7 +20,7 @@ inline void add(int x, int y, int z)
 	w[e] = z;
 }
 
-template <typename T> inline T read()
+template <typename T> T read()
 {
 	T ans(0), p(1);
 	char c = getchar();
@@ -40,36 +37,31 @@ template <typename T> inline T read()
 	return ans * p;
 }
 
-template <typename T> void write(T x)
-{
-	if (x < 0) putchar('-'), write(-x);
-	else if (x / 10) write(x / 10);
-	putchar(x % 10 + '0');
-}
-
 int m, n, k;
 
-int dp[maxn], F[maxn], deg[maxn];
+int D[maxn], F[maxn];
+int deg[maxn];
 
-void dfs(int x, int fa = -1)
+void dfs(int x, int fa)
 {
+	D[x] = 0;
 	for (register int i = bg[x]; i ; i = ne[i])
 		if (to[i] ^ fa)
 		{
 			dfs(to[i], x);
-			if (deg[to[i]] > 1) dp[x] += min(w[i], dp[to[i]]);
-			else dp[x] += w[i];
+			if (deg[to[i]] > 1) D[x] += min(D[to[i]], w[i]);
+			else D[x] += w[i];
 		}
 }
 
-void get(int x, int fa = -1)
+void dp(int x, int fa)
 {
 	for (register int i = bg[x]; i ; i = ne[i])
 		if (to[i] ^ fa)
 		{
-			if (deg[x] == 1) F[to[i]] = dp[to[i]] + w[i];
-			else F[to[i]] = dp[to[i]] + min(w[i], F[x] - min(dp[to[i]], w[i]));
-			get(to[i], x);
+			dp(to[i], x);
+			if (deg[x] == 1) F[to[i]] = D[to[i]] + w[i];
+			else F[to[i]] = D[to[i]] + min(F[x] - min(D[to[i]], w[i]), w[i]);
 		}
 }
 
@@ -83,23 +75,24 @@ int main()
 	while (T --> 0)
 	{
 		n = read<int>();
+		REP(i, 1, n) bg[i] = deg[i] = 0;
 		e = 1;
-		REP(i, 1, n) bg[i] = dp[i] = deg[i] = 0;
+
 		REP(i, 2, n)
 		{
-			register int x(read<int>()), y(read<int>()), z(read<int>());
+			register int x = read<int>(), y = read<int>(), z = read<int>();
 			deg[x]++;deg[y]++;
-			add(x, y, z);
-			add(y, x, z);
+			add(x, y, z);add(y, x, z);
 		}
-		
-		dfs(1);
-		F[1] = dp[1];
-		get(1);
+		dfs(1, 0);
+
+		F[1] = D[1];
+		dp(1, 0);
+
 		register int ans = F[1];
 		REP(i, 2, n) chkmax(ans, F[i]);
 		printf("%d\n", ans);
 	}
-	
+
 	return 0;
 }
