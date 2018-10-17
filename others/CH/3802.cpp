@@ -5,9 +5,7 @@
 #define chkmax(a, b) a = max(a, b)
 #define chkmin(a, b) a = min(a, b)
 
-#include <iostream>
-#include <cstdio>
-#include <queue>
+#include <bits/stdc++.h>
 
 using namespace std;
 const int maxn = 100000 + 10, maxm = maxn << 1;
@@ -16,8 +14,7 @@ int bg[maxn], ne[maxm], to[maxm], w[maxm], e;
 inline void add(int x, int y, int z)
 {
 	e++;
-	to[e] = y;
-	ne[e] = bg[x];
+	to[e] = y; ne[e] = bg[x];
 	bg[x] = e;
 	w[e] = z;
 }
@@ -48,9 +45,9 @@ template <typename T> void write(T x)
 
 int m, n, k;
 
-int de[maxn], ot[maxn];
-
+int in[maxn], de[maxn];
 double dp[maxn];
+
 queue <int> q;
 
 int main()
@@ -63,8 +60,7 @@ int main()
 	while (m --> 0)
 	{
 		register int x = read<int>(), y = read<int>(), z = read<int>();
-		add(y, x, z);
-		de[x]++;ot[x]++;
+		add(y, x, z);in[x]++;de[x]++;
 	}
 
 	q.push(n);
@@ -74,9 +70,9 @@ int main()
 		q.pop();
 		for (register int i = bg[x]; i ; i = ne[i])
 		{
-			dp[to[i]] += (dp[x] + w[i]) / de[to[i]];
-			ot[to[i]]--;
-			if (!ot[to[i]]) q.push(to[i]);
+			dp[to[i]] += (dp[x] + w[i]) * 1.0 / de[to[i]];
+			in[to[i]]--;
+			if (!in[to[i]]) q.push(to[i]);
 		}
 	}
 	printf("%.2lf", dp[1]);
