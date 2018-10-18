@@ -1,125 +1,151 @@
-#define DREP(i, s, e) for(register int i = s; i >= e ;i--)
 #define  REP(i, s, e) for(register int i = s; i <= e ;i++)
+#define DREP(i, s, e) for(register int i = s; i >= e ;i--)
 
-#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
-#define chkmax(a, b) a = max(a, b)
+#define DEBUG fprintf(stderr, "Passing [%s] in LINE %d\n", __FUNCTION__, __LINE__)
 #define chkmin(a, b) a = min(a, b)
+#define chkmax(a, b) a = max(a, b)
 
-#include <algorithm>
-#include <iostream>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <bitset>
-#include <vector>
-#include <cmath>
-#include <queue>
-#include <map>
-#include <set>
+#include <bits/stdc++.h>
 
 using namespace std;
 const int maxn = 100000 + 10;
 
-int n, opt, x;
-
-struct node {int s, v, order, l, r;} t[maxn];
-int t_cnt, root = 1;
-inline int new_node(int val)
+template <typename T> T read()
 {
-	t[++t_cnt] = (node) {1, val, rand(), 0, 0};
-	return t_cnt;
+    T ans(0), p(1);
+    char c = getchar();
+    while (!isdigit(c))
+    {
+        if (c == '-') p = -1;
+        c = getchar();
+    }
+    while (isdigit(c))
+    {
+        ans = ans * 10 + c - 48;
+        c = getchar();
+    }
+    return ans * p;
 }
 
-inline void maintain(int x) {t[x].s = t[t[x].l].s + t[t[x].r].s + 1;}
-inline void split(int x, int &a, int &b, int val)
+struct node
 {
-	if (!x) {a = b = 0;return;}
-	if (t[x].v > val) split(t[x].l, a, t[b = x].l, val);
-	else split(t[x].r, t[a = x].r, b, val);
-	maintain(x);
-}
+    int l, r, val, s, order;
+    node() {}
+    node(int _val) : val(_val){l = r = 0;s = 1;order = rand() ;}
+};
 
-inline void merge(int &x, int a, int b)
+struct FHQ
 {
-	if (!(a * b)) {x = a + b;return;}
-	if (t[a].order >= t[b].order) merge(t[x = b].l, a, t[b].l);
-	else merge(t[x = a].r, t[a].r, b);
-	maintain(x);
-}
+    node t[maxn];
+    int cnt, root;
 
-inline int kth(int now, int k)
-{
-	while ((t[t[now].l].s + 1) ^ k)
-		if (t[t[now].l].s >= k) now = t[now].l;
-		else k -= t[t[now].l].s + 1, now = t[now].r;
-	return t[now].v;
-}
+    int newnode(int val)
+    {
+        t[++cnt] = node(val);
+        return cnt;
+    }
+    void update(int x) {t[x].s = t[t[x].l].s + t[t[x].r].s + 1;}
 
-inline void insert(int val)
-{
-	int x(0), y(0), z(new_node(val));
-	split(root, x, y, val);
-	merge(x, x, z);
-	merge(root, x, y);
-}
+    void merge(int &x, int a, int b)
+    {
+        if (!(a * b)) x = a + b;
+        else
+        {
+            if (t[a].order > t[b].order) merge(t[x = b].l, a, t[b].l);
+            else merge(t[x = a].r, t[a].r, b);
+            update(x);
+        }
+    }
 
-inline void delet(int val)
-{
-	int x(0), y(0), z(0);
-	split(root, x, y, val);
-	split(x, x, z, val - 1);
-	merge(z, t[z].l, t[z].r);
-	merge(x, x, z);
-	merge(root, x, y);
-}
+    void split_by_val(int x, int &a, int &b, int val)
+    {
+        if (!x) a = b = 0;
+        else
+        {
+            if (t[x].val > val) split_by_val(t[b = x].l, a, t[x].l, val);
+            else split_by_val(t[a = x].r, t[x].r, b, val);
+            update(x);
+        }
+    }
 
-inline int _rank(int val)
-{
-	int x(0), y(0);
-	split(root, x, y, val - 1);
-	int ans = t[x].s + 1;
-	merge(root, x, y);
-	return ans;
-}
+    void insert(int val)
+    {
+        int x(0), y(0), z(newnode(val));
+        split_by_val(root, x, y, val);
+        merge(x, x, z);
+        merge(root, x, y);
+    }
 
-inline int pre(int val)
-{
-	int x(0), y(0);
-	split(root, x, y, val - 1);
-	int ans = kth(x, t[x].s);
-	merge(root, x, y);
-	return ans;
-}
+    void del(int val)
+    {
+        int x(0), y(0), z(0);
+        split_by_val(root, x, y, val);
+        split_by_val(x, x, z, val - 1);
+        merge(z, t[z].l, t[z].r);
+        merge(x, x, z);
+        merge(root, x, y);
+    }
 
-inline int nxt(int val)
-{
-	int x(0), y(0);
-	split(root, x, y, val);
-	int ans = kth(y, 1);
-	merge(root, x, y);
-	return ans;
-}
+    int _rank(int val)
+    {
+        int x(0), y(0);
+        split_by_val(root, x, y, val - 1);
+        int ans = t[x].s + 1;
+        merge(root, x, y);
+        return ans;
+    }
+
+    int kth(int now, int k)
+    {
+        while (t[t[now].l].s + 1 != k)
+            if (t[t[now].l].s >= k) now = t[now].l;
+            else
+            {
+                k -= t[t[now].l].s + 1;
+                now = t[now].r;
+            }
+        return t[now].val;
+    }
+
+    int pre(int val)
+    {
+        int x(0), y(0);
+        split_by_val(root, x, y, val - 1);
+        int ans = kth(x, t[x].s);
+        merge(root, x, y);
+        return ans;
+    }
+
+    int nex(int val)
+    {
+        int x(0), y(0);
+        split_by_val(root, x, y, val);
+        int ans = kth(y, 1);
+        merge(root, x, y);
+        return ans;
+    }
+}T;
+
+int m, n, k;
 
 int main()
 {
 #ifdef CraZYali
-	freopen("3369.in", "r", stdin);
-	freopen("3369.out", "w", stdout);
+    freopen("3369.in", "r", stdin);
+    freopen("3369.out", "w", stdout);
 #endif
-	cin >> n;
-	srand(n);
-	new_node(1e9);
-	t[1].s = 0;
-	while (n --> 0)
-	{
-		scanf("%d%d", &opt, &x);
-		if (opt == 1) insert(x);
-		else if (opt == 2) delet(x);
-		else if (opt == 3) printf("%d\n", _rank(x));
-		else if (opt == 4) printf("%d\n", kth(root, x));
-		else if (opt == 5) printf("%d\n", pre(x));
-		else printf("%d\n", nxt(x));
-	}
+    cin >> n;
+    srand(n);
+    REP(i, 1, n)
+    {
+        register int opt = read<int>(), x = read<int>();
+        if (opt == 1) T.insert(x);
+        else if (opt == 2) T.del(x);
+        else if (opt == 3) printf("%d\n", T._rank(x));
+        else if (opt == 4) printf("%d\n", T.kth(T.root, x));
+        else if (opt == 5) printf("%d\n", T.pre(x));
+        else printf("%d\n", T.nex(x));
+    }
 
-	return 0;
+    return 0;
 }
