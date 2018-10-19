@@ -52,19 +52,19 @@ void dfs1(int x)
 			sum[x] += sum[to[i]];
 		}
 
-	hson[x] = -1;
 	for (register int i = bg[x]; i ; i = ne[i])
 		if (to[i] ^ fa[x] && sum[to[i]] > sum[hson[x]]) hson[x] = to[i];
 	for (register int i = bg[x]; i ; i = ne[i])
 		if (to[i] == hson[x]) {h[i] = h[i ^ 1] = 1;break;}
 }
 
-int w[maxn], dfn[maxn], dfs_clock, top[maxn];
+int w[maxn], dfn[maxn], dfs_clock, top[maxn], wt[maxn];
 void dfs2(int x, int topf)
 {
 	top[x] = topf;
-	dfn[x] = ++dfs_clock;
-	if (hson[x] != -1)
+	wt[dfn[x] = ++dfs_clock] = w[x];
+	
+	if (hson[x])
 	{
 		dfs2(hson[x], topf);
 		for (register int i = bg[x]; i ; i = ne[i])
@@ -77,13 +77,12 @@ void dfs2(int x, int topf)
 #define mid (l + r >> 1)
 #define lson ls, l, mid
 #define rson rs, mid + 1, r
-
 struct SMT
 {
 	int s[maxn << 2], tag[maxn << 2];
 	void build(int p, int l, int r)
 	{
-		if (l == r) s[p] = w[l] ;
+		if (l == r) s[p] = wt[l] % MOD;
 		else
 		{
 			build(lson);
@@ -92,22 +91,18 @@ struct SMT
 		}
 	}
 
-	void maintain(int p, int l, int r, int val) {s[p] = (s[p] + (r - l + 1) * val % MOD) % MOD;}
+	void maintain(int p, int l, int r, int val) {tag[p] = (tag[p] + val) % MOD;s[p] = (s[p] + (r - l + 1) * val % MOD) % MOD;}
 
 	void update(int p, int l, int r, int L, int R, int val)
 	{
-		if (L <= l && r <= R)
-		{
-			s[p] = (s[p] + val) % MOD;
-			tag[p] = (tag[p] + val) % MOD;
-		}
+		if (L <= l && r <= R) maintain(p, l, r, val);
 		else
 		{
 			if (tag[p])
 			{
 				maintain(lson, tag[p]);
 				maintain(rson, tag[p]);
-				tag[p]= 0;
+				tag[p] = 0;
 			}
 			if (L <= mid) update(lson, L, R, val);
 			if (R >  mid) update(rson, L, R, val);
@@ -116,7 +111,7 @@ struct SMT
 	}
 	int query(int p, int l, int r, int L, int R)
 	{
-		if (L <= l && r <= R) return s[p];
+		if (L <= l && r <= R) return s[p] ;
 		else
 		{
 			if (tag[p])
@@ -132,7 +127,6 @@ struct SMT
 		}
 	}
 }T;
-
 int sum1(int x, int y)
 {
 	int ans = 0;
