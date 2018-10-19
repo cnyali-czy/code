@@ -59,12 +59,11 @@ void dfs1(int x)
 		if (to[i] == hson[x]) {h[i] = h[i ^ 1] = 1;break;}
 }
 
-int w[maxn], wt[maxn], dfn[maxn], dfs_clock, top[maxn];
+int w[maxn], dfn[maxn], dfs_clock, top[maxn];
 void dfs2(int x, int topf)
 {
 	top[x] = topf;
 	dfn[x] = ++dfs_clock;
-	wt[dfn[x]] = w[x];
 	if (hson[x] != -1)
 	{
 		dfs2(hson[x], topf);
@@ -84,7 +83,7 @@ struct SMT
 	int s[maxn << 2], tag[maxn << 2];
 	void build(int p, int l, int r)
 	{
-		if (l == r) s[p] = wt[l] ;
+		if (l == r) s[p] = w[l] ;
 		else
 		{
 			build(lson);
@@ -115,7 +114,7 @@ struct SMT
 			s[p] = (s[ls] + s[rs]) % MOD;
 		}
 	}
-	int sum(int p, int l, int r, int L, int R)
+	int query(int p, int l, int r, int L, int R)
 	{
 		if (L <= l && r <= R) return s[p];
 		else
@@ -125,13 +124,50 @@ struct SMT
 				maintain(lson, tag[p]);
 				maintain(rson, tag[p]);
 				tag[p]= 0;
+			}
 			register int res = 0;
-			if (L <= mid) res = (res + sum(lson, L, R)) % MOD;
-			if (R >  mid) res = (res + sum(rson, L, R)) % MOD;
+			if (L <= mid) res = (res + query(lson, L, R)) % MOD;
+			if (R >  mid) res = (res + query(rson, L, R)) % MOD;
 			return res;
 		}
 	}
 }T;
+
+int sum1(int x, int y)
+{
+	int ans = 0;
+	while (top[x] != top[y])
+	{
+		if (depth[top[x]] < depth[top[y]]) swap(x, y);
+		ans += T.query(1, 1, n, dfn[top[x]], dfn[x]); ans %= MOD;
+		x = fa[top[x]];
+	}
+	if (depth[x] > depth[y]) swap(x, y);
+	return (ans + T.query(1, 1, n, dfn[x], dfn[y])) % MOD;
+}
+
+int sum2(int x)
+{
+	return T.query(1, 1, n, dfn[x], dfn[x] + sum[x] - 1);
+}
+
+void update1(int x, int y, int z)
+{
+	while (top[x] != top[y])
+	{
+		if (depth[top[x]] < depth[top[y]]) swap(x, y);
+		T.update(1, 1, n, dfn[top[x]], dfn[x], z);
+		x = fa[top[x]];
+	}
+	if (depth[x] > depth[y]) swap(x, y);
+	T.update(1, 1, n, dfn[x], dfn[y], z);
+}
+
+void update2(int x, int z)
+{
+	T.update(1, 1, n, dfn[x], dfn[x] + sum[x] - 1, z);
+}
+
 signed main()
 {
 #ifdef CraZYali
@@ -148,7 +184,27 @@ signed main()
 	depth[root] = 1;
 	dfs1(root);
 	dfs2(root, root);
-	
+	T.build(1, 1, n);
+	while (m --> 0)
+	{
+		register int opt = read<int>(), x = read<int>();
+		if (opt == 1)
+		{
+			register int y = read<int>(), z = read<int>() % MOD;
+			update1(x, y, z);
+		}
+		else if (opt == 2)
+		{
+			register int y = read<int>();
+			printf("%lld\n", sum1(x, y));
+		}
+		else if (opt == 3)
+		{
+			register int z = read<int>() % MOD;
+			update2(x, z);
+		}
+		else printf("%lld\n", sum2(x));
+	}
 
 	return 0;
 }
