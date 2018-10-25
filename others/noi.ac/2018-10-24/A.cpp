@@ -9,14 +9,12 @@
 
 #define double long double
 using namespace std;
-const double eps =5e-10, E = 1e-7;
+const double eps = 1e-10, E = 1e-7;
 const int maxn = 1e5 + 10;
 
-int n, m, k;
+unsigned long long int n, m, k;
 
-double delta(double a, double b, double c) {return b * b - 4 * a * c;}
-
-long long d[maxn], a[maxn], b[maxn], c[maxn];
+unsigned long long d[maxn], a[maxn], b[maxn], c[maxn];
 
 bool check(double x)
 {
@@ -25,6 +23,8 @@ bool check(double x)
 	{
 		double need = x - d[i];
 		if (need > 0) res += need * need * a[i] + b[i] * need + c[i];
+		if (res > m) return 0;
+		if (res == m && eps) return 0;
 	}
 	return res <= m;
 }
@@ -36,7 +36,7 @@ int main()
 	freopen("A.out", "w", stdout);
 #endif
 	cin >> n;
-	REP(i, 1, n) scanf("%lld%lld%lld%lld", d + i, a + i, b + i, c + i);
+	REP(i, 1, n) scanf("%llu%llu%llu%llu", d + i, a + i, b + i, c + i);
 	cin >> m;
 	register double l = 0, r = 1e20, ans;
 	while (r - l >= eps)
@@ -52,3 +52,4 @@ int main()
 	printf("%.8Lf", ans);
 	return 0;
 }
+
