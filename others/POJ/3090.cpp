@@ -7,41 +7,9 @@
 
 #include <iostream>
 #include <cstdio>
-#include <cstring>
-#include <vector>
 
 using namespace std;
-const int maxn = 1e6 + 10;
-
-long long s[maxn];
-
-bool notprime[maxn];
-
-//vector <int> prime;
-
-int prime[maxn];
-int prime_cnt, phi[maxn];
-
-void get_phi(int n)
-{
-	REP(i, 2, n)
-	{
-		if (!notprime[i])
-		{
-			prime[++prime_cnt] = i;
-			phi[i] = i - 1;
-		}
-		REP(j, 1, prime_cnt)
-		{
-			if (prime[j] > i || prime[j] * i > n) break;
-			notprime[i * prime[j]] = 1;
-			phi[i * prime[j]] = phi[i] * (i % prime[j] ? prime[j] - 1 : prime[j]);
-		}
-	}
-
-	REP(i, 1, n) s[i] = s[i - 1] + (long long)phi[i];
-}
-
+const int N = 1000 , maxn = N + 10;
 
 template <typename T> inline T read()
 {
@@ -60,7 +28,34 @@ template <typename T> inline T read()
 	return ans * p;
 }
 
+template <typename T> void write(T x)
+{
+	if (x < 0) putchar('-'), write(-x);
+	else if (x / 10) write(x / 10);
+	putchar(x % 10 + '0');
+}
+
 int m, n, k;
+
+bool notprime[maxn];
+int prime[maxn], prime_cnt, phi[maxn], sum[maxn];
+
+void init(int N)
+{
+	phi[1] = 1;sum[1] = 1;
+	REP(i, 2, N)
+	{
+		if (!notprime[i]) prime[++prime_cnt] = i, phi[i] = i - 1;
+		REP(j, 1, prime_cnt)
+		{
+			if (prime[j] > i || i * prime[j] > N) break;
+			notprime[i * prime[j]] = 1;
+			if (i % prime[j] == 0) phi[i * prime[j]] = phi[i] * prime[j];
+			else phi[i * prime[j]] = phi[i] * (prime[j] - 1);
+		}
+		sum[i] = sum[i-1] + phi[i];
+	}
+}
 
 int main()
 {
@@ -68,14 +63,14 @@ int main()
 	freopen("3090.in", "r", stdin);
 	freopen("3090.out", "w", stdout);
 #endif
-	get_phi(1000000);
+	init(N);
 
 	register int T = read<int>();
 	REP(i, 1, T)
 	{
-		n = read<int>();
-		printf("%d %d %lld\n", i, n, s[n] * 2 + 3);
+		write(i);putchar(' ');
+		write(n = read<int>());putchar(' ');
+		write(1 + 2 * sum[n]);putchar(10);
 	}
-
 	return 0;
 }
