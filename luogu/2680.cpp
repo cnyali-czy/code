@@ -5,19 +5,19 @@
 #define chkmax(a, b) a = max(a, b)
 #define chkmin(a, b) a = min(a, b)
 
-#include <algorithm>
-#include <iostream>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <bitset>
-#include <vector>
-#include <cmath>
-#include <queue>
-#include <map>
-#include <set>
+#include <bits/stdc++.h>
 
 using namespace std;
+const int maxn = 3e5 + 10, maxm = maxn;
+int bg[maxn], ne[maxm << 1], to[maxm << 1], w[maxm << 1], e = 1;
+inline void add(int x, int y, int z)
+{
+	e++;
+	to[e] = y;
+	ne[e] = bg[x];
+	bg[x] = e;
+	w[e] = z;
+}
 
 template <typename T> inline T read()
 {
@@ -42,88 +42,60 @@ template <typename T> void write(T x)
 	else if (x / 10) write(x / 10);
 	putchar(x % 10 + '0');
 }
-const int maxn = 300000 + 10, maxm = maxn;
-
-int bg[maxn], ne[maxm << 1], to[maxm << 1], w[maxm << 1], e = 1;
-inline void add(int x, int y, int z)
-{
-	e++;
-	to[e] = y;
-	ne[e] = bg[x];
-	bg[x] = e;
-	w[e] = z;
-}
 
 int m, n, k, LOG;
+int u[maxm], v[maxm], lca[maxm], len[maxm];
 
-int grand[maxn][19], depth[maxn] = {0, 1};
-
-void pre_grand(int x)
+int grand[maxn][20], depth[maxn], dist[maxn], fa[maxn], dfn[maxn], dfs_clock, wt[maxn];
+void dfs(int x)
 {
+	dfn[x] = ++dfs_clock;
 	for (register int i = bg[x]; i ; i = ne[i])
 		if (to[i] ^ grand[x][0])
 		{
+			fa[to[i]] = x;
+			dist[to[i]] = dist[x] + w[i];
 			grand[to[i]][0] = x;
 			depth[to[i]] = depth[x] + 1;
-			pre_grand(to[i]);
+			dfs(to[i]);
 		}
+		else wt[x] = w[i];
 }
-
-int lca[maxm];
-
-int get_lca(int x, int y)
+int getlca(int x, int y)
 {
 	if (depth[x] < depth[y]) swap(x, y);
-	DREP(i, LOG, 0)
-		if (depth[grand[x][i]] >= depth[y]) x = grand[x][i];
+	DREP(i, LOG, 0) if (depth[grand[x][i]] >= depth[y]) x = grand[x][i];
 	if (x == y) return x;
 	else
 	{
 		DREP(i, LOG, 0)
-			if (grand[x][i] ^ grand[y][i])
-			{
-				x = grand[x][i];
-				y = grand[y][i];
-			}
+			if (grand[x][i] ^ grand[y][i]) x = grand[x][i], y = grand[y][i];
 		return grand[x][0];
 	}
 }
 
-pair <int, int> Q[maxm];
+int cnt[maxn], Max;
 
-int dist[maxn];
-
-void dfs(int x, int y)
+void dfs3(int x, int fa = -1)
 {
-	dist[x] = y;
 	for (register int i = bg[x]; i ; i = ne[i])
-		if (to[i] ^ grand[x][0]) dfs(to[i], y + w[i]);
+		if (to[i] ^ fa) {dfs3(to[i], x);cnt[x] += cnt[to[i]];}
 }
 
-#define get_dist() dfs(1, 0)
-
-int x, y, z;
-
-int ans = 1e9;
-/*
-void pre_dist(int x)
+bool check(int Mid)
 {
-	for (register int i = bg[x]; i ; i = ne[i])
-		if (to[i] ^ grand[x][0])
+	REP(i, 0, n) cnt[i] = 0;
+	REP(i, 1, m)
+		if (len[i] > Mid)
 		{
-			dist[to[i]][0] = w[i];
-			pre_dist(to[i]);
+			cnt[0]++;
+			cnt[u[i]]++;cnt[v[i]]++;cnt[lca[i]] -= 2;
 		}
-}
-*/
-void calc()
-{
-	register int Max = -1;
-
-	get_dist();
-
-	REP(i, 1, m) chkmax(Max, dist[Q[i].first] + dist[Q[i].second] - 2 * dist[lca[i]]);
-	chkmin(ans, Max);
+	if (!cnt[0]) return 1;
+	int res = -1e9;
+	dfs3(1);
+	REP(i, 1, n) if (cnt[i] == cnt[0]) chkmax(res, wt[i]);//, cout << "YES : " << i << ' ' << fa[i] << endl;
+	return Max - res <= Mid;
 }
 
 int main()
@@ -133,40 +105,30 @@ int main()
 	freopen("2680.out", "w", stdout);
 #endif
 	cin >> n >> m;
-	LOG = log(n) / log(2);
 	REP(i, 2, n)
 	{
-		x = read<int>();y = read<int>(); z = read<int>();
+		register int x = read<int>(), y = read<int>(), z = read<int>();
 		add(x, y, z);add(y, x, z);
 	}
-	REP(i, 1, m) Q[i] = make_pair(read<int>(), read<int>());
-
-	pre_grand(1);
+	depth[1] = 1;
+	dfs(1);
+	LOG = log2(n);
 	REP(j, 1, LOG)
-		REP(i, 1, n)
-			grand[i][j] = grand[grand[i][j-1]][j-1];
+		REP(i, 1, n) grand[i][j] = grand[grand[i][j-1]][j-1];
 
-	REP(i, 1, n) lca[i] = get_lca(Q[i].first, Q[i].second);
-	
-	get_dist();
+	REP(i, 1, m) u[i] = read<int>(), v[i] = read<int>(), lca[i] = getlca(u[i], v[i]), len[i] = dist[u[i]] + dist[v[i]] - 2 * dist[lca[i]], chkmax(Max, len[i]);
 
-	REP(E, 1, n - 1)
+	register int l = 0, r = Max, ans;
+	while (l <= r)
 	{
-		register int W = w[E << 1];
-		w[E << 1] = w[E << 1 | 1] = 0;
-		calc();
-		w[E << 1] = w[E << 1 | 1] = W;
+		register int Mid = l + r >> 1;
+		if (check(Mid))
+		{
+			ans = Mid;
+			r = Mid - 1;
+		}
+		else l = Mid + 1;
 	}
-	
-/*
-	REP(E, 1, n - 1)
-	{
-		register int W = w[E << 1];
-		w[E << 1] = w[E << 1 | 1] = 0;
-		calc();
-		w[E << 1] = w[E << 1 | 1] = W;
-	}
-*/
 	cout << ans;
 	return 0;
 }
