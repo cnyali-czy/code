@@ -5,17 +5,7 @@
 #define chkmax(a, b) a = max(a, b)
 #define chkmin(a, b) a = min(a, b)
 
-#include <algorithm>
-#include <iostream>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <bitset>
-#include <vector>
-#include <cmath>
-#include <queue>
-#include <map>
-#include <set>
+#include <bits/stdc++.h>
 
 using namespace std;
 const int maxn = 50000 + 10, inf = 1e9;
