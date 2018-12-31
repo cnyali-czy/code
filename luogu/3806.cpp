@@ -94,7 +94,7 @@ int get_sum(int x, int y)
 }
 
 int ans;
-void calc(int x)
+int calc(int x)
 {
 	vis[x] = 1;
 	ans += get_sum(x, 0);
