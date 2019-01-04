@@ -1,4 +1,3 @@
-#define lim while
 #define  REP(i, s, e) for (register int i = s; i <= e; i++)
 #define DREP(i, s, e) for (register int i = s; i >= e; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
@@ -9,7 +8,7 @@
 #include <bits/stdc++.h>
 
 using namespace std;
-const int maxn = 30000 + 10, maxm = maxn;
+const int maxn = 30000 + 10, maxm = maxn, inf = (((1 << 30) - 1) << 1) + 1;
 
 int bg[maxn], ne[maxm << 1], to[maxm << 1], e = 1;
 inline void add(int x, int y)
@@ -22,7 +21,7 @@ inline void add(int x, int y)
 
 template <typename T> T read()
 {
-	T res = 0, p = 1;
+	T ans = 0, p = 1;
 	char c = getchar();
 	while (!isdigit(c))
 	{
@@ -31,16 +30,16 @@ template <typename T> T read()
 	}
 	while (isdigit(c))
 	{
-		res = res * 10 + c - 48;
+		ans = ans * 10 + c - 48;
 		c = getchar();
 	}
-	return res * p;
+	return ans * p;
 }
 
-int n, m, w[maxn], depth[maxn], dfn[maxn], dfs_clock, wt[maxn], fa[maxn], son[maxn], hson[maxn], top[maxn];
+int n, m, depth[maxn], w[maxn], wt[maxn], dfs_clock, dfn[maxn], top[maxn], fa[maxn], son[maxn], hson[maxn];
 void dfs1(int x)
 {
-	son[x] = 1;
+	son[x] = 1;hson[x]=0;
 	for (register int i = bg[x]; i ; i = ne[i])
 		if (to[i] ^ fa[x])
 		{
@@ -48,7 +47,7 @@ void dfs1(int x)
 			depth[to[i]] = depth[x] + 1;
 			dfs1(to[i]);
 			son[x] += son[to[i]];
-			if (son[hson[x]] <= son[to[i]]) hson[x] = to[i];
+			if (son[to[i]] >= son[hson[x]]) hson[x] = to[i];
 		}
 }
 void dfs2(int x, int y)
@@ -62,80 +61,89 @@ void dfs2(int x, int y)
 			if (to[i] ^ fa[x] && to[i] ^ hson[x]) dfs2(to[i], to[i]);
 	}
 }
+
 #define ls p << 1
 #define rs p << 1 | 1
 #define mid (l + r >> 1)
 #define lson ls, l, mid
 #define rson rs, mid + 1, r
 
-int Max[maxn << 2], Sum[maxn << 2];
+int Sum[maxn << 2], Max[maxn << 2];
+
+void maintain(int p, int l, int r)
+{
+	Sum[p] = Sum[ls] + Sum[rs];
+	Max[p] = max(Max[ls], Max[rs]);
+}
+
 void build(int p, int l, int r)
 {
-	if (l == r) Max[p] = Sum[p] = wt[l];
+	if (l == r) Sum[p] = Max[p] = wt[l];
 	else
 	{
 		build(lson);
 		build(rson);
-		Max[p] = max(Max[ls], Max[rs]);
-		Sum[p] = Sum[ls] + Sum[rs];
+		maintain(p, l, r);
 	}
 }
-int qsum(int p, int l, int r, int L, int R)
+
+int query_sum(int p, int l, int r, int L, int R)
 {
 	if (L <= l && r <= R) return Sum[p];
 	else
 	{
-		if (L >  mid) return qsum(rson, L, R);
-		if (R <= mid) return qsum(lson, L, R);
-		return qsum(lson, L, R) + qsum(rson, L, R);
+		if (L >  mid) return query_sum(rson, L, R);
+		if (R <= mid) return query_sum(lson, L, R);
+		return query_sum(lson, L, R) + query_sum(rson, L, R);
 	}
 }
-int qmax(int p, int l, int r, int L, int R)
+
+int query_max(int p, int l, int r, int L, int R)
 {
 	if (L <= l && r <= R) return Max[p];
 	else
 	{
-		if (L >  mid) return qmax(rson, L, R);
-		if (R <= mid) return qmax(lson, L, R);
-		return max(qmax(lson, L, R), qmax(rson, L, R));
+		if (L >  mid) return query_max(rson, L, R);
+		if (R <= mid) return query_max(lson, L, R);
+		return max(query_max(lson, L, R), query_max(rson, L, R));
 	}
 }
-void change(int p, int l, int r, int pos, int val)
+void update(int p, int l, int r, int pos, int val)
 {
-	if (l == r) Max[p] = Sum[p] = val;
+	if (l == r) Sum[p] = Max[p] = val;
 	else
 	{
-		if (pos >  mid) change(rson, pos, val);
-		else 			change(lson, pos, val);
-		Max[p] = max(Max[ls], Max[rs]);
-		Sum[p] = Sum[ls] + Sum[rs];
+		if (pos >  mid) update(rson, pos, val);
+		else			update(lson, pos, val);
+		maintain(p, l, r);
 	}
 }
 
+void CHANGE(int u, int t) {update(1, 1, n, dfn[u], t);}
 int QMAX(int x, int y)
 {
-	int res = max(w[x], w[y]);
+	int res = -inf;
 	while (top[x] ^ top[y])
 	{
 		if (depth[top[x]] < depth[top[y]]) swap(x, y);
-		chkmax(res, qmax(1, 1, n, dfn[top[x]], dfn[x]));
+		chkmax(res, query_max(1, 1, n, dfn[top[x]], dfn[x]));
 		x = fa[top[x]];
-	} 
+	}
 	if (depth[x] > depth[y]) swap(x, y);
-	return max(res, qmax(1, 1, n, dfn[x], dfn[y]));
+	return max(res, query_max(1, 1, n, dfn[x], dfn[y]));
 }
 
 int QSUM(int x, int y)
 {
-    int res = 0;
-    while (top[x] != top[y])
-    {
-        if (depth[top[x]] < depth[top[y]]) swap(x, y);
-        res += qsum(1, 1, n, dfn[top[x]], dfn[x]);
-        x = fa[top[x]];
-    }
-    if (depth[x] > depth[y]) swap(x, y);
-    return res + qsum(1, 1, n, dfn[x], dfn[y]);
+	int res = 0;
+	while (top[x] ^ top[y])
+	{
+		if (depth[top[x]] < depth[top[y]]) swap(x, y);
+		res += query_sum(1, 1, n, dfn[top[x]], dfn[x]);
+		x = fa[top[x]];
+	}
+	if (depth[x] > depth[y]) swap(x, y);
+	return res + query_sum(1, 1, n, dfn[x], dfn[y]);
 }
 
 int main()
@@ -152,19 +160,16 @@ int main()
 	}
 	REP(i, 1, n) w[i] = read<int>();
 	depth[1] = 1;
-	dfs1(1);
-	dfs2(1, 1);
+	dfs1(1);dfs2(1, 1);
 	build(1, 1, n);
 	cin >> m;
-	lim(m--)
+	while (m --> 0)
 	{
-		char s[20];
-		scanf("%s", s + 1);
-		register int x = read<int>(), y = read<int>();
-		int len = strlen(s + 1);
-		if (s[len] == 'E') change(1, 1, n, x, y);
-		else if (s[len] == 'X') printf("%d\n", QMAX(x, y));
-		else printf("%d\n", QSUM(x, y));
+		char s[20];scanf("%s", s + 1);
+		register int u = read<int>(), v = read<int>();
+		if (s[strlen(s + 1)] == 'E') CHANGE(u, v);
+		else if (s[strlen(s + 1)] == 'X') printf("%d\n", QMAX(u, v));
+		else printf("%d\n", QSUM(u, v));
 	}
 	return 0;
 }
