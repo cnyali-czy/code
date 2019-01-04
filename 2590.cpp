@@ -40,7 +40,6 @@ template <typename T> T read()
 int n, m, w[maxn], depth[maxn], dfn[maxn], dfs_clock, wt[maxn], fa[maxn], son[maxn], hson[maxn], top[maxn];
 void dfs1(int x)
 {
-	wt[dfn[x] = ++dfs_clock] = w[x];
 	son[x] = 1;
 	for (register int i = bg[x]; i ; i = ne[i])
 		if (to[i] ^ fa[x])
@@ -54,6 +53,7 @@ void dfs1(int x)
 }
 void dfs2(int x, int y)
 {
+	wt[dfn[x] = ++dfs_clock] = w[x];
 	top[x] = y;
 	if (hson[x])
 	{
@@ -156,9 +156,6 @@ int main()
 	dfs2(1, 1);
 	build(1, 1, n);
 	cin >> m;
-	REP(i, 1, n)
-		REP(j, i + 1, n)
-			printf("%d %d %d %d\n", i, j, QMAX(i, j), QSUM(i, j));
 	lim(m--)
 	{
 		char s[20];
