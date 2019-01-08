@@ -1,11 +1,12 @@
 #define  REP(i, s, e) for (register int i = s; i <= e; i++)
 #define DREP(i, s, e) for (register int i = s; i >= e; i--)
-#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
+#define DEBUG fprintf(stderr, "Passing [%s] in Line %lld\n", __FUNCTION__, __LINE__)
 
 #define chkmax(a, b) a = max(a, b)
 #define chkmin(a, b) a = min(a, b)
 
 #include <bits/stdc++.h>
+#define int long long
 
 using namespace std;
 const int maxn = 1e6 + 10, maxm = maxn;
@@ -170,7 +171,7 @@ void update(int x, int y, int c)
 	update(1, 1, n, dfn[x], dfn[y], c);
 }
 int m;
-int main()
+signed main()
 {
 #ifdef CraZYali
 	freopen("2486.in", "r", stdin);
@@ -191,7 +192,7 @@ int main()
 		register char c = getchar();
 		while (c ^ 'Q' && c ^ 'C') c = getchar();
 		register int a = read<int>(), b = read<int>();
-		if (c == 'Q') printf("%d\n", query(a, b));
+		if (c == 'Q') printf("%lld\n", query(a, b));
 		else update(a, b, read<int>());
 	}
 	return 0;
