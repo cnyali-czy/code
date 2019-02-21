@@ -1,108 +1,88 @@
-#define DREP(i, s, e) for(register int i = s; i >= e ;i--)
-#define  REP(i, s, e) for(register int i = s; i <= e ;i++)
-
-#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
-#define chkmax(a, b) a = max(a, b)
-#define chkmin(a, b) a = min(a, b)
+#define REP(i, s, e) for(register int i = s; i <= e ; i ++)
 
 #include <bits/stdc++.h>
 #define int long long
-#define node pair<pair<int,int>,int > 
 
 using namespace std;
-const int maxn = 50000 + 10, maxm = 50000 + 10, maxsiz = 233;
-int a[maxn];
+const int maxn = 50000 + 10, maxm = 50000 + 10, maxblock = 240;
 
-template <typename T> inline T read()
+int n, m, c[maxn];
+
+struct Question
 {
-	T ans(0), p(1);
-	char c = getchar();
-	while (!isdigit(c))
+	int pos, l, r;
+	Question() {}
+	Question(int _pos) : pos(_pos) {scanf("%lld%lld", &l, &r);}
+}Q[maxm];
+
+bool cmp1(Question A, Question B) {return A.l < B.l;}
+bool cmp2(Question A, Question B) {return A.r < B.r;}
+bool cmp3(Question A, Question B) {return A.pos < B.pos;}
+
+int belong[maxm], Left[maxblock], Right[maxblock], divide, block_cnt;
+void get_belong()
+{
+	divide = sqrt(n);
+	int lastl = 1, cur = 2;
+	while (cur <= m)
 	{
-		if (c == '-') p = -1;
-		c = getchar();
+		if (Q[cur].l - lastl > divide)
+		{
+			block_cnt++;
+			Left[block_cnt] = lastl;Right[block_cnt] = cur - 1;
+			REP(i, lastl, cur - 1) belong[i] = block_cnt;
+			lastl = cur;
+		}
+		cur++;
 	}
-	while (isdigit(c))
+	if (lastl <= m)
 	{
-		ans = ans * 10 + c - 48;
-		c = getchar();
-	}
-	return ans * p;
-}
-
-template <typename T> void write(T x)
-{
-	if (x < 0) putchar('-'), write(-x);
-	else if (x / 10) write(x / 10);
-	putchar(x % 10 + '0');
-}
-int gcd(int a, int b) {return b ? gcd(b, a % b) : a;}
-
-int m, n, k;
-node q[maxn];
-bool cmp(node A, node B) {return A.first.first < B.first.first || A.first.first == B.first.first && A.first.second < B.first.second;}
-
-int block_siz, block_cnt;
-int belong[maxm], Left[maxsiz], Right[maxsiz];;
-
-void init()
-{
-	block_siz = sqrt(m);
-	register int l = 1, r = block_siz;
-	while (l <= m)
-	{
-		r = r > m ? m : r;
 		block_cnt++;
-		Left[block_cnt] = l;Right[block_cnt] = r;
-		REP(i, l, r) belong[i] = block_cnt;
-		l += block_siz;r += block_siz;
+		Left[block_cnt] = lastl;Right[block_cnt] = m;
+		REP(i, lastl, m) belong[i] = block_cnt;
 	}
 }
 
-int cnt[maxn];bool vis[maxn];
-pair <int, int> Ans[maxm];
+int ans[maxm];
+int gcd(int a, int b) {return !b ? a : gcd(b, a % b);}
+
+int cnt[maxm], res;
 
 signed main()
 {
 #ifdef CraZYali
-	freopen("2038.in", "r", stdin);
-	freopen("2038.out", "w", stdout);
+	freopen("2038-new.in", "r", stdin);
+	freopen("2038-new.out", "w", stdout);
 #endif
 	cin >> n >> m;
-	REP(i, 1, n) a[i] = read<int>();
-	REP(i, 1, m) q[i].first.first = read<int>(), q[i].first.second = read<int>(), q[i].second = i;
-	sort(q + 1, q + 1 + m , cmp);
-	init();
-
-	REP(j, 1, block_cnt)
+	REP(i, 1, n) scanf("%lld", c + i);
+	REP(i, 1, m) Q[i] = Question(i);
+	sort(Q + 1, Q + 1 + m, cmp1);
+	get_belong();
+	REP(i, 1, block_cnt) sort(Q + Left[i], Q + Right[i] + 1, cmp2);
+	REP(i, 1, block_cnt)
 	{
-		int lastl = 0, lastr = 0, ans = 0;
-		register int l = q[Left[j]].first.first, r = q[Left[j]].first.second;
-		REP(i, 1, n) cnt[i] = 0;
-		REP(i, l, r) cnt[a[i]]++;
-		REP(i, l, r) vis[a[i]] = 0;
-		REP(i, l, r)
-			if (!vis[a[i]])
-			{
-				ans += cnt[a[i]] * (cnt[a[i]]-1) / 2;
-				vis[a[i]] = 1;
-			}
-		int g = gcd(ans, (r - l + 1) * (r - l) / 2);
-		if (ans&&(r-l)&&(r-l+1)) Ans[q[Left[j]].second] = make_pair(ans / g, (r - l + 1) * (r - l) / 2 / g);
-		else Ans[q[Left[j]].second] = make_pair(0, 1);
-		lastl = l;
-		lastr = r;
-		REP(i, Left[j] + 1, Right[j])
+		REP(j, 1, n) cnt[j] = 0;res = 0;
+		int l = Q[Left[i]].l, r = Q[Left[i]].r;
+		REP(j, l, r) res += cnt[c[j]]++;
+		ans[Q[Left[i]].pos] = res;
+		REP(j, Left[i] + 1, Right[i])
 		{
-			l = q[i].first.first;r = q[i].first.second;
-			while (lastl < l) ans -= --cnt[a[lastl++]];
-			while (lastr < r) ans += cnt[a[++lastr]]++;
-			while (lastr > r) ans -= --cnt[a[lastr--]];
-			int g = gcd(ans, (r - l + 1) * (r - l) / 2);
-			if (ans && (r-l)&&(r-l+1)) Ans[q[i].second] = make_pair(ans / g, (r - l + 1) * (r - l) / 2 / g);
-			else Ans[q[i].second] = make_pair(0,1);
+			while (r < Q[j].r) res += cnt[c[++r]]++;
+			while (l < Q[j].l) res -= --cnt[c[l++]];
+			while (l > Q[j].l) res += cnt[c[--l]]++;
+			ans[Q[j].pos] = res;
 		}
 	}
-	REP(i, 1, m) printf("%lld/%lld\n", Ans[i].first, Ans[i].second);
+
+	sort(Q + 1, Q + 1 + m, cmp3);
+	REP(i, 1, m)
+		if (!ans[i]) printf("0/1\n");
+		else
+		{
+			int len = Q[i].r - Q[i].l + 1;
+			len = len * (len - 1) / 2;
+			printf("%lld/%lld\n", ans[i] / gcd(ans[i], len), len / gcd(ans[i], len));
+		}
 	return 0;
 }
