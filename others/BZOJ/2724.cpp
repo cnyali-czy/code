@@ -107,8 +107,8 @@ int solve(int l, int r)
 int main()
 {
 #ifdef CraZYali
-	freopen("4401.in", "r", stdin);
-	freopen("4401.out", "w", stdout);
+	freopen("2724.in", "r", stdin);
+	freopen("2724.out", "w", stdout);
 #endif
 	cin >> n >> m;
 	REP(i, 1, n) vis.insert(a[i] = read<int>());
