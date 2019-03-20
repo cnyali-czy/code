@@ -66,8 +66,8 @@ int query(int u, int v, int l, int r, int k)
 int main()
 {
 #ifdef CraZYali
-	freopen("3834.in", "r", stdin);
-	freopen("3834.out", "w", stdout);
+	freopen("3834-new-new.in", "r", stdin);
+	freopen("std.out", "w", stdout);
 #endif
 	cin >> n >> q;
 	REP(i, 1, n) a[i] = b[i] = read<int>();
@@ -78,7 +78,7 @@ int main()
 	while (q --> 0)
 	{
 		int x(read<int>()), y(read<int>()), z(read<int>());
-		printf("%d\n", b[query(T[x-1], T[y], 1, m, z)]);
+		printf("%d\n", b[query(T[x-1],T[y],1,m,z)]);
 	}
 	return 0;
 }
