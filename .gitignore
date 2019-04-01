@@ -1,1 +1,6 @@
 .DS_Store
+std
+std.cpp
+std.out
+gen
+gen.cpp
