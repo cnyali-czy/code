@@ -6,6 +6,7 @@
 #define chkmin(a, b) a = min(a, b)
 
 #include <iostream>
+#include <cstring>
 #include <cstdio>
 
 using namespace std;
@@ -60,6 +61,8 @@ namespace violence
 	}
 }
 
+int pos[1 << 21];
+
 int main()
 {
 #ifdef CraZYali
@@ -68,8 +71,8 @@ int main()
 #endif
 	cin >> n;
 	REP(i, 1, n) s[i] = s[i-1] ^ read<int>();
-	if (n <= 5000) violence::work();
-	else
+	if (0 && n <= 5000) violence::work();
+	else if (0 && n <= 1e5)
 	{
 		REP(i, 1, n)
 		{
@@ -81,6 +84,26 @@ int main()
 			printf("%d ", calc(cur) * 2 + res);
 		}
 	}
-
+	else
+	{
+		memset(pos, 0x3f, sizeof(pos));
+		REP(i, 1, n)
+			chkmin(pos[s[i]], i);
+		REP(j, 0, 19)
+			for (int i = 1048575; i >= 0 ;i--)
+				if (i & (1 << j)) chkmin(pos[i ^ (1 << j)], pos[i]);
+		REP(i, 1, n)
+		{
+			int t(0), ans(0);
+			DREP(j, 19, 0)
+				if ((1 << j) & s[i]) ans += (1 << j);
+				else if (pos[t ^ (1 << j)] <= i)
+				{
+					t ^= (1 << j);
+					ans += (1 << j + 1);
+				}
+			printf("%d ", ans);
+		}
+	}
 	return 0;
 }
