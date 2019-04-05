@@ -1,6 +1,5 @@
 .DS_Store
-std
-std.cpp
+std*
 *.out
 *.in
 gen
