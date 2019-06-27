@@ -57,6 +57,7 @@ signed main()
 		if (-(*s.begin()) < e[i].second) e[++m] = e[i];
 	}
 	n = m;
+//	sort(e + 1, e + 1 + n, cmp1);
 	LOG = log2(n);
 	REP(i, 1, n) Max[i][0] = e[i].second;
 	REP(i, 1, n)
