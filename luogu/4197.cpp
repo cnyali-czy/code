@@ -120,13 +120,12 @@ int main()
 	REP(i, 1, m)
 	{
 		int x(find(E[i].x)), y(find(E[i].y));
-		int fx(find(x)), fy(find(y));
 		if (x ^ y)
 		{
 			val[++cur] = E[i].z;
 			add(cur, x);
 			add(cur, y);
-			fa[fx] = fa[fy] = cur;
+			fa[x] = fa[y] = cur;
 			if (++cnt == n - 1) break;
 		}
 	}
