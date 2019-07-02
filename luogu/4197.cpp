@@ -14,7 +14,7 @@
 #include <queue>
 
 using namespace std;
-const int maxn = 1e5 + 10, maxm = 5e5 + 10, n_log_n = 2e6;
+const int maxn = 1e5 + 10, maxm = 5e5 + 10, n_log_n = 3600000;
 
 int bg[maxn << 1], to[maxm], ne[maxm], e;
 inline void add(int x, int y)
@@ -33,7 +33,7 @@ void file(string s)
 	freopen((s + ".out").c_str(), "w", stdout);
 }
 
-int n, m, q, cur, l;
+int n, m, q, cur, M;
 int val[maxn << 1];
 struct Edge
 {
@@ -43,12 +43,12 @@ struct Edge
 }E[maxm];
 bool cmp(Edge A, Edge B) {return A.z < B.z;}
 
-int N, grand[maxn << 1][20], LOG, Left[maxn << 1], Right[maxn << 1];
-int dfn[maxn], dfs_clock;
+int N, grand[maxn << 1][25], LOG, Left[maxn << 1], Right[maxn << 1];
+int dfn[maxn], dfs_clock, vv[maxn];
 
 void prepare(int x)
 {
-	if (x <= n) Left[x] = Right[x] = dfn[x] = ++dfs_clock;
+	if (x <= n) vv[Left[x] = Right[x] = dfn[x] = ++dfs_clock] = val[x];
 	bool flag = 0;
 	for (int i = bg[x]; i ; i = ne[i])
 		if (to[i] ^ grand[x][0])
@@ -69,34 +69,37 @@ void output(int x)
 	for (int i = bg[x]; i ; i = ne[i])
 		if (to[i] ^ grand[x][0])
 		{
-			printf("%d %d\n", x, to[i] <= n ? dfn[to[i]] : to[i]);
+			printf("%d %d\n", x, to[i] <= n&&0 ? dfn[to[i]] : to[i]);
 			output(to[i]);
 		}
 }
 
 int a[maxn], b[maxn];
 
-struct node *null;
-struct node
-{
-	node *l, *r;
-	int sum ;
-	node() : l(null), r(null), sum(0) {};
-	node(node *ls, node *rs) : l(ls), r(rs), sum(0) {}
-};
+int rt[n_log_n], ls[n_log_n], rs[n_log_n], sum[n_log_n], nd_cur;
 
 #define mid (l + r >> 1)
+#define lson ls[p], l, mid
+#define rson rs[p], mid + 1, r
 
-void build(node *pre, node *p, int l, int r, int pos)
+void build(int pre, int &p, int l, int r, int pos)
 {
-	p = new node;
-	p -> l = pre -> l;
-	p -> r = pre -> r;
-	p -> sum = pre -> sum + 1;
-	if (pos <= mid) build(pre -> l, p -> l, l, mid, pos);
-	else build(pre -> r, p -> r, mid + 1, r, pos);
+	p = ++nd_cur;
+	ls[p] = ls[pre];
+	rs[p] = rs[pre];
+	sum[p] = sum[pre] + 1;
+	if (l == r) return;
+	if (pos <= mid) build(ls[pre], lson, pos);
+	else build(rs[pre], rson, pos);
 }
-node* T[n_log_n];
+
+int query(int u, int v, int l, int r, int k)
+{
+	if (l >= r) return l;
+	int x = sum[ls[v]] - sum[ls[u]];
+	if (x < k) return query(rs[u], rs[v], mid + 1, r, k - x);
+	else return query(ls[u], ls[v], l, mid, k);
+}
 
 int main()
 {
@@ -131,19 +134,37 @@ int main()
 	prepare(cur);
 	LOG = log2(N);
 	REP(j, 1, LOG)
-		REP(i, 1, n)
+		REP(i, 1, N)
 		grand[i][j] = grand[grand[i][j-1]][j-1];
-//	REP(i, n+1, N)
-//		printf("%d %d %d\n", i, Left[i], Right[i]);
-//	output(cur);
-	REP(i, 1, n) a[i] = b[i] = val[dfn[i]];
+	//	REP(i, n+1, N)
+	//		printf("%d %d %d\n", i, Left[i], Right[i]);
+	//	output(cur);
+	REP(i, 1, n) a[i] = b[i] = vv[i];
+	//	al[dfn[i]];
 	sort(b + 1, b + 1 + n);
-	l = unique(b + 1, b + 1 + n) - b - 1;
-	null = new node;
-	null -> l = null -> r = null;
-	null -> sum = 0;
-	T[0] = null;
-	REP(i, 1, n) build(T[i-1], T[i], 1, l, lower_bound(b + 1, b + 1 + l, a[i]) - b);
-
+	M = unique(b + 1, b + 1 + n) - b - 1;
+	REP(i, 1, n) build(rt[i-1], rt[i], 1, M, lower_bound(b + 1, b + 1 + M, a[i]) - b);
+	//	REP(i, 1, n) printf("%d%c", dfn[i], i == n ? '\n' : ' ' );
+	//	REP(i, 1, n) printf("%d%c", vv[i], i == n ? '\n' : ' ' );
+	//	REP(i, 1, n) printf("%d%c", a[i], i == n ? '\n' : ' ' );
+	//	REP(i, 1, M) printf("%d%c", b[i], i == M ? '\n' : ' ' );
+	//	REP(i, 1, n) printf("%d%c", lower_bound(b+1,b+1+M,a[i])-b, i == n ? '\n' : ' ' );
+	//	REP(i, 1, n)
+	//		REP(j, i, n)
+	//		REP(k, 1, j - i + 1)
+	//		printf("%d %d %d %d\n", i, j, k, b[query(T[i-1], T[j], 1, M, k)]);
+	while (q--)
+	{
+		int v, x, k;
+		scanf("%d%d%d", &v, &x, &k);
+		//		cout << v << " -> ";
+		DREP(i, LOG, 0)
+			if (!grand[v][i]) continue;
+			else if (val[grand[v][i]] <= x) v = grand[v][i];
+		//		cout << v << "\n";
+		//		cout << Left[v] << ' ' << Right[v] << endl;
+		int len = Right[v] - Left[v] + 1;
+		printf("%d\n", k > len ? - 1 : b[query(rt[Left[v]-1], rt[Right[v]], 1, M, len - k + 1)]);
+	}
 	return 0;
 }
