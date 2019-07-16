@@ -44,16 +44,16 @@ struct square
 }t[maxn];
 bool cmp1(circle A, circle B) {return A.x < B.x;}
 bool cmp2(circle A, circle B) {return A.y < B.y;}
-bool cmp3(circle A, circle B) {return abs(A.r - B.r) < eps ? A.id < B.id : A.r < B.r;}
+bool cmp3(circle A, circle B) {return fabs(A.r - B.r) < eps ? A.id < B.id : A.r > B.r;}
 
 int cur;
 int root, ls[maxn], rs[maxn];
 #define mid (l + r >> 1)
-#define lson ls[p], l, mid
+#define lson ls[p], l, mid - 1
 #define rson rs[p], mid + 1, r
 void pushup(int p)
 {
-	if (!del[t[p].id]) t[p].init(bg[p]);
+	if (!del[bg[p].id]) t[p].init(bg[p]);
 	else
 	{
 		t[p].x1 = inf;t[p].y1 = inf;
@@ -67,13 +67,41 @@ void pushup(int p)
 }
 void build(int &p, int l, int r, bool flag)
 {
-	if (flag)	nth_element(c + l, c + mid, c + r + 1, cmp1);
+	if (!flag)	nth_element(c + l, c + mid, c + r + 1, cmp1);
 	else		nth_element(c + l, c + mid, c + r + 1, cmp2);
 	t[p = ++cur].init(c[mid]);
 	bg[p] = c[mid];
-	if (l == r) return;
-	build(lson, flag ^ 1);
-	build(rson, flag ^ 1);
+	if (l < mid) build(lson, flag ^ 1);
+	if (r > mid) build(rson, flag ^ 1);
+	pushup(p);
+}
+double dis(circle A, circle B) {return sqrt((A.x - B.x) * (A.x - B.x) + (A.y - B.y) * (A.y - B.y));}
+double dis(double x1, double y1, double x2, double y2) {return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));}
+bool inx(square p, circle q) {return p.x1 <= q.x + eps && q.x <= p.x2 + eps;} 
+bool iny(square p, circle q) {return p.y1 <= q.y + eps && q.y <= p.y2 + eps;} 
+double dis(square p, circle q)
+{
+	if (inx(p, q) && iny(p, q)) return 0;
+	double res = inf;
+	if (inx(p, q)) chkmin(res, min(fabs(p.y1 - q.y), fabs(p.y2 - q.y)));
+	if (iny(p, q)) chkmin(res, min(fabs(p.x1 - q.x), fabs(p.x2 - q.x)));
+	chkmin(res, dis(p.x1, p.y1, q.x, q.y));
+	chkmin(res, dis(p.x1, p.y2, q.x, q.y));
+	chkmin(res, dis(p.x2, p.y1, q.x, q.y));
+	chkmin(res, dis(p.x2, p.y2, q.x, q.y));
+	return res;
+}
+int ans[maxn];
+void work(int p, circle q)
+{
+	if (!p) return;
+	if (!del[bg[p].id] && dis(q, bg[p]) <= q.r + bg[p].r + eps)
+	{
+		del[bg[p].id] = 1;
+		ans[bg[p].id] = q.id;
+	}
+	if (dis(t[ls[p]], q) <= q.r + eps) work(ls[p], q);
+	if (dis(t[rs[p]], q) <= q.r + eps) work(rs[p], q);
 	pushup(p);
 }
 
@@ -91,7 +119,16 @@ int main()
 		c[i] = circle(x, y, r, i);
 		c[i].update();
 	}
+	t[0].x1 = inf;t[0].x2 = -inf;
+	t[0].y1 = inf;t[0].y2 = -inf;
 	build(root, 1, n, 0);
 	sort(c + 1, c + 1 + n, cmp3);
+	int cur = 1;
+	REP(i, 1, n)
+	{
+		work(root, c[cur]);
+		while (del[c[cur].id]) cur++;
+	}
+	REP(i, 1, n) printf("%d%c", ans[i], i == n ? '\n' : ' ');
 	return 0;
 }
