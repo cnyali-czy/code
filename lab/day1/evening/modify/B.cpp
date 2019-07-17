@@ -33,17 +33,16 @@ void pushup(int x)
 	REP(i, 0, 1) if (E[id[x]].z < E[id[ch[x][i]]].z) id[x] = id[ch[x][i]];
 }
 
-#define notroot(x) (fa[x] && (ls(fa[x]) == x || rs(fa[x]) == x))
+#define notroot(x) (ls(fa[x]) == x || rs(fa[x]) == x)
 void rotate(int x)
 {
-	int y = fa[x], z = fa[y];
-	bool k = get(x);
+	int y = fa[x];bool k = (rs(y) == x);
 	ch[y][k] = ch[x][k ^ 1];
 	if (ch[x][k ^ 1]) fa[ch[x][k ^ 1]] = y;
+	if (notroot(y)) ch[fa[y]][rs(fa[y]) == y] = x;
+	fa[x] = fa[y];
 	ch[x][k ^ 1] = y;
-	if (notroot(y)) ch[z][get(y)] = x;
 	fa[y] = x;
-	fa[x] = z;
 	pushup(y);
 	pushup(x);
 }
@@ -59,18 +58,15 @@ void pushdown(int x)
 }
 void pushall(int x)
 {
-	cerr << x << endl;
 	if (notroot(x)) pushall(fa[x]);
 	pushdown(x);
 }
 void splay(int x)
 {
-	DEBUG;
+	cout<<x<<endl;
 	pushall(x);
-	DEBUG;
 	while (notroot(x))
 	{
-	DEBUG;
 		int y = fa[x];
 		if (notroot(y)) rotate(get(x) == get(y) ? y : x);
 		rotate(x);
@@ -78,16 +74,7 @@ void splay(int x)
 }
 void access(int x)
 {
-	DEBUG;
-	for (int y = 0; x; x = fa[y = x])
-	{
-	DEBUG;
-		splay(x);
-	DEBUG;
-		rs(x) = y, pushup(x);
-	DEBUG;
-	}
-	DEBUG;
+	for (int y = 0; x; x = fa[y = x]) splay(x), rs(x) = y, pushup(x);
 }
 void makeroot(int x)
 {
@@ -106,21 +93,15 @@ void cut(int x, int y)
 	access(y);
 	splay(y);
 	ls(y) = fa[x] = 0;
-	pushup(y);
 }
 int query(int x, int y)
 {
-	DEBUG;
 	makeroot(x);
-	DEBUG;
 	access(y);
-	DEBUG;
 	splay(y);
-	DEBUG;
 	return id[y];
 }
-
-int N;
+long long S, T, N, ansu = 1ll << 40ll, ansd = 1;
 
 int main()
 {
@@ -129,43 +110,42 @@ int main()
 	freopen("B.out", "w", stdout);
 #endif
 	cin >> n >> m;
-	N = n;
 	REP(i, n+1, n+m)
 	{
 		int x, y, z;
 		scanf("%d%d%d", &x, &y, &z);
 		E[i] = Edge(x, y, z);
 	}
-	sort(E + n, E + 1 + n + m, cmp);
+	cin >> S >> T;
+	sort(E + n + 1, E + 1 + n + m, cmp);
 	REP(i, 1, n) f[i] = i;
 	REP(i, n + 1, n + m)
+	{
 		if (find(E[i].x) != find(E[i].y))
 		{
-			DEBUG;
 			uni(E[i].x, E[i].y);
-			DEBUG;
-			++N;
-			DEBUG;
 			link(E[i].x, i);
-			DEBUG;
 			link(i, E[i].y);
-			DEBUG;
 		}
 		else
 		{
 			int pos = query(E[i].x, E[i].y);
-			DEBUG;
 			if (E[pos].z <= E[i].z) continue;
 			else
 			{
 				cut(E[pos].x, pos);
-				DEBUG;
 				cut(E[pos].y, pos);
-				DEBUG;
-				link(E[i].x,i);
-				DEBUG;
+				link(E[i].x, i);
 				link(E[i].y, i);
 			}
 		}
+		if (find(S) == find(T))
+		{
+			int val = E[query(S, T)].z;
+			if (ansu * E[i].z >= ansd * val) ansu = val, ansd = E[i].z;
+		}
+	}
+	if (ansu % ansd == 0) cout << ansu / ansd << endl;
+	else printf("%lld/%lld\n", ansu / __gcd(ansu, ansd), ansd / __gcd(ansu, ansd));
 	return 0;
 }
