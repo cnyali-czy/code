@@ -1,60 +1,53 @@
-#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
-#define  REP(i, s, e) for (int i = s; i <= e ;i++)
-#define DREP(i, s, e) for (int i = s; i >= e ;i--)
+#define REP(i, s, e) for (int i = s; i <= e; i++)
 
-#include <bits/stdc++.h>
-
+#include <algorithm>
+#include <iostream>
+#include <cstdio>
 using namespace std;
-const int maxn = 100000 + 10, maxN = maxn << 1, maxm = 200000 + 10, inf = (((1 << 30) - 1) << 1) + 1;
+const int maxn = 100000 + 10, maxm = 200000 + 10, maxN = maxn + maxm;
 
 struct Edge
 {
 	int x, y, z;
-	Edge(){}
-	Edge(int _x, int _y, int _z) : x(_x), y(_y), z(_z) {}
-}E[maxm + maxn];
+}E[maxN];
 bool cmp(Edge A, Edge B) {return A.z > B.z;}
+
+int n, m, S, T;
 int f[maxN];
 int find(int x) {return f[x] == x ? f[x] : f[x] = find(f[x]);}
 void uni(int x, int y) {f[find(x)] = find(y);}
 
-int n, m;
-
-int ch[maxN][2], fa[maxN], val[maxN], id[maxN];
+int fa[maxN], ch[maxN][2], s[maxN];
 bool tag[maxN];
-
 #define ls(p) ch[p][0]
 #define rs(p) ch[p][1]
-#define get(p) (rs(fa[p]) == p)
+#define get(x) (rs(fa[x]) == x)
+#define notroot(x) (ls(fa[x]) == x || rs(fa[x]) == x)
 
 void pushup(int x)
 {
-	id[x] = x;id[0] = 0;
-	REP(i, 0, 1) if (E[id[x]].z < E[id[ch[x][i]]].z) id[x] = id[ch[x][i]];
+	s[x] = x;s[0] = 0;
+	if (E[s[x]].z < E[s[ls(x)]].z) s[x] = s[ls(x)];
+	if (E[s[x]].z < E[s[rs(x)]].z) s[x] = s[rs(x)];
 }
 
-#define notroot(x) (ls(fa[x]) == x || rs(fa[x]) == x)
 void rotate(int x)
 {
-	int y = fa[x];bool k = (rs(y) == x);
-	ch[y][k] = ch[x][k ^ 1];
+	int y = fa[x], z = fa[y];
+	bool k = get(x);
 	if (ch[x][k ^ 1]) fa[ch[x][k ^ 1]] = y;
-	if (notroot(y)) ch[fa[y]][rs(fa[y]) == y] = x;
-	fa[x] = fa[y];
+	ch[y][k] = ch[x][k ^ 1];
+	if (notroot(y)) ch[z][get(y)] = x;
+	fa[fa[y] = x] = z;
 	ch[x][k ^ 1] = y;
-	fa[y] = x;
-	pushup(y);
-	pushup(x);
+	pushup(y);pushup(x);
 }
-void work(int x) {tag[x] ^= 1;swap(ls(x), rs(x));}
 void pushdown(int x)
 {
-	if (tag[x])
-	{
-		work(ls(x));
-		work(rs(x));
-		tag[x] = 0;
-	}
+	if (!tag[x]) return;
+	swap(ls(x), rs(x));
+	tag[ls(x)] ^= 1;tag[rs(x)] ^= 1;
+	tag[x] = 0;
 }
 void pushall(int x)
 {
@@ -63,7 +56,6 @@ void pushall(int x)
 }
 void splay(int x)
 {
-	cout<<x<<endl;
 	pushall(x);
 	while (notroot(x))
 	{
@@ -74,13 +66,18 @@ void splay(int x)
 }
 void access(int x)
 {
-	for (int y = 0; x; x = fa[y = x]) splay(x), rs(x) = y, pushup(x);
+	for (int t = 0; x; x = fa[t = x])
+	{
+		splay(x);
+		rs(x) = t;
+		pushup(x);
+	}
 }
 void makeroot(int x)
 {
 	access(x);
 	splay(x);
-	work(x);
+	tag[x] ^= 1;
 }
 void link(int x, int y)
 {
@@ -92,16 +89,16 @@ void cut(int x, int y)
 	makeroot(x);
 	access(y);
 	splay(y);
-	ls(y) = fa[x] = 0;
+	fa[x] = ls(y) = 0;
 }
-int query(int x, int y)
+int query(int u, int v)
 {
-	makeroot(x);
-	access(y);
-	splay(y);
-	return id[y];
+	makeroot(u);
+	access(v);
+	splay(v);
+	return s[v];
 }
-long long S, T, N, ansu = 1ll << 40ll, ansd = 1;
+long long ansu = 1 << 30, ansv = 1;
 
 int main()
 {
@@ -110,42 +107,34 @@ int main()
 	freopen("B.out", "w", stdout);
 #endif
 	cin >> n >> m;
-	REP(i, n+1, n+m)
-	{
-		int x, y, z;
-		scanf("%d%d%d", &x, &y, &z);
-		E[i] = Edge(x, y, z);
-	}
+	REP(i, n + 1, n + m) scanf("%d%d%d", &E[i].x, &E[i].y, &E[i].z);
 	cin >> S >> T;
 	sort(E + n + 1, E + 1 + n + m, cmp);
 	REP(i, 1, n) f[i] = i;
 	REP(i, n + 1, n + m)
 	{
-		if (find(E[i].x) != find(E[i].y))
+		if (find(E[i].x) ^ find(E[i].y))
 		{
 			uni(E[i].x, E[i].y);
 			link(E[i].x, i);
-			link(i, E[i].y);
+			link(E[i].y, i);
 		}
 		else
 		{
 			int pos = query(E[i].x, E[i].y);
 			if (E[pos].z <= E[i].z) continue;
-			else
-			{
-				cut(E[pos].x, pos);
-				cut(E[pos].y, pos);
-				link(E[i].x, i);
-				link(E[i].y, i);
-			}
+			cut(E[pos].x, pos);
+			cut(E[pos].y, pos);
+			link(E[i].x, i);
+			link(E[i].y, i);
 		}
 		if (find(S) == find(T))
 		{
-			int val = E[query(S, T)].z;
-			if (ansu * E[i].z >= ansd * val) ansu = val, ansd = E[i].z;
+			int v = E[query(S, T)].z;
+			if (ansu * E[i].z >= ansv * v) ansu = v, ansv = E[i].z;
 		}
 	}
-	if (ansu % ansd == 0) cout << ansu / ansd << endl;
-	else printf("%lld/%lld\n", ansu / __gcd(ansu, ansd), ansd / __gcd(ansu, ansd));
+	if (ansu % ansv == 0) printf("%lld\n", ansu / ansv);
+	else printf("%lld/%lld\n", ansu / __gcd(ansu, ansv), ansv / __gcd(ansu, ansv));
 	return 0;
 }
