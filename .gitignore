@@ -3,5 +3,8 @@ std*
 *.err
 *.out
 *.in
+*.exe
+undone*
+bf*
 gen
 gen.cpp
