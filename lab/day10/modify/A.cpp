@@ -1,95 +1,208 @@
-//modify
-#define  REP(i, s, e) for (register int i = s; i <= e; i++)
-#define DREP(i, s, e) for (register int i = s; i >= e; i--)
+#define DREP(i, s, e) for(int i = s; i >= e ;i--)
+#define  REP(i, s, e) for(int i = s; i <= e ;i++)
+
+#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
+#define chkmax(a, b) a = max(a, b)
+#define chkmin(a, b) a = min(a, b)
 
 #include <algorithm>
 #include <iostream>
+#include <cstring>
 #include <cstdio>
-#include <ctime>
+#include <cmath>
 using namespace std;
-const long long N = 150, maxn = N + 10, MOD = 1e9 + 7;
+const int maxn = 1e5 + 10, maxm = maxn;
 
-inline long long power_pow(long long a, long long b)
+int bg[maxn], ne[maxm << 1], to[maxm << 1], e;
+inline void add(int x, int y)
 {
-	long long ans = 1, base = a;
-	while (b)
-	{
-		if (b & 1) ans = ans * base % MOD;
-		base = base * base % MOD;
-		b >>= 1;
-	}
-	return ans;
+	e++;
+	to[e] = y;
+	ne[e] = bg[x];
+	bg[x] = e;
 }
-#define inv(x) power_pow(x, MOD-2)
-int n, m, k;
-int fac[maxn], Inv[maxn], single[maxn], bin[maxn], dp[maxn];
-int v[maxn], p;
 
-int calc()
+template <typename T> inline T read()
 {
-	int n = p;
-	REP(i, 1, m) dp[i] = 0;
-	dp[0] = 1;
-	REP(i, 1, m)
+	T ans(0), p(1);
+	char c = getchar();
+	while (!isdigit(c))
 	{
-		long long coef = single[i];
-		REP(j, 1, n) coef = coef * bin[__gcd(v[j], i)] % MOD;
-		DREP(j, m, 0)
-		{
-			long long cur = coef;
-			for (int k = 1; j + i * k <= m; k++)
+		if (c == '-') p = -1;
+		c = getchar();
+	}
+	while (isdigit(c))
+	{
+		ans = ans * 10 + c - 48;
+		c = getchar();
+	}
+	return ans * p;
+}
+
+int n = 1, m;
+int val[maxm];
+
+struct opt
+{
+	int type, a, b;
+}o[maxm];
+
+int st[maxn], ed[maxn], back[maxn<<1], dfn[maxn], dfs_clock, ww[maxn], fa[maxn], top[maxn], siz[maxn], hvy[maxn], depth[maxn];
+void dfs1(int x)
+{
+	back[st[x] = ++dfs_clock] = x;
+	siz[x] = 1;
+	for (int i = bg[x]; i ; i = ne[i])
+	{
+		depth[to[i]] = depth[x] + 1;
+		dfs1(to[i]);
+		siz[x] += siz[to[i]];
+		if (siz[to[i]] > siz[hvy[x]]) hvy[x] = to[i];
+	}
+	back[ed[x] = ++dfs_clock] = x;
+}
+void dfs2(int x, int y)
+{
+	ww[dfn[x] = ++dfs_clock] = val[x];
+	top[x] = y;
+	if (hvy[x]) dfs2(hvy[x], y);
+	for (int i = bg[x]; i ; i = ne[i])
+		if (to[i] ^ hvy[x]) dfs2(to[i], to[i]);
+}
+inline int lca(int x, int y)
+{
+	while (top[x] ^ top[y])
+	{
+		if (depth[top[x]] < depth[top[y]]) swap(x, y);
+		x = fa[top[x]];
+	}
+	return depth[x] < depth[y] ? x : y;
+}
+int belong[maxn<<1];
+double ans[maxn];
+
+int cnt[maxn], l, r, T;
+long long sigma, sigma2, N;
+#define bar ((double)sigma  / N)
+#define S2 ((sigma2 + bar * bar * N - bar * sigma * 2) / N)
+
+inline void add(long long c) {if (c && !cnt[c]++) sigma += c, sigma2 += c * c, N++;}
+inline void del(long long c) {if (c && !--cnt[c]) sigma -= c, sigma2 -= c * c, N--;}
+struct query
+{
+	int l, r, t, id, spj;
+	query(int _l = 0, int _r = 0, int _id = 0, int _spj = 0, int _t = 0) : l(_l), r(_r), id(_id), spj(_spj), t(_t){}
+}q[maxm];
+inline bool operator < (query A, query B) {return belong[A.l] < belong[B.l] || (belong[A.l] == belong[B.l] && belong[A.r] < belong[B.r]) || (belong[A.l] == belong[B.l] && belong[A.r] == belong[B.r] && A.t < B.t);}
+namespace path
+{
+	bool vis[maxn];
+	inline void opt(int x)
+	{
+		if (vis[x]) del(val[x]);
+		else add(val[x]);
+		vis[x] ^= 1;
+	}
+	int Q;
+	inline void work()
+	{
+		REP(i, 1, m)
+			if (o[i].type == 2)
 			{
-				dp[j + i * k] = (dp[j + i * k] + dp[j] * cur % MOD * Inv[k]) % MOD;
-				cur = cur * coef % MOD;
+				int x(o[i].a), y(o[i].b), l(lca(x, y));
+				if (st[x] > st[y]) swap(x, y);
+				if (l ^ x && l ^ y) q[++Q] = query(ed[x], st[y], i, l);
+				else q[++Q] = query(st[x], st[y], i);
 			}
-		}
-	}
-	int ans = dp[m], cnt = 0;
-	REP(i, 1, n)
-	{
-		ans = ans * 1ll * single[v[i]] % MOD;
-		if (i > 1 && v[i] ^ v[i - 1])
+		const int block_siz = ceil(sqrt(2 * n));
+		REP(i, 1, n+n) belong[i] = i / block_siz;
+		sort(q + 1, q + 1 + Q);
+		REP(i, 1, Q)
 		{
-			ans = ans * 1ll * Inv[cnt] % MOD;
-			cnt = 0;
+			while (l < q[i].l) opt(back[l++]);
+			while (l > q[i].l) opt(back[--l]);
+			while (r < q[i].r) opt(back[++r]);
+			while (r > q[i].r) opt(back[r--]);
+			if (q[i].spj) opt(q[i].spj);
+			ans[q[i].id] = S2;
+			if (q[i].spj) opt(q[i].spj);
 		}
-		cnt++;
 	}
-	return ans * 1ll * Inv[cnt] % MOD;
 }
-
-int dfs(int less, int last)
+int ade02[maxn], cur;
+bool inside[maxn];
+inline void timego()
 {
-	if (!less) return calc();
-	int res = 0;
-	DREP(i, min(less, last), 1)
+	int x = ade02[++T];
+	inside[dfn[x]] = 1;
+	if (l <= dfn[x] && dfn[x] <= r) add(val[x]);
+}
+inline void timeback()
+{
+	int x = ade02[T--];
+	inside[dfn[x]] = 0;
+	if (l <= dfn[x] && dfn[x] <= r) del(val[x]);
+}
+inline void Add(int x) {if (inside[x]) add(ww[x]);}
+inline void Del(int x) {if (inside[x]) del(ww[x]);}
+inline void output()
+{
+	REP(i,1,100000)if(cnt[i])printf("%d ",i);putchar(10);
+	printf("%d %lld %lld %lf\n", N, sigma, sigma2, S2);
+}
+namespace subtree
+{
+	int Q;
+	void work()
 	{
-		res = (0ll + res + dfs(less - i, v[++p] = i)) % MOD;
-		--p;
+		inside[1] = 1;
+		REP(i, 1, m)
+			if (o[i].type == 1) ade02[++cur] = o[i].a;
+			else if (o[i].type == 3) q[++Q] = query(dfn[o[i].a], dfn[o[i].a] + siz[o[i].a] - 1, i, 0, cur);
+		if (!Q) return;
+		const int block_siz = ceil(pow(1. * n * Q, 1. / 3));
+		REP(i, 1, n) belong[i] = i / block_siz;
+		sort(q + 1, q + 1 + Q);
+		sigma = sigma2 = N = l = r = 0;
+		memset(cnt, 0, sizeof(cnt));
+		REP(i, 1, Q)
+		{
+			while (T < q[i].t) timego();
+			while (T > q[i].t) timeback();
+			while (l < q[i].l) Del(l++);
+			while (l > q[i].l) Add(--l);
+			while (r < q[i].r) Add(++r);
+			while (r > q[i].r) Del(r--);
+			ans[q[i].id] = S2;
+		}
 	}
-	return res;
 }
 
 signed main()
 {
-#ifndef ONLINE_JUDGE
+#ifdef CraZYali
 	freopen("A.in", "r", stdin);
 	freopen("A.out", "w", stdout);
 #endif
-	cin >> n >> m >> k;
-	fac[0] = Inv[0] = bin[0] = 1;
-	REP(i, 1, N)
+	cin >> m >> val[1];
+	REP(i, 1, m)
 	{
-		fac[i] = 1ll * fac[i - 1] * i % MOD;
-		single[i] = power_pow(i, MOD - 2);
-		bin[i] = 1ll * bin[i - 1] * k % MOD;
+		int type(read<int>()), a(read<int>());
+		if (type == 1)
+		{
+			++n;
+			o[i] = opt{type, a};
+			val[a] = read<int>();
+			add(fa[a] = read<int>(), a);
+		}
+		else if (type == 2) o[i] = opt{type, a, read<int>()};
+		else o[i] = opt{type, a};
 	}
-	Inv[N] = inv(fac[N]);
-	DREP(i, N-1, 1) Inv[i] = 1ll * Inv[i+1] * (i+1) % MOD;
-
-	cout << dfs(n, n) << endl;
-#ifndef ONLINE_JUDGE
-	cerr<<clock()*1./CLOCKS_PER_SEC<<endl;
-#endif
+	dfs1(1);dfs_clock = 0;
+	dfs2(1, 1);
+	path::work();
+	subtree::work();
+	REP(i, 1, m)
+		if (o[i].type > 1) printf("%.10lf\n", ans[i]);
 	return 0;
 }
