@@ -1,54 +1,73 @@
-#define  REP(i, s, e) for (int i(s); i <= e; i++)
-#define DREP(i, s, e) for (int i(s); i >= e; i--)
-#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
+#define DREP(i, s, e) for(int i = s; i >= e ;i--)
+#define  REP(i, s, e) for(int i = s; i <= e ;i++)
 
-#define chkmax(a, b) a = max(a, b)
-#define chkmin(a, b) a = min(a, b)
+#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
+#define chkmax(a, b) (a = max(a, b), a == b)
+#define chkmin(a, b) (a = min(a, b), a == b)
 
 #include <iostream>
 #include <cstdio>
 #include <cmath>
-
+#define int long long
 using namespace std;
-const int maxn = 6000000 + 10;
-
-double f1[maxn], f2[maxn];
-int n, a[maxn];
-void solve1(int l, int r, int L, int R)
+const int maxn = 5e5 + 10;
+template <typename T> inline T read()
 {
-	if (L > R) return;
-	int mid(L + R >> 1), g(0);
-	double tmp(0);
-	f1[mid] = a[mid];
-	REP(i, l, min(r, mid)) if ((tmp = a[i] + sqrt(mid-i)) > f1[mid]) f1[mid] = tmp, g = i;
-	if (!g) g = mid;
-	f1[mid] -= a[mid];
-	solve1(l, g, L, mid-1);
-	solve1(g, r, mid+1, R);
+	T ans(0), p(1);
+	char c = getchar();
+	while (!isdigit(c))
+	{
+		if (c == '-') p = -1;
+		c = getchar();
+	}
+	while (isdigit(c))
+	{
+		ans = ans * 10 + c - 48;
+		c = getchar();
+	}
+	return ans * p;
+}
+
+int n, a[maxn];
+
+int best[maxn], ans[maxn];
+void solve1(int l, int r, int L, int R)
+	//ans \in [L, R]
+{
+	if (l > r) return;
+	int mid = l + r >> 1;
+	int &pos = best[mid];
+	pos = mid;
+	REP(i, L, min(mid - 1, R))
+		if (a[pos] + sqrt(mid-pos) < a[i] + sqrt(mid-i)) pos = i;
+	chkmax(ans[mid], a[pos] + (int)ceil(sqrt(mid-pos)) - a[mid]);
+	solve1(l, mid - 1, L, pos);
+	solve1(mid + 1, r, pos, R);
 }
 void solve2(int l, int r, int L, int R)
+	//ans \in [L, R]
 {
-	if (L > R) return;
-	int mid(L + R >> 1), g(0);
-	double tmp(0);
-	f2[mid] = a[mid];
-	DREP(i, r, max(l, mid)) if ((tmp = a[i] + sqrt(i-mid)) > f2[mid]) f2[mid] = tmp, g = i;
-	if (!g) g = mid;
-	f2[mid] -= a[mid];
-	solve2(l, g, L, mid-1);
-	solve2(g, r, mid+1, R);
+	if (l > r) return;
+	int mid = l + r >> 1;
+	int &pos = best[mid];
+	pos = mid;
+	REP(i, max(L, mid), R)
+		if (a[pos] + sqrt(pos-mid) < a[i] + sqrt(i-mid)) pos = i;
+	chkmax(ans[mid], a[pos] + (int)ceil(sqrt(pos-mid)) - a[mid]);
+	solve2(l, mid - 1, L, pos);
+	solve2(mid + 1, r, pos, R);
 }
-int main()
+
+signed main()
 {
 #ifdef CraZYali
 	freopen("3515.in", "r", stdin);
 	freopen("3515.out", "w", stdout);
 #endif
 	cin >> n;
-	REP(i, 1, n) scanf("%d", a + i);
+	REP(i, 1, n) a[i] = read<int>();
 	solve1(1, n, 1, n);
 	solve2(1, n, 1, n);
-	REP(i, 1, n)
-		printf("%lld\n", (long long)ceil(max(f1[i], f2[i])));
+	REP(i, 1, n) printf("%lld\n", ans[i]);
 	return 0;
 }
