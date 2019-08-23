@@ -7,56 +7,30 @@
 
 #include <iostream>
 #include <cstdio>
+#define int long long
 
 using namespace std;
-const int maxn = 100000 + 10, maxp = 10000;
+const int maxn = 1e5 + 10;
 
-int n, m;
+int n, m, ans, cnt[maxn];
+//ans = \sum_i \sum_j (i,j) - nm
 
-int p[maxp], pnt, mu[maxn];
-bool notprime[maxn];
-
-void prepare(const int N = 100000)
-{
-	mu[1] = 1;
-	REP(i, 2, N)
-	{
-		if (!notprime[i]) mu[p[++pnt] = i] = -1;
-		REP(j, 1, pnt)
-		{
-			int d = i * p[j];
-			if (d > N) break;
-			notprime[d] = 1;
-			if (i % p[j]) mu[d] = -mu[i];
-			else break;
-		}
-	}
-	REP(i, 2, N) mu[i] += mu[i-1];
-}
-long long ans;
-inline long long calc(int n, int m)
-{
-	if (n > m) swap(n, m);
-	long long res(0);
-	REP(i, 1, n)
-	{
-		int j = min(n / (n / i), m / (m / i));
-		res += 1ll * (mu[j] - mu[i-1]) * (n / i) * (m / i);
-		i = j;
-	}
-	return res;
-}
-
-int main()
+signed main()
 {
 #ifdef CraZYali
 	freopen("2005.in", "r", stdin);
 	freopen("2005.out", "w", stdout);
 #endif
-	prepare();
 	cin >> n >> m;
-	if (n > m) swap(n, m);
-	REP(i, 1, m) ans += 1ll * i * calc(n / i, m / i);
-	cout << ans * 2 - 1ll * n * m << endl;
+	ans = -n * m;
+	int N(min(n, m));
+	DREP(i, N, 1)
+	{
+		int &c = cnt[i];
+		c = (n/i) * (m/i);
+		for (int j = i + i; j <= N;j += i) c -= cnt[j];
+		ans += i * c * 2;
+	}
+	cout << ans << endl;	
 	return 0;
 }
