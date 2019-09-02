@@ -12,7 +12,7 @@
 #include <queue>
 
 using namespace std;
-const int maxn = 3e6 + 10, LOG = 35, maxN = maxn * (LOG + 2);
+const int maxn = 5e5 + 10, LOG = 32, maxN = maxn * (LOG + 2);
 
 template <typename T> T read()
 {
