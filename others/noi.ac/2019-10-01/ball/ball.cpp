@@ -4,15 +4,17 @@
 
 #include <algorithm>
 #include <iostream>
-#include <cstring>
-#include <tr1/unordered_map>
 #include <cstdio>
+#include <vector>
+#include <tr1/unordered_map>
 
 using namespace std;
 
-int n, q, MOD;
+int n, MOD, an;
+vector <vector<int> > t[233];
+tr1::unordered_map <long long, int> id;
 
-int power_pow(long long base, int b, const int MOD = ::MOD)
+inline int power_pow(long long base, int b)
 {
 	long long ans(1);
 	while (b)
@@ -23,88 +25,141 @@ int power_pow(long long base, int b, const int MOD = ::MOD)
 	}
 	return ans;
 }
-#define inv(x) power_pow(x, MOD - 2)
 
-namespace Gauss
+inline long long Hash(int v[], int n)
 {
-	const int maxn = 120 + 5;
-	int M[maxn][maxn + 1];
-	int n;
-
-	int x[maxn];
-
-	string s;
-	tr1::unordered_map <string, int> id;
-	int cur;
-
-	inline void init()
+	long long w(0);
+	REP(i, 1, n)
+		w *= (::n / i + 1) + v[n - i];
+	return w * (::n + 1) + n;
+}
+inline long long Hash(vector<int> v)
+{
+	return Hash(v.data(), v.size());
+}
+vector <int> v;
+void dfs(int d, int s)
+{
+	if (!s)
 	{
-		n = 1;
-		REP(i, 1, ::n) n *= i;
-		s = "";
-		REP(i, 1, ::n) s += (char)i + '0';
-		const int keng = ::n * (::n - 1) / 2;
-		do
-		{
-			id[s] = ++cur;
-			M[cur][cur] = M[cur][n+1] = keng;
-		}while(next_permutation(s.begin(), s.end()));
-		s = "";
-		REP(i, 1, ::n) s += (char)i + '0';
-		do
-			REP(i, 0, ::n - 1)
-				REP(j, i+1, ::n - 1)
-				{
-					string qaq = s;
-					swap(qaq[i], qaq[j]);
-					M[id[s]][id[qaq]] = -1;
-				}
-		while(next_permutation(s.begin(), s.end()));
-		REP(i, 2, n + 1) M[1][i] = 0;
-		M[1][1] = 1;
+		t[v.size()].push_back(v);
+		return;
 	}
-
-	void work(const int MOD = ::MOD)
+	REP(l, d, s)
 	{
-		init();
-		REP(i, 1, n - 1)
-			REP(j, i + 1, n)
-			{
-				const int Inv = inv(M[i][i]);
-				REP(k, i + 1, n + 1)
-					(M[j][k] -= 1ll * M[j][i] * Inv % MOD * M[i][k] % MOD) %= MOD;
-				M[j][i] = 0;
-			}
-
-		DREP(i, n, 1)
-		{
-			REP(j, i + 1, n)
-				(M[i][n + 1] -= 1ll * x[j] * M[i][j] % MOD) %= MOD;
-			x[i] = 1ll * M[i][n + 1] * inv(M[i][i]) % MOD;
-		}
+		v.push_back(l);
+		dfs(l, s - l);
+		v.pop_back();
 	}
 }
-signed main()
+int nx[23333], sb[23333];
+bool vis[2333];
+
+inline long long get_nx()
+{
+	REP(i, 1, n) vis[i] = 0;
+	int cur(0);
+	REP(i, 1, n) if (!vis[i])
+	{
+		int s(0);
+		for (int j(i); !vis[j]; j = nx[j])
+			vis[j] = 1, ++s;
+		sb[cur++] = s;
+	}
+	sort(sb, sb + cur);
+	return Hash(sb, cur);
+}
+int mat[2333][2333];
+long long ww[23333];
+
+int main()
 {
 #ifdef CraZYali
 	freopen("ball.in", "r", stdin);
 	freopen("ball.out", "w", stdout);
 #endif
-	cin >> n >> q >> MOD;
-	if (n <= 5)
+	int Ttt;
+	cin >> n >> Ttt >> MOD;
+	dfs(1, n);
+	REP(i, 1, n)
 	{
-		Gauss::work();
-		while (q--)
+		sort(t[i].begin(),t[i].end());
+		REP(j, 0, (int)t[i].size() - 1)
+			id[Hash(t[i][j])] = ++an;
+	}
+	int pr=0;
+	long long r=power_pow(n*(n-1)/2,MOD-2);
+	for(int i=1;i<=n;++i)
+	{
+		for(int j=0;j<t[i].size();++j)
 		{
-			string s = "";
-			REP(i, 1, n)
+			++pr;
+			vector<int>& ww=t[i][j];
+			int d=id[Hash(ww)];
+			if(i==n)
 			{
-				int x;
-				scanf("%d", &x);
-				s += (char)x + '0';
+				(--mat[d][d])%=MOD;
+				continue;
 			}
-			printf("%d\n", (MOD + Gauss::x[Gauss::id[s]]) % MOD);
+			int g=0;
+			for(int k=0;k<ww.size();++k)
+			{
+				int x=ww[k];
+				for(int j=1;j<=x;++j)
+					nx[g+j]=g+j%x+1;
+				g+=x;
+			}
+			for(int p=1;p<=n;++p)
+				for(int q=p+1;q<=n;++q)
+				{
+					swap(nx[p],nx[q]);
+					(mat[d][id[get_nx()]]+=r)%=MOD;
+					swap(nx[p],nx[q]);
+				}
+			(--mat[d][d])%=MOD;
+			(++mat[d][0])%=MOD;
 		}
+	}
+	for(int i=1;i<=an;++i)
+	{
+		{
+			int G=-1;
+			for(int j=i;j<=an;++j)
+				if(mat[j][i]%MOD)
+				{
+					G=j; break;
+				}
+			if(G!=i)
+			{
+				for(int j=1;j<=an;++j)
+					swap(mat[G][j],mat[i][j]);
+			}
+		}
+		long long w=power_pow(mat[i][i],MOD-2);
+		for(int j=0;j<=an;++j)
+			mat[i][j]=mat[i][j]*w%MOD;
+		int L=i,R=i;
+		for(int j=1;j<=an;++j)
+			if(mat[i][j]) L=min(L,j),R=max(R,j);
+		for(int j=1;j<=an;++j) if(j!=i&&mat[j][i]%MOD)
+		{
+			long long w=mat[j][i];
+			mat[j][0]=(mat[j][0]-mat[i][0]*(long long)w)%MOD;
+			for(int p=L;p<=R;++p)
+				mat[j][p]=(mat[j][p]-mat[i][p]*(long long)w)%MOD;
+		}
+	}
+	for(int i=1;i<=an;++i)
+		ww[i]=-mat[i][0]*power_pow(mat[i][i],MOD-2)%MOD;
+	while(Ttt--)
+	{
+		for(int i=1;i<=n;++i)
+			scanf("%d",nx+i);
+		long long w=get_nx();
+		int d=id[w];
+		int aa=ww[d];
+		aa=(aa%MOD+MOD)%MOD;
+		printf("%d\n",aa);
 	}
 	return 0;
 }
