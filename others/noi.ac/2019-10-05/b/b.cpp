@@ -37,7 +37,7 @@ int main()
 		int x, y;
 		scanf("%d%d", &x, &y);
 		if (x > y) swap(x, y);
-		edge[y-1] |= 1 << (y - 1 - x);
+		edge[y-1] |= 1 << y - 1 - x;
 	}
 	dp[0][0] = 1;
 	REP(i, 0, n - 1)
