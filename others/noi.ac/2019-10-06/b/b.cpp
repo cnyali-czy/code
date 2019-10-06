@@ -1,4 +1,5 @@
 #define  REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
+#define cREP(i, s, e) for (register char i(s), end_##i(e); i <= end_##i; i++)
 #define DREP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
@@ -18,8 +19,8 @@ inline char Getchar()
 template <typename T>
 inline T read()
 {
-	T ans(0);
-	char c(Getchar());
+	register T ans(0);
+	register char c(Getchar());
 	while (!isdigit(c)) c = Getchar();
 	while (isdigit(c))
 	{
@@ -36,15 +37,15 @@ int bit[1<<20];
 struct bitset
 {
 	unsigned int s[16];
-	bitset() {memset(s, 0, sizeof(s));}
+	inline bitset() {cREP(i, 0, 15) s[i] = 0;}
 	inline void set(int x)
 	{
-		s[x >> 5] |= 1<< (x & 31);
+		s[x >> 5] |= 1 << (x & 31);
 	}
 	inline int count()
 	{
 		register int ans(0);
-		REP(i, 0, 15) ans += bit[s[i] >> 16] + bit[s[i] & 65535];
+		cREP(i, 0, 15) ans += bit[s[i] >> 16] + bit[s[i] & 65535];
 		return ans;
 	}
 };
@@ -52,32 +53,32 @@ struct bitset
 bitset ans;
 inline bitset operator & (const bitset &A, const bitset &B) 
 {
-	REP(i, 0, 15) ans.s[i] = A.s[i] & B.s[i];
+	cREP(i, 0, 15) ans.s[i] = A.s[i] & B.s[i];
 	return ans;
 }
 inline bitset operator | (const bitset &A, const bitset &B) 
 {
-	REP(i, 0, 15) ans.s[i] = A.s[i] | B.s[i];
+	cREP(i, 0, 15) ans.s[i] = A.s[i] | B.s[i];
 	return ans;
 }
 inline bitset operator ^ (const bitset &A, const bitset &B) 
 {
-	REP(i, 0, 15) ans.s[i] = A.s[i] ^ B.s[i];
+	cREP(i, 0, 15) ans.s[i] = A.s[i] ^ B.s[i];
 	return ans;
 }
 inline bitset operator ^= (bitset &A, const bitset &B) {return A = A ^ B;}
 inline bitset operator |= (bitset &A, const bitset &B) {return A = A | B;}
 inline bitset operator ~ (const bitset &A) 
 {
-	REP(i, 0, 15) ans.s[i] = ~A.s[i];
+	cREP(i, 0, 15) ans.s[i] = ~A.s[i];
 	return ans;
 }
 inline bitset operator + (const bitset &A, const bitset &B) 
 {
 	register unsigned w(0);
-	REP(i, 0, 15)
+	cREP(i, 0, 15)
 	{
-		long long t = 1ll * A.s[i] + B.s[i] + w;
+		register long long t = 1ll * A.s[i] + B.s[i] + w;
 		ans.s[i] = t & ((1ll << 32) - 1);
 		w = t >> 32;
 	}
