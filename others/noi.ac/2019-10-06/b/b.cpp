@@ -32,7 +32,7 @@ inline T read()
 
 int n, k[maxn];
 long long Ans;
-int bit[1<<20];
+int bit[1<<16+1];
 
 struct bitset
 {
@@ -45,7 +45,13 @@ struct bitset
 	inline int count()
 	{
 		register int ans(0);
-		cREP(i, 0, 15) ans += bit[s[i] >> 16] + bit[s[i] & 65535];
+		for (register char i(0); i < 16; i += 4)
+		{
+			ans += bit[s[i  ] >> 16] + bit[s[i  ] & 65535];
+			ans += bit[s[i+1] >> 16] + bit[s[i+1] & 65535];
+			ans += bit[s[i+2] >> 16] + bit[s[i+2] & 65535];
+			ans += bit[s[i+3] >> 16] + bit[s[i+3] & 65535];
+		}
 		return ans;
 	}
 };
@@ -53,24 +59,46 @@ struct bitset
 bitset ans;
 inline bitset operator & (const bitset &A, const bitset &B) 
 {
-	cREP(i, 0, 15) ans.s[i] = A.s[i] & B.s[i];
+	for (register char i(0); i < 16; i += 4)
+	{
+		ans.s[i  ] = A.s[i  ] & B.s[i  ];
+		ans.s[i+1] = A.s[i+1] & B.s[i+1];
+		ans.s[i+2] = A.s[i+2] & B.s[i+2];
+		ans.s[i+3] = A.s[i+3] & B.s[i+3];
+	}
 	return ans;
 }
 inline bitset operator | (const bitset &A, const bitset &B) 
 {
-	cREP(i, 0, 15) ans.s[i] = A.s[i] | B.s[i];
+	for (register char i(0); i < 16; i += 4)
+	{
+		ans.s[i  ] = A.s[i  ] | B.s[i  ];
+		ans.s[i+1] = A.s[i+1] | B.s[i+1];
+		ans.s[i+2] = A.s[i+2] | B.s[i+2];
+		ans.s[i+3] = A.s[i+3] | B.s[i+3];
+	}
 	return ans;
 }
 inline bitset operator ^ (const bitset &A, const bitset &B) 
 {
-	cREP(i, 0, 15) ans.s[i] = A.s[i] ^ B.s[i];
+	for (register char i(0); i < 16; i += 4)
+	{
+		ans.s[i  ] = A.s[i  ] ^ B.s[i  ];
+		ans.s[i+1] = A.s[i+1] ^ B.s[i+1];
+		ans.s[i+2] = A.s[i+2] ^ B.s[i+2];
+		ans.s[i+3] = A.s[i+3] ^ B.s[i+3];
+	}
 	return ans;
 }
-inline bitset operator ^= (bitset &A, const bitset &B) {return A = A ^ B;}
-inline bitset operator |= (bitset &A, const bitset &B) {return A = A | B;}
 inline bitset operator ~ (const bitset &A) 
 {
-	cREP(i, 0, 15) ans.s[i] = ~A.s[i];
+	for (register char i(0); i < 16; i += 4)
+	{
+		ans.s[i  ] = ~A.s[i  ];
+		ans.s[i+1] = ~A.s[i+1];
+		ans.s[i+2] = ~A.s[i+2];
+		ans.s[i+3] = ~A.s[i+3];
+	}
 	return ans;
 }
 inline bitset operator + (const bitset &A, const bitset &B) 
@@ -93,7 +121,7 @@ int main()
 	freopen("b.in", "r", stdin);
 	freopen("b.out", "w", stdout);
 #endif
-	REP(i, 1, 1 << 17)
+	REP(i, 1, 1 << 16)
 		bit[i] = bit[i >> 1] + (i & 1);
 	REP(i, 1, n = read<int>())
 		REP(j, 1, k[i] = read<int>()) S[i].set(read<int>() - 1);
