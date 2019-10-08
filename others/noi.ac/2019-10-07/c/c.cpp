@@ -7,52 +7,14 @@
 #include <cstdio>
 
 using namespace std;
-const int maxn = 1000 + 10;
+const int maxn = 1e6 + 10;
 
 int n, q, type, a[maxn];
 
-namespace bf
-{
-	int sg[maxn][maxn], tmp1[maxn][maxn], tmp2[maxn][maxn];
+int sum1[maxn], sum2[maxn], lim1[maxn], lim2[maxn];
 
-	int SG(int l, int r)
-	{
-		if (sg[l][r] != -1) return sg[l][r];
-		return sg[l][r] = (!SG(l + 1, r) || !SG(l, r - 1));
-	}
-	inline void work()
-	{
-		REP(i, 1, n) sg[i][i] = 1;
-
-		REP(i, 1, n) tmp1[i][i] = 1;
-		REP(i, 1, n)
-			REP(j, i + 1, n)
-			if (tmp1[i][j-1] != 1) break;
-			else tmp1[i][j] = (a[j-1] <= a[j]); 
-		REP(i, 1, n)
-			REP(j, i + 1, n)
-			if (tmp1[i][j-1] || tmp1[i+1][j]) sg[i][j] = 1;
-		if (type == 2)
-		{
-			REP(i, 1, n) tmp2[i][i] = 1;
-			REP(i, 1, n)
-				REP(j, i + 1, n)
-				if (tmp2[i][j-1] != 1) break;
-				else tmp2[i][j] = (a[j-1] >= a[j]); 
-			REP(i, 1, n)
-				REP(j, i + 1, n)
-				if (tmp2[i][j-1] || tmp2[i+1][j]) sg[i][j] = 1;
-		}
-		cin >> q;
-		while (q--)
-		{
-			register int l, r;
-			scanf("%d%d", &l, &r);
-			if (tmp1[l][r] || tmp2[l][r]) printf("Bob\n");
-			else printf("%s\n", SG(l, r) ? "Alice" : "Bob");
-		}
-	}
-}
+inline bool ok(int l, int r) {return r <= max(lim1[l], lim2[l]);}
+int ssr1[maxn], ssr2[maxn];
 
 int main()
 {
@@ -61,8 +23,102 @@ int main()
 	freopen("c.out", "w", stdout);
 #endif
 	cin >> n >> type;
-	memset(bf::sg, -1, sizeof(bf::sg));
 	REP(i, 1, n) scanf("%d", a + i);
-	if (n <= 1000) bf::work();
+	sum1[1] = 1;
+	REP(i, 2, n) sum1[i] = sum1[i-1] + (a[i-1] <= a[i]);
+	REP(i, 1, n)
+	{
+		int &res = lim1[i];
+		res = i;
+		int l(i + 1), r(n);
+		while (l <= r)
+		{
+			int mid = l + r >> 1;
+			if (sum1[mid] - sum1[i] == mid - i)
+			{
+				res = mid;
+				l = mid + 1;
+			}
+			else r = mid - 1;
+		}
+	}
+	if (type == 2)
+	{
+		sum2[1] = 1;
+		REP(i, 2, n) sum2[i] = sum2[i-1] + (a[i-1] >= a[i]);
+		REP(i, 1, n)
+		{
+			int &res = lim2[i];
+			res = i;
+			int l(i + 1), r(n);
+			while (l <= r)
+			{
+				int mid = l + r >> 1;
+				if (sum2[mid] - sum2[i] == mid - i)
+				{
+					res = mid;
+					l = mid + 1;
+				}
+				else r = mid - 1;
+			}
+		}
+	}
+	REP(i, 1, n) printf("%d%c", lim1[i], i == n ? '\n' : ' ');
+	REP(i, 1, n) printf("%d%c", lim2[i], i == n ? '\n' : ' ');
+	REP(i, 1, n)//ssr1
+	{
+		int &res = ssr1[i];
+		int l(1), r(i);
+		while (l <= r)
+		{
+			int mid = l + r >> 1;
+			if (ok(i - mid + 1, i + mid - 1))
+			{
+				res = mid;
+				l = mid + 1;
+			}
+			else r = mid - 1;
+		}
+	}
+	REP(i, 1, n - 1)
+	{
+		int &res = ssr2[i];
+		int l(1), r(i);
+		while (l <= r)
+		{
+			int mid = l + r >> 1;
+			if (ok(i - mid + 1, i + mid - 1))
+			{
+				res = mid;
+				l = mid + 1;
+			}
+			else r = mid - 1;
+		}
+	}
+	REP(i,1,n)printf("%d%c",ssr1[i],i==end_i?'\n':' ');
+	REP(i,1,-1+n)printf("%d%c",ssr2[i],i==end_i?'\n':' ');
+	cin >> q;
+	while (q--)
+	{
+		int l, r;
+		scanf("%d%d", &l, &r);
+		if (ok(l, r)) puts("Bob");
+		else
+		{
+			bool flag;
+			if ((l + r) & 1)
+			{
+				register int k = r - l - 1 >> 1;
+				flag = k <= ssr2[l - k];
+			}
+			else
+			{
+				register int k = r - l >> 1;
+				flag = k <= ssr1[l - k];
+			}
+			if (flag) puts("Alice");
+			else puts("Bob");
+		}
+	}
 	return 0;
 }
