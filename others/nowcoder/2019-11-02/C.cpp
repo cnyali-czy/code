@@ -12,12 +12,13 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a) 
 #define chkmin(a, b) (a > (b) ? a = (b) : a) 
 
+#include <algorithm>
 #include <iostream>
 #include <cstdio>
 #include <vector>
 
 using namespace std;
-const int maxn = 2000 + 10, MOD = 1e9 + 7;
+const int maxn = 1e5 + 10, MOD = 1e9 + 7;
 
 template <typename T> inline T read()
 {
@@ -38,16 +39,22 @@ template <typename T> inline T read()
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout);
 
-int n, m, a[maxn];
-vector <int> G[maxn];
+int n, m, a[maxn], ans;
 
+#include <tr1/unordered_set>
+tr1::unordered_set <int> G[maxn];
+
+int deg[maxn];
 inline void add(int x, int y)
 {
-	G[x].emplace_back(y);
-	G[y].emplace_back(x);
+	deg[x]++;deg[y]++;
+	G[x].insert(y);
+	G[y].insert(x);
 }
+inline bool cmp(int A, int B) {return deg[A] > deg[B];}
+int id[maxn], times[maxn];
 
-int tms[maxn][maxn], ans;
+//vector <pair <int, int> > qaq[maxn];
 
 int main()
 {
@@ -57,18 +64,24 @@ int main()
 	cin >> n >> m;
 	REP(i, 1, n) a[i] = read<int>();
 	while (m--) add(read<int>(), read<int>());
-	REP(i, 1, n)
-		REP(u, 0, (int)G[i].size() - 1)
-		REP(v, u + 1, (int)G[i].size() - 1)
-		{
-			int x(min(G[i][u], G[i][v]));
-			int y(max(G[i][u], G[i][v]));
-			tms[x][y]++;
-		}
+	REP(i, 1, n) id[i] = i;
+	sort(id + 1, id + 1 + n, cmp);
 	const int inv2 = (MOD + 1) / 2;
+	REP(I, 1, n)
+	{
+		int u = id[I];
+		for (auto v : G[u])
+		{
+			(times[v] += 1ll * (deg[u] - 1) * (deg[u] - 2) % MOD * inv2 % MOD) %= MOD;
+			cerr << v << ' ' << (-1 + deg[u]) * (deg[u] - 2) / 2<< endl;
+	//		G[v].erase(u);
+	//		deg[v]--;
+		}
+	}
+//	REP(i, 1, n)
+//		for (auto j : qaq[i]) (ans += 1ll * j.second * (j.second - 1) % MOD * a[i] % MOD) %= MOD, cout << i << ' ' << j.first << ' '<< j.second << endl;
 	REP(i, 1, n)
-		REP(j, i + 1, n)
-			(ans += 1ll * tms[i][j] * (tms[i][j] - 1) % MOD * inv2 % MOD * (a[i] + a[j]) % MOD) %= MOD;
+		(ans += 1ll * a[i] * times[i] % MOD) %= MOD;
 	cout << (MOD + ans) % MOD << endl;
 	return 0;
 }
