@@ -12,12 +12,13 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a) 
 #define chkmin(a, b) (a > (b) ? a = (b) : a) 
 
+#include <algorithm>
 #include <iostream>
 #include <cstdio>
 #include <vector>
 
 using namespace std;
-const int maxn = 2000 + 10, MOD = 1e9 + 7;
+const int maxn = 1e5 + 10, MOD = 1e9 + 7;
 
 template <typename T> inline T read()
 {
@@ -40,14 +41,16 @@ template <typename T> inline T read()
 
 int n, m, a[maxn];
 vector <int> G[maxn];
-
+int deg[maxn];
 inline void add(int x, int y)
 {
+	deg[x]++;deg[y]++;
 	G[x].emplace_back(y);
 	G[y].emplace_back(x);
 }
 
-int tms[maxn][maxn], ans;
+int ans;
+int cnt[maxn], cir[maxn], id[maxn], rk[maxn];
 
 int main()
 {
@@ -57,18 +60,25 @@ int main()
 	cin >> n >> m;
 	REP(i, 1, n) a[i] = read<int>();
 	while (m--) add(read<int>(), read<int>());
-	REP(i, 1, n)
-		REP(u, 0, (int)G[i].size() - 1)
-		REP(v, u + 1, (int)G[i].size() - 1)
-		{
-			int x(min(G[i][u], G[i][v]));
-			int y(max(G[i][u], G[i][v]));
-			tms[x][y]++;
-		}
-	const int inv2 = (MOD + 1) / 2;
-	REP(i, 1, n)
-		REP(j, i + 1, n)
-			(ans += 1ll * tms[i][j] * (tms[i][j] - 1) % MOD * inv2 % MOD * (a[i] + a[j]) % MOD) %= MOD;
-	cout << (MOD + ans) % MOD << endl;
+	REP(i, 1, n) id[i] = i;
+	sort(id + 1, id + 1 + n, [&](int x, int y) {return deg[x] > deg[y];});
+	REP(i, 1, n) rk[id[i]] = i;
+	REP(u, 1, n)
+	{
+		for (int v : G[u]) if (rk[v] < rk[u])
+			for (int w : G[v]) if (rk[w] < rk[u])
+			{
+				int &tmp = cnt[w];
+				cir[u] += tmp;
+				cir[v] += tmp;
+				cir[w] += tmp;
+				tmp++;
+			}
+		for (int v : G[u]) if (rk[v] < rk[u])
+			for (int w : G[v]) if (rk[w] < rk[u])
+				cir[v] += --cnt[w];
+	}
+	REP(i, 1, n) (ans += 1ll * cir[i] * a[i] % MOD) %= MOD;
+	cout << (MOD + 1ll * ans % MOD) % MOD << endl;
 	return 0;
 }
