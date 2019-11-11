@@ -59,15 +59,25 @@ struct __INIT__
 	}
 }__init__;
 
+inline void output(const vector <int> &A)
+{
+	DREP(i, (int)A.size() - 1, 0) putchar(A[i] + '0');
+	putchar(10);
+}
+
 inline bool operator < (const vector <int> &A, const vector <int> &B)
 {
-	register int lenA = A.size() - 1, lenB = B.size() - 1;
+	register int lenA = (int)A.size() - 1, lenB = (int)B.size() - 1;
 	if (lenA < lenB) return 1;
+	if (lenA > lenB) return 0;
 	DREP(i, lenA, 0)
-		if (A[i] < B[i]) return 1;
-		else return 0;
+		if (A[i] < B[i])
+			return 1;
+		else if (A[i] > B[i])
+			return 0;
 	return 0;
 }
+
 inline vector <int> operator * (vector <int> A, const int &B)
 {
 	int len(A.size() - 1);
@@ -97,14 +107,8 @@ vector <int> ans[maxT], ask[maxT];
 char s[30000];
 
 inline bool cmp(int x, int y) {return ask[x] < ask[y];}
-inline bool operator <= (const vector <int> &A, const vector <int> &B) {return A < B || A == B;}
+inline bool operator <= (const vector <int> &A, const vector <int> &B) {return (A < B) || (A == B);}
 inline vector <int> operator *= (vector <int> &A, int B) {return A = A * B;}
-
-inline void output(const vector <int> &A)
-{
-	DREP(i, (int)A.size() - 1, 0) putchar(A[i] + '0');
-	putchar(10);
-}
 
 int main()
 {
