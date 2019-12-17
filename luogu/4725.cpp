@@ -15,19 +15,6 @@
 using namespace std;
 const int maxn = 1e5 + 10, MOD = 998244353;
 
-int power_pow(long long base, int b)
-{
-	long long ans(1);
-	while (b)
-	{
-		if (b & 1) (ans *= base) %= MOD;
-		(base *= base) %= MOD;
-		b >>= 1;
-	}
-	return ans;
-}
-#define inv(x) power_pow(x, MOD - 2)
-
 template <typename T> T read()
 {
 	T ans(0), flag(1);
@@ -53,12 +40,43 @@ void file(string s)
 
 int m, n, k;
 
+inline int mul(int x, int y)
+{
+	long long res = 1ll * x * y;
+	if (res >= MOD) res %= MOD;
+	return res;
+}
+inline int add(int x, int y)
+{
+	int res = x + y;
+	if (res >= MOD) res -= MOD;
+	return res;
+}
+inline int nadd(int x, int y)
+{
+	int res = x - y;
+	if (res < 0) res += MOD;
+	return res;
+}
+int power_pow(int base, int b)
+{
+	int ans(1);
+	while (b)
+	{
+		if (b & 1) ans = mul(ans, base);
+		base = mul(base, base);
+		b >>= 1;
+	}
+	return ans % MOD;
+}
+#define inv(x) power_pow(x, MOD - 2)
+
 vector <int> DIF(vector <int> F)
 {
 	if (F.size() == 1) return vector<int>(1, 0);
 	vector <int> res(F.size() - 1);
 	REP(i, 0, res.size() - 1)
-		res[i] = (i + 1ll) * F[i+1] % MOD;
+		res[i] = mul(i + 1, F[i + 1]);
 	return res;
 }
 const int qaq = 1 << 18;
@@ -68,7 +86,7 @@ struct __init__
 	__init__(const int n = qaq)
 	{
 		Inv[0] = Inv[1] = 1;
-		REP(i, 2, n) Inv[i] = -1ll * (MOD / i) * Inv[MOD % i] % MOD;
+		REP(i, 2, n) Inv[i] = nadd(MOD, mul(MOD / i, Inv[MOD % i]));
 	}
 }__INIT__;
 vector <int> INT(vector <int> F)
@@ -76,7 +94,7 @@ vector <int> INT(vector <int> F)
 	vector <int> res(F.size() + 1);
 	res[0] = 0;
 	REP(i, 1, F.size())
-		res[i] = 1ll * F[i-1] * Inv[i] % MOD;
+		res[i] = mul(Inv[i], F[i-1]);
 	return res;
 }
 
@@ -96,26 +114,27 @@ void NTT(vector <int> &a, int L, int flag)
 		{
 			int wn = power_pow(3, (MOD - 1) / (i << 1));
 			if (flag < 0) wn = inv(wn);
-			for (int l = 0, w = 1; l < i; l++, w = 1ll * w * wn % MOD)
+			for (int l = 0, w = 1; l < i; l++, w = mul(w, wn))
 			{
-				int x(a[k + l]), y(1ll * a[k + l + i] * w % MOD);
-				a[k + l] = (x + y) % MOD;
-				a[k + l + i] = (x - y) % MOD;
+				int x(a[k + l]), y(mul(a[k + l + i], w));
+				a[k + l] = add(x, y);
+				a[k + l + i] = nadd(x, y);
 			}
 		}
 	if (flag < 0)
-		REP(i, 0, n - 1) a[i] = 1ll * a[i] * Inv[n] % MOD;
+		REP(i, 0, n - 1) a[i] = mul(a[i], Inv[n]);
 }
 
 vector <int> getInv(vector <int> f, int L)
 {
 	if (!L) return vector<int>(1, inv(f[0]));
 	const int n = 1 << L;
-	vector <int> A(n + n, 0), B(getInv(f, L - 1));
+	vector <int> tmp(f);tmp.resize(n >> 1);
+	vector <int> A(n + n, 0), B(getInv(tmp, L - 1));
 	f.resize(n);
 	NTT(f, L + 1, 1);
 	NTT(B, L + 1, 1);
-	REP(i, 0, n + n - 1) A[i] = 1ll * B[i] * (2 - 1ll * f[i] * B[i] % MOD) % MOD;;
+	REP(i, 0, n + n - 1) A[i] = mul(B[i], nadd(2, mul(f[i], B[i])));
 	NTT(A, L + 1, -1);
 	A.resize(n);
 	return A;
@@ -137,7 +156,7 @@ signed main()
 	f = DIF(f);
 	NTT(Inv, L, 1);
 	NTT(f, L, 1);
-	REP(i, 0, l - 1) res[i] = 1ll * Inv[i] * f[i] % MOD;
+	REP(i, 0, l - 1) res[i] = mul(f[i], Inv[i]);
 	NTT(res, L, -1);
 	res = INT(res);
 	REP(i, 0, n-1) printf("%d%c", (res[i] + MOD) % MOD, i == n - 1 ? '\n' : ' ');
