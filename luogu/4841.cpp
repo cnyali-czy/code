@@ -28,7 +28,7 @@ inline int add(int x, int y)
 	if (res >= MOD) res -= MOD;
 	return res;
 }
-inline int nadd(int x, int y)
+inline int sub(int x, int y)
 {
 	register int res(x - y);
 	if (res < 0) res += MOD;
@@ -71,15 +71,12 @@ void file(string s)
 	freopen((s + ".out").c_str(), "w", stdout);
 }
 
+int R[maxn];
 void NTT(int a[], int L, int flag)
 {
 	const int n = 1 << L;
-	vector <int> R(n);R[0] = 0;
 	REP(i, 1, n - 1)
-	{
-		R[i] = (R[i >> 1] >> 1) | ((i & 1) << L - 1);
 		if (i < R[i]) swap(a[i], a[R[i]]);
-	}
 	for (int i = 1; i < n; i <<= 1)
 	{
 		int wn = power_pow(3, (MOD - 1) / (i << 1));
@@ -89,7 +86,7 @@ void NTT(int a[], int L, int flag)
 			{
 				int x(a[k + l]), y(mul(w, a[k + l + i]));
 				a[k + l] = add(x, y);
-				a[k + l + i] = nadd(x, y);
+				a[k + l + i] = sub(x, y);
 			}
 	}
 	if (flag < 0)
@@ -108,9 +105,10 @@ void getInv(int F[], int B[], int L)
 	const int n(1 << L), N(1 << L + 1);
 	getInv(F, B, L - 1);
 	copy(F, F + n, tmp);
+	REP(i, 1, N - 1) R[i] = (R[i >> 1] >> 1) | ((i & 1) ? n : 0);
 	NTT(tmp, L + 1, 1);
 	NTT(B, L + 1, 1);
-	REP(i, 0, N - 1) B[i] = mul(B[i], nadd(2, mul(B[i], tmp[i])));
+	REP(i, 0, N - 1) B[i] = mul(B[i], sub(2, mul(B[i], tmp[i])));
 	NTT(B, L + 1, -1);
 	REP(i, n, N - 1) B[i] = 0;
 }
