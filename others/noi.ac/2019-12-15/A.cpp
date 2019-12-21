@@ -12,12 +12,13 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a) 
 #define chkmin(a, b) (a > (b) ? a = (b) : a) 
 
+#include <cassert>
+#include <algorithm>
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-
 using namespace std;
-const int maxn = 8e5 + 10;
+const int maxn = 8e6 + 5;
 template <typename T> inline T read()
 {
 	T ans(0), flag(1);
@@ -37,92 +38,85 @@ template <typename T> inline T read()
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout);
 
-#define ls p << 1
-#define rs p << 1 | 1
-#define mid (l + r >> 1)
-#define lson ls, l, mid
-#define rson rs, mid + 1, r
 char s[maxn];
 int n, q;
-struct SMT
+const int B = 4000 + 5, tot = maxn / B;
+int S[13][tot + 5];
+inline void add(int c[], int x, char val)
 {
-	int sum[maxn << 2], id;
-	void build(int p, int l, int r)
+	while (x < tot + 5)
 	{
-		if (l == r) sum[p] = (s[l] == id);
-		else
-		{
-			build(lson);
-			build(rson);
-			sum[p] = sum[ls] + sum[rs];
-		}
+		c[x] += val;
+		x += x & -x;
 	}
-	inline void init(int _id)
+}
+inline int sum(int c[], int x)
+{
+	int res(0);
+	while (x > 0)
 	{
-		id = _id;
-		build(1, 1, n);
+		res += c[x];
+		x -= x & -x;
 	}
-	void update(int p, int l, int r, int pos, int val)
-	{
-		sum[p] += val;
-		if (l == r) return;
-		if (pos <= mid) update(lson, pos, val);
-		else			update(rson, pos, val);
-	}
-	int query(int p, int l, int r, int L, int R)
-	{
-		if (L <= l && r <= R) return sum[p];
-		if (R <= mid) return query(lson, L, R);
-		if (L >  mid) return query(rson, L, R);
-		return query(lson, L, R) + query(rson, L, R);
-	}
-}T[13];
-int nxt(int x) {return x == 12 ? 1 : x + 1;}
-int tot[13];
+	return res;
+}
+inline int sum(int c[], int l, int r)
+{
+	return sum(c, r) - sum(c, l - 1);
+}
+inline int nxt(int x) {return x == 12 ? 1 : x + 1;}
 int dp[13], tmp[13];
+int L(int x) {return (x - 1) * B + 1;}
+int R(int x) {return x * B;}
+int blg(int x) {return (x - 1) / B + 1;}
+int Count[13];
+inline void work(int i, int tot)
+{
+	for (int j = 1; j <= tot; j <<= 1)//++)// <<= 1)
+	{
+		tot -= j;
+		REP(I, 0, 12) tmp[I] = dp[I];
+		REP(I, 0, 12) tmp[(I + 1ll * i * j % 13) % 13] += dp[I];
+		REP(I, 0, 12) dp[I] = tmp[I];
+	}
+	if (tot) work(i, tot);
+}
 
-int main()
+signed main()
 {
 #ifdef CraZYali
 	file("A");
-	freopen("A.err", "w", stderr);
 #endif
 	cin >> n >> q;
 	scanf("%s", s + 1);
 	REP(i, 1, n)
 		if (!isdigit(s[i])) s[i] = s[i] - 'a' + 10;
 		else s[i] = s[i] - '0';
-	REP(i, 1, 12) T[i].init(i);
+	REP(i, 1, n) add(S[s[i]], blg(i), 1);//[blg(i)]++;
 	while (q--)
 	{
 		int l(read<int>()), r(read<int>());
-		REP(i, 1, 12) tot[i] = T[i].query(1, 1, n, l, r);
-		T[s[l]].update(1, 1, n, l, -1);
-		T[s[l] = nxt(s[l])].update(1, 1, n, l, 1);
-		T[s[r]].update(1, 1, n, r, -1);
-		T[s[r] = nxt(s[r])].update(1, 1, n, r, 1);
-		int rt(0);
 		dp[0] = 1;
-		REP(i, 1, 12) dp[i] = 0;
-		//REP(i, 0, min(tot[1], 12)) dp[i] = ((tot[1] - i) / 13 + 1) & 1;
-		REP(i, 1, 12)
+		REP(i, 1, 12) dp[i] = 0, Count[i] = 0;
+		int bl(blg(l)), br(blg(r)), Lbl(L(bl)), Lbr(L(br));
+		if (bl == br)
+			REP(i, l, r) Count[s[i]]++;
+		else
 		{
-			for (int j = 1; j <= tot[i]; j <<= 1)
-			{
-				tot[i] -= j;
-				REP(I, 0, 12) tmp[I] = dp[I];
-				REP(I, 0, 12) (tmp[(I + 1ll * i * j % 13) % 13] += dp[I]) &= 1;
-				REP(I, 0, 12) dp[I] = tmp[I];
-			}
-			if (tot[i])
-			{
-				REP(I, 0, 12) tmp[I] = dp[I];
-				REP(I, 0, 12) (tmp[(I + 1ll * tot[i] * i % 13) % 13] += dp[I]) &= 1;
-				REP(I, 0, 12) dp[I] = tmp[I];
-			}
+			REP(j, l, R(bl)) Count[s[j]]++;
+			REP(j, L(br), r) Count[s[j]]++;
+			REP(i, 1, 12)
+				Count[i] += sum(S[i], bl + 1, br - 1);
+//				REP(j, bl + 1, br - 1)
+//				Count[i] += S[i][j];
 		}
-
-		REP(i, 0, 12) putchar(dp[i] + 48);putchar(10);
+		REP(i, 1, 12)
+			work(i, Count[i]);
+		REP(i, 0, 12) putchar((1 & dp[i]) + 48);putchar(10);
+		add(S[s[l]], blg(l), -1);
+		add(S[s[l] = nxt(s[l])], blg(l), 1);
+		add(S[s[r]], blg(r), -1);
+		add(S[s[r] = nxt(s[r])], blg(r), 1);
 	}
 	return 0;
 }
