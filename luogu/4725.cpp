@@ -1,21 +1,136 @@
-#define REP(i, s, e) for (register int i = (s), end_##i = (e); i <= end_##i; i++)
-#define DEP(i, s, e) for (register int i = (s), end_##i = (e); i >= end_##i; i--)
+/*
+ * File Name:	4725.cpp
+ * Author	:	CraZYali
+ * Time		:	2020.01.11 22:10
+ * Email	:	yms-chenziyang@outlook.com
+ */
+
+#define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
+#define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
-#define chkmax(a, b) (a < (b) ? a = (b) : a)
-#define chkmin(a, b) (a > (b) ? a = (b) : a)
-#include <algorithm>
-#include <iostream>
-#include <cassert>
-#include <cstring>
-#include <cstdlib>
-#include <cstdio>
-#include <vector>
-#include <cmath>
-using namespace std;
-const int maxn = 1e5 + 10, MOD = 998244353;
+#define chkmax(a, b) (a < (b) ? a = (b) : a) 
+#define chkmin(a, b) (a > (b) ? a = (b) : a) 
 
-template <typename T> T read()
+#include <iostream>
+#include <cstdio>
+
+using namespace std;
+const int maxn = 1 << 20, MOD = 998244353;
+
+inline int add() {return 0;}
+	template <typename ...T>
+int add(int arg, T... args)
+{
+	int res = arg + add(args...);
+	if (res >= MOD) res -= MOD;
+	return res;
+}
+
+inline int mul() {return 1;}
+	template <typename ...T>
+int mul(int arg, T... args)
+{
+	long long res = 1ll * arg * mul(args...);
+	if (res >= MOD) res %= MOD;
+	return res;
+}
+
+inline int sub(int x, int y)
+{
+	int res = x - y;
+	if (res < 0) res += MOD;
+	return res;
+}
+
+int qpow(int base, int b)
+{
+	int ans(1);
+	while (b)
+	{
+		if (b & 1) ans = mul(ans, base);
+		base = mul(base, base);
+		b >>= 1;
+	}
+	return ans;
+}
+#define inv(x) qpow(x, MOD - 2)
+int Wn[30][2];
+struct _init_
+{
+	_init_()
+	{
+		REP(i, 0, 29)
+		{
+			Wn[i][0] = qpow(3, (MOD - 1) / (1 << i + 1));
+			Wn[i][1] = inv(Wn[i][0]);
+		}
+	}
+}_INIT_;
+
+namespace poly
+{
+	int R[maxn];
+	void NTT(int a[], int n, int flag)
+	{
+		REP(i, 1, n - 1)
+		{
+			R[i] = (R[i >> 1] >> 1) | (i & 1 ? (n >> 1) : 0);
+			if (i < R[i]) swap(a[i], a[R[i]]);
+		}
+		for (int i = 1, ccc = 0; i < n; i <<= 1, ccc++)
+		{
+			int wn = Wn[ccc][flag < 0];
+			for (int k = 0; k < n; k += i << 1)
+				for (int l = 0, w = 1; l < i; l++, w = mul(w, wn))
+				{
+					int x(a[k + l]), y(mul(w, a[k + l + i]));
+					a[k + l] = add(x, y);
+					a[k + l + i] = sub(x, y);
+				}
+		}
+		if (flag < 0)
+		{
+			const int Invn = inv(n);
+			REP(i, 0, n - 1) a[i] = mul(a[i], Invn);
+		}
+	}
+
+	int tmp[maxn];
+	void getInv(int F[], int Inv[], int l)
+	{
+		if (l == 1) return void(Inv[0] = inv(F[0]));
+		getInv(F, Inv, l >> 1);
+		copy(F, F + l, tmp);
+		REP(i, l, l + l - 1) tmp[i] = 0;
+		NTT(tmp, l + l, 1);
+		NTT(Inv, l + l, 1);
+		REP(i, 0, l + l - 1) Inv[i] = sub(add(Inv[i], Inv[i]), mul(Inv[i], Inv[i], tmp[i]));
+		NTT(Inv, l + l, -1);
+		REP(i, l, l + l - 1) Inv[i] = tmp[i] = 0;
+	}
+
+	int f[maxn], Inv[maxn];
+	void getln(int F[], int ln[], int n)
+	{
+		int l(1);
+		while (l <= n + n) l <<= 1;
+		REP(i, 0, l - 1) Inv[i] = 0;
+		REP(i, 0, n - 1) f[i] = mul(i + 1, F[i + 1]);
+		REP(i, n, l - 1) f[i] = 0;
+		getInv(F, Inv, l >> 1);
+		NTT(f, l, 1);
+		NTT(Inv, l, 1);
+		REP(i, 0, l - 1) ln[i] = mul(f[i], Inv[i]);
+		NTT(ln, l, -1);
+		DEP(i, n, 1) ln[i] = mul(ln[i-1], inv(i));
+		ln[0] = 0;
+	}
+}
+using poly::NTT;
+using poly::getln;
+
+template <typename T> inline T read()
 {
 	T ans(0), flag(1);
 	char c(getchar());
@@ -32,133 +147,18 @@ template <typename T> T read()
 	return ans * flag;
 }
 
-void file(string s)
-{
-	freopen((s + ".in").c_str(), "r", stdin);
-	freopen((s + ".out").c_str(), "w", stdout);
-}
+#define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout);
 
-int m, n, k;
+int n, F[maxn], ln[maxn];
 
-inline int mul(int x, int y)
-{
-	long long res = 1ll * x * y;
-	if (res >= MOD) res %= MOD;
-	return res;
-}
-inline int add(int x, int y)
-{
-	int res = x + y;
-	if (res >= MOD) res -= MOD;
-	return res;
-}
-inline int nadd(int x, int y)
-{
-	int res = x - y;
-	if (res < 0) res += MOD;
-	return res;
-}
-int power_pow(int base, int b)
-{
-	int ans(1);
-	while (b)
-	{
-		if (b & 1) ans = mul(ans, base);
-		base = mul(base, base);
-		b >>= 1;
-	}
-	return ans % MOD;
-}
-#define inv(x) power_pow(x, MOD - 2)
-
-vector <int> DIF(vector <int> F)
-{
-	if (F.size() == 1) return vector<int>(1, 0);
-	vector <int> res(F.size() - 1);
-	REP(i, 0, res.size() - 1)
-		res[i] = mul(i + 1, F[i + 1]);
-	return res;
-}
-const int qaq = 1 << 18;
-int Inv[qaq + 5];
-struct __init__
-{
-	__init__(const int n = qaq)
-	{
-		Inv[0] = Inv[1] = 1;
-		REP(i, 2, n) Inv[i] = nadd(MOD, mul(MOD / i, Inv[MOD % i]));
-	}
-}__INIT__;
-vector <int> INT(vector <int> F)
-{
-	vector <int> res(F.size() + 1);
-	res[0] = 0;
-	REP(i, 1, F.size())
-		res[i] = mul(Inv[i], F[i-1]);
-	return res;
-}
-
-void NTT(vector <int> &a, int L, int flag)
-{
-	const int n = 1 << L;
-	a.resize(n);
-	vector <int> R(n);
-	R[0] = 0;
-	REP(i, 1, n - 1)
-	{
-		R[i] = (R[i >> 1] >> 1) | ((i & 1) << L - 1);
-		if (i < R[i]) swap(a[i], a[R[i]]);
-	}
-	for (int i = 1; i < n; i <<= 1)
-		for (int k = 0; k < n; k += i << 1)
-		{
-			int wn = power_pow(3, (MOD - 1) / (i << 1));
-			if (flag < 0) wn = inv(wn);
-			for (int l = 0, w = 1; l < i; l++, w = mul(w, wn))
-			{
-				int x(a[k + l]), y(mul(a[k + l + i], w));
-				a[k + l] = add(x, y);
-				a[k + l + i] = nadd(x, y);
-			}
-		}
-	if (flag < 0)
-		REP(i, 0, n - 1) a[i] = mul(a[i], Inv[n]);
-}
-
-vector <int> getInv(vector <int> f, int L)
-{
-	if (!L) return vector<int>(1, inv(f[0]));
-	const int n = 1 << L;
-	vector <int> tmp(f);tmp.resize(n >> 1);
-	vector <int> A(n + n, 0), B(getInv(tmp, L - 1));
-	f.resize(n);
-	NTT(f, L + 1, 1);
-	NTT(B, L + 1, 1);
-	REP(i, 0, n + n - 1) A[i] = mul(B[i], nadd(2, mul(f[i], B[i])));
-	NTT(A, L + 1, -1);
-	A.resize(n);
-	return A;
-}
-
-vector <int> f;
-
-signed main()
+int main()
 {
 #ifdef CraZYali
 	file("4725");
 #endif
-	cin >> n;
-	int l(1), L(0);
-	while (l <= n + n) l <<= 1, L++;
-	f.resize(l);
-	REP(i, 0, n - 1) f[i] = read<int>();
-	vector <int> Inv(getInv(f, L-1)), res(l,0);
-	f = DIF(f);
-	NTT(Inv, L, 1);
-	NTT(f, L, 1);
-	REP(i, 0, l - 1) res[i] = mul(f[i], Inv[i]);
-	NTT(res, L, -1);
-	res = INT(res);
-	REP(i, 0, n-1) printf("%d%c", (res[i] + MOD) % MOD, i == n - 1 ? '\n' : ' ');
+	n = read<int>() - 1;
+	REP(i, 0, n) F[i] = read<int>();
+	getln(F, ln, n);
+	REP(i, 0, n) printf("%d%c", ln[i], i == n ? '\n' : ' ');
 	return 0;
 }
