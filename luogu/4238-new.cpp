@@ -1,36 +1,62 @@
-#define REP(i, s, e) for (register int i = (s), end_##i = (e); i <= end_##i; i++)
-#define DEP(i, s, e) for (register int i = (s), end_##i = (e); i >= end_##i; i--)
+/*
+ * File Name:	4238-new.cpp
+ * Author	:	CraZYali
+ * Time		:	2020.01.11 10:34
+ * Email	:	yms-chenziyang@outlook.com
+ */
+
+#define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
+#define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
-#define chkmax(a, b) (a < (b) ? a = (b) : a)
-#define chkmin(a, b) (a > (b) ? a = (b) : a)
+#define chkmax(a, b) (a < (b) ? a = (b) : a) 
+#define chkmin(a, b) (a > (b) ? a = (b) : a) 
 
-#include <algorithm>
 #include <iostream>
-#include <cassert>
-#include <cstring>
-#include <cstdlib>
 #include <cstdio>
-#include <vector>
-#include <cmath>
 
 using namespace std;
-const int MOD = 998244353;
+const int maxn = 1 << 20, MOD = 998244353;
 
-int power_pow(long long base, int b)
+inline int add() {return 0;}
+template <typename ...T>
+inline int add(int arg, T... args)
 {
-	long long ans(1);
+	int res = arg + add(args...);
+	if (res >= MOD) res -= MOD;
+	return res;
+}
+
+inline int sub(int x, int y)
+{
+	int res = x - y;
+	if (res < 0) res += MOD;
+	return res;
+}
+
+inline int mul() {return 1;}
+template <typename ...T>
+inline int mul(int arg, T... args)
+{
+	long long res = 1ll * arg * mul(args...);
+	if (res >= MOD) res %= MOD;
+	return res;
+}
+
+int power_pow(int base, int b)
+{
+	int ans(1);
 	while (b)
 	{
-		if (b & 1) (ans *= base) %= MOD;
-		(base *= base) %= MOD;
+		if (b & 1) ans = mul(ans, base);
+		base = mul(base, base);
 		b >>= 1;
 	}
 	return ans;
 }
 #define inv(x) power_pow(x, MOD - 2)
 
-template <typename T> T read()
+template <typename T> inline T read()
 {
 	T ans(0), flag(1);
 	char c(getchar());
@@ -47,70 +73,71 @@ template <typename T> T read()
 	return ans * flag;
 }
 
-void file(string s)
-{
-	freopen((s + ".in").c_str(), "r", stdin);
-	freopen((s + ".out").c_str(), "w", stdout);
-}
+#define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout);
 
-int n;
-
-void NTT(vector <int> &F, int n, int flag)
+int Wn[30], Invwn[30];
+struct __init__
 {
-	int L(log2(n));
-	vector <int> R(n);
-	R[0] = 0;
+	__init__()
+	{
+		REP(i, 0, 29)
+		{
+			Wn[i] = power_pow(3, (MOD - 1) / (1 << i + 1));
+			Invwn[i] = inv(Wn[i]);
+		}
+	}
+}__INIT__;
+
+int R[maxn];
+void NTT(int a[], int n, int flag)
+{
 	REP(i, 1, n - 1)
 	{
-		R[i] = (R[i >> 1] >> 1) | ((i & 1) << L - 1);
-		if (i < R[i]) swap(F[i], F[R[i]]);
+		R[i] = (R[i >> 1] >> 1) | (i & 1 ? (n >> 1) : 0);
+		if (i < R[i]) swap(a[i], a[R[i]]);
 	}
-	for (int i = 1; i < n; i <<= 1)
+	for (int i = 1, ccc = 0; i < n; ccc++, i <<= 1)
 	{
-		int wn = power_pow(3, (MOD - 1) / (i << 1));
-		if (flag == -1) wn = inv(wn);
+		int wn = (flag > 0 ? Wn[ccc] : Invwn[ccc]);
 		for (int k = 0; k < n; k += i << 1)
-			for (int l = 0, w = 1; l < i; l++, w = 1ll * w * wn % MOD)
+			for (int l = 0, w = 1; l < i; l++, w = mul(w, wn))
 			{
-				int x(F[k + l]), y(1ll * w * F[k + l + i] % MOD);
-				F[k + l] = (x + y) % MOD;
-				F[k + l + i] = (x - y) % MOD;
+				int x(a[k + l]), y(mul(a[k + l + i], w));
+				a[k + l] = add(x, y);
+				a[k + l + i] = sub(x, y);
 			}
 	}
-	if (flag == -1)
+	if (flag < 0)
 	{
-		const int InvN = inv(n);
-		REP(i, 0, n - 1) F[i] = 1ll * F[i] * InvN % MOD;
+		const int Invn = inv(n);
+		REP(i, 0, n - 1) a[i] = mul(a[i], Invn);
 	}
 }
 
-vector <int> getInv(vector <int> F, int n)
+int tmp[maxn];
+void getInv(const int F[], int Inv[], int n)
 {
-	if (!n) return vector<int>(1, inv(F[0]));
-	vector <int> A(n + n, 0);
-	vector <int> B(getInv(F, n >> 1));
-	B.resize(n + n);
-	F.resize(n);
-	F.resize(n + n);
-	NTT(F, n + n, 1);
-	NTT(B, n + n, 1);
-	REP(i, 0, n + n - 1) A[i] = (2ll * B[i] % MOD - 1ll * F[i] * B[i] % MOD * B[i] % MOD) % MOD;
-	NTT(A, n + n, -1);
-	A.resize(n);
-	return A;
+	if (!n) return void(Inv[0] = inv(F[0]));
+	getInv(F, Inv, n >> 1);
+	copy(F, F + n, tmp);
+	NTT(tmp, n + n, 1);
+	NTT(Inv, n + n, 1);
+	REP(i, 0, n + n - 1) Inv[i] = sub(add(Inv[i], Inv[i]), mul(Inv[i], Inv[i], tmp[i]));
+	NTT(Inv, n + n, -1);
+	REP(i, n, n + n - 1) tmp[i] = Inv[i] = 0;
 }
-vector <int> F, Inv;
+int n, F[maxn], Inv[maxn];
 
-signed main()
+int main()
 {
 #ifdef CraZYali
 	file("4238-new");
 #endif
-	cin >> n;
-	const int lim = 1 << (int)ceil(log2(n) + 1);
-	F.resize(lim);
-	REP(i, 0, n - 1) F[i] = read<int>();
-	Inv = getInv(F, lim >> 1);
-	REP(i, 0, n - 1) printf("%d%c", (Inv[i] + MOD) % MOD, i == n - 1 ? '\n' : ' ');
+	cin >> n;n--;
+	REP(i, 0, n) F[i] = read<int>();
+	int l(1);
+	while (l <= n) l <<= 1;
+	getInv(F, Inv, l);
+	REP(i, 0, n) printf("%d%c", Inv[i], i == end_i ? '\n' : ' ');
 	return 0;
 }

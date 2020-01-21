@@ -1,7 +1,7 @@
 /*
- * File Name:	4725.cpp
+ * File Name:	5205.cpp
  * Author	:	CraZYali
- * Time		:	2020.01.11 22:10
+ * Time		:	2020.01.12 10:52
  * Email	:	yms-chenziyang@outlook.com
  */
 
@@ -12,11 +12,13 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a) 
 #define chkmin(a, b) (a > (b) ? a = (b) : a) 
 
+#include <cassert>
+#include <cstring>
 #include <iostream>
 #include <cstdio>
 
 using namespace std;
-const int maxn = 1 << 20, MOD = 998244353;
+const int maxn = 1 << 20, MOD = 998244353, Inv2 = MOD + 1 >> 1;
 
 inline int add() {return 0;}
 	template <typename ...T>
@@ -126,9 +128,45 @@ namespace poly
 		DEP(i, n, 1) ln[i] = mul(ln[i-1], inv(i));
 		ln[0] = 0;
 	}
+
+	int tmp2[maxn], tmp3[maxn];
+	void getexp(int F[], int B[], int n, bool first = 0)
+	{
+		if (first)
+		{
+			int l(1);
+			while (l <= n + n) l <<= 1;
+			REP(i, n + 1, l - 1) F[i] = 0;
+			getexp(F, B, l);
+			return;
+		}
+		if (n == 1)
+		{
+			B[0] = 1;
+			return;
+		}
+		getexp(F, B, n >> 1);
+		REP(i, 0, n + n - 1) tmp2[i] = tmp3[i] = 0;
+		copy(F, F + n, tmp2);
+//		puts("==============");
+//		REP(i, 0, n - 1) printf("%d%c", B[i], i == n - 1 ? '\n': ' ');
+		getln(B, tmp3, 1 + (n >> 1));
+//		REP(i, 0, n - 1) printf("%d%c", tmp3[i], i == n - 1 ? '\n': ' ');
+//		puts("==============\n");
+		NTT(tmp3, n + n, 1);
+		NTT(tmp2, n + n, 1);
+		NTT(B, n + n, 1);
+		REP(i, 0, n + n - 1) B[i] = sub(B[i], mul(B[i], sub(tmp3[i], tmp2[i])));
+		NTT(B, n + n, -1);
+//		cerr<<"B[0] = "<<B[0]<<endl;
+//		assert(B[0] == 1);
+		REP(i, n, n + n - 1) B[i] = tmp2[i] = tmp3[i] = 0;
+	}
 }
 using poly::NTT;
 using poly::getln;
+using poly::getexp;
+using poly::getInv;
 
 template <typename T> inline T read()
 {
@@ -149,16 +187,18 @@ template <typename T> inline T read()
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout);
 
-int n, F[maxn], ln[maxn];
+int n, F[maxn], ln[maxn], exp[maxn];
 
 int main()
 {
 #ifdef CraZYali
-	file("4725");
+	file("5205");
 #endif
 	n = read<int>() - 1;
 	REP(i, 0, n) F[i] = read<int>();
 	getln(F, ln, n);
-	REP(i, 0, n) printf("%d%c", ln[i], i == n ? '\n' : ' ');
+	REP(i, 0, n) ln[i] = mul(ln[i], Inv2);
+	getexp(ln, exp, n, 1);
+	REP(i, 0, n) printf("%d%c", exp[i], i == n ? '\n' : ' ');
 	return 0;
 }
