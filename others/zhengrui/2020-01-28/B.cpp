@@ -175,12 +175,21 @@ int main()
 				while (_l <= _r)
 				{
 					int mid = _l + _r >> 1;
-					int Res = upper_bound(b + 1, b + 1 + m, mid) - b - 1;
-					REP(i, bl + 1, br - 1)
+
+					int lll = 1, rrr = m;
+					while (lll <= rrr)
 					{
-						Res += sum(rt[i], mid);
-						if (Res >= x) break;
+						int mmm = lll + rrr >> 1;
+						if (b[mmm] > mid) rrr = mmm - 1;
+						else lll = mmm + 1;
 					}
+					Res = rrr + 1;
+					if (Res < x)
+						REP(i, bl + 1, br - 1)
+						{
+							Res += sum(rt[i], mid);
+							if (Res >= x) break;
+						}
 					if (Res >= x) _r = mid - 1;
 					else _l = mid + 1;
 				}
