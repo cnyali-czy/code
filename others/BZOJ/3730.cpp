@@ -1,6 +1,6 @@
 /*
 	Problem:	3730.cpp
-	Time:		2020-02-16 17:48
+	Time:		2020-02-17 21:43
 	Author:		CraZYali
 	E-Mail:		yms-chenziyang@outlook.com 
 */
@@ -12,12 +12,12 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
-#include <ctime>
+#include <vector>
 #include <iostream>
 #include <cstdio>
 
 using namespace std;
-const int maxn = 1e5 + 10, maxN = 1.8e7;
+const int maxn = 100000 + 10;
 
 int bg[maxn], ne[maxn << 1], to[maxn << 1], e;
 void add(int x, int y)
@@ -28,7 +28,7 @@ void add(int x, int y)
 	bg[x] = e;
 }
 
-	template <typename T>
+template <typename T>
 inline T read()
 {
 	T ans = 0, flag = 1;
@@ -48,149 +48,110 @@ inline T read()
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-int n, m, v[maxn], ls[maxN], rs[maxN], s[maxN], cur;
-#define lson ls[p], l, mid
-#define rson rs[p], mid + 1, r
-#define mid (l + r >> 1)
-
-void insert(int &p, int l, int r, int pos, int val)
-{
-	if (!p) p = ++cur;
-	s[p] += val;
-	if (l == r) return;
-	if (pos <= mid) insert(lson, pos, val);
-	else			insert(rson, pos, val);
-}
-int query(int p, int l, int r, int L, int R)
-{
-	if (!p) return 0;
-	if (L <= l && r <= R) return s[p];
-	else
-	{
-		if (R <= mid) return query(lson, L, R);
-		if (L >  mid) return query(rson, L, R);
-		return query(lson, L, R) + query(rson, L, R);
-	}
-}
+int n, m, v[maxn];
+inline int min(const int &x, const int &y) {if (x < y) return x;return y;}
 namespace lca
 {
-	int lg[maxn << 1];
-	int dfs_clock, dep[maxn], fir[maxn], Min[maxn << 1][19], Pos[maxn << 1][19];
+	int st[maxn << 1][20], dfn, lg[maxn << 1], dep[maxn], fir[maxn];
 	void dfs(int x, int fa = 0)
 	{
-		fir[x] = ++dfs_clock;
-		dep[x] = dep[fa] + 1;
-		Min[dfs_clock][0] = dep[x];Pos[dfs_clock][0] = x;
+		st[++dfn][0] = dep[x];
+		fir[x] = dfn;
 		for (int i = bg[x]; i; i = ne[i]) if (to[i] ^ fa)
 		{
-			dfs(to[i], x);
-			++dfs_clock;
-			Min[dfs_clock][0] = dep[x];Pos[dfs_clock][0] = x;
-		}
-	}
-	void init()
-	{
-		REP(i, 2, n + n) lg[i] = lg[i >> 1] + 1;
-		dfs(1);
-		DEP(i, n + n, 1)
-			for (int j = 1; i + (1 << j) - 1 <= n + n; j++)
-				if (dep[Pos[i][j-1]] < dep[Pos[i + (1 << j - 1)][j-1]])
-					Pos[i][j] = Pos[i][j - 1];
-				else
-					Pos[i][j] = Pos[i + (1 << j - 1)][j - 1];
-	}
-	inline int lca(int x, int y)
-	{
-		int l = fir[x], r = fir[y];if (l > r) swap(l, r);
-		int k = lg[r - l + 1];
-		int pos1 = Pos[l][k], pos2 = Pos[r - (1 << k) + 1][k];
-		return dep[pos1] < dep[pos2] ? pos1 : pos2;
-	}
-	inline int dist(int x, int y) {return dep[x] + dep[y] - 2 * dep[lca(x, y)];}
-}
-int dep[maxn];
-
-namespace cd
-{
-	int siz[maxn], Max[maxn], allnode, rt;
-	bool vis[maxn];
-
-	void findrt(int x, int fa = 0)
-	{
-		siz[x] = 1;Max[x] = 0;
-		for (int i = bg[x]; i; i = ne[i]) if (to[i] ^ fa && !vis[to[i]])
-		{
-			findrt(to[i], x);
-			siz[x] += siz[to[i]];
-			chkmax(Max[x], siz[to[i]]);
-		}
-		chkmax(Max[x], allnode - siz[x]);
-		if (Max[x] < Max[rt] || !rt) rt = x;
-	}
-
-	int tfa[maxn], drt[maxn], crt[maxn], now;
-	void DFS(int x, int d, int fa = 0)
-	{
-		insert(crt[now], 0, n, d, v[x]);
-		for (int i = bg[x]; i; i = ne[i]) if (!vis[to[i]] && to[i] ^ fa)
-			DFS(to[i], d + 1, x);
-	}
-	void DFS2(int x, int d, int fa = 0)
-	{
-		insert(drt[now], 0, n, d, v[x]);
-		for (int i = bg[x]; i; i = ne[i]) if (!vis[to[i]] && to[i] ^ fa)
-			DFS2(to[i], d + 1, x);
-	}
-	void dfs(int x)
-	{
-		now = x;
-		DFS2(x, 0);
-
-		vis[x] = 1;
-		for (int i = bg[x]; i; i = ne[i]) if (!vis[to[i]])
-		{
-			allnode = siz[to[i]];
-			rt = 0;
 			dep[to[i]] = dep[x] + 1;
-			findrt(to[i]);
-			tfa[rt] = x;
-			now = rt;
-			DFS(to[i], 1);
-			dfs(rt);
+			dfs(to[i], x);
+			st[++dfn][0] = dep[x];
 		}
 	}
-
+	inline int qry(int x, int y)
+	{
+		int l(fir[x]), r(fir[y]);if (l > r) swap(l, r);
+		int k = lg[r - l + 1];
+		return min(st[l][k], st[r - (1 << k) + 1][k]);
+	}
+	inline int dist(int x, int y) {return dep[x] + dep[y] - 2 * qry(x, y);}
 	void init()
 	{
-		allnode = 0;
-		findrt(1);
+		dfs(1);
+		REP(i, 2, dfn) lg[i] = lg[i >> 1] + 1;
+		REP(j, 1, 19)
+			REP(i, 1, dfn + 1 - (1 << j))
+				st[i][j] = min(st[i][j-1], st[i + (1 << j-1)][j-1]);
+	}
+}
+using lca::dist;
+struct bit
+{
+	int n, *c;
+	inline void init(int _n)
+	{
+		n = _n + 1;
+		c = new int[n + 1];
+		REP(i, 0, n) c[i] = 0;
+	}
+	void add(int x, int y) {for (; x <= n; x += x & -x) c[x] += y;}
+	int sum(int x) {int res = 0;for (chkmin(x, n); x > 0; x &= (x - 1)) res += c[x];return res;}
+}g[maxn], f[maxn];
+
+int siz[maxn], Max[maxn], rt, allnode;
+bool vis[maxn];
+void findrt(int x, int fa = 0)
+{
+	siz[x] = 1;Max[x] = 0;
+	for (int i = bg[x]; i; i = ne[i]) if (!vis[to[i]] && to[i] ^ fa)
+	{
+		findrt(to[i], x);
+		siz[x] += siz[to[i]];
+		chkmax(Max[x], siz[to[i]]);
+	}
+	chkmax(Max[x], allnode - siz[x]);
+	if (!rt || Max[x] < Max[rt]) rt = x;
+}
+
+int par[maxn];
+void dfs2(int x, int fa, int d)
+{
+	d++;
+	f[rt].add(d, v[x]);g[par[rt]].add(d, v[x]);
+	for (int i = bg[x]; i; i = ne[i]) if (!vis[to[i]] && to[i] ^ fa) dfs2(to[i], x, d);
+}
+
+void dfs(int x)
+{
+	vis[x] = 1;
+	g[x].add(1, v[x]);
+	for (int i = bg[x]; i; i = ne[i]) if (!vis[to[i]])
+	{
+		rt = 0;
+		allnode = siz[to[i]];
+		findrt(to[i]);
+		par[rt] = x;
+		f[rt].init(allnode);g[rt].init(allnode);
+		dfs2(to[i], x, 1);
 		dfs(rt);
 	}
+}
 
-	int query(int x, int y)
+void update(int x, int y)
+{
+	int delta = y - v[x];
+	for (int i = x; i; i = par[i])
 	{
-		int res = ::query(drt[x], 0, n, 0, y);
-		int nww = 0;
-		for (int i = x; tfa[i]; i = tfa[i])
-		{
-			nww = lca::dist(x, tfa[i]);
-			res += ::query(drt[tfa[i]], 0, n, 0, y - nww);
-			res -= ::query(crt[i], 0, n, 0, y - nww);
-		}
-		return res;
+		g[i].add(dist(x, i) + 1, delta);
+		if (par[i]) f[i].add(dist(par[i], x) + 1, delta);
 	}
-	void update(int x, int y)
+	v[x] = y;
+}
+int query(int x, int k)
+{
+	int res = 0;
+	for (int i = x; i; i = par[i])
 	{
-		int nww = 0;
-		insert(drt[x], 0, n, 0, y - v[x]);
-		for (int i = x; tfa[i]; i = tfa[i])
-		{
-			nww = lca::dist(x, tfa[i]);
-			insert(drt[tfa[i]], 0, n, nww, y - v[x]);
-			insert(crt[i], 0, n, nww, y - v[x]);
-		}
-		v[x] = y;
+		res += g[i].sum(k - dist(i, x) + 1);
+		if (par[i]) res -= f[i].sum(k - dist(par[i], x) + 1);
 	}
+	return res;
 }
 
 int main()
@@ -200,17 +161,22 @@ int main()
 #endif
 	n = read<int>();m = read<int>();
 	REP(i, 1, n) v[i] = read<int>();
-	REP(i, 2, n) {int x(read<int>()), y(read<int>());add(x, y);add(y, x);}
-	lca::init();
-	cd::init();
-	int lastans = 0;
-	while (m--)
+	REP(i, 2, n)
 	{
-//		lastans = 0;
-		int opt = read<int>(), x(lastans ^ read<int>()), y(lastans ^ read<int>());
-		if (opt == 0) printf("%d\n", lastans = cd::query(x, y));
-		else cd::update(x, y);
+		int x(read<int>()), y(read<int>());
+		add(x, y);add(y, x);
 	}
-//	cerr << clock() * 1. / CLOCKS_PER_SEC << endl;
+	lca::init();
+	allnode = n;
+	findrt(1);
+	f[rt].init(n);g[rt].init(n);
+	dfs(rt);
+	int ans = 0;
+	REP(Case, 1, m)
+	{
+		int opt(read<int>()), x(ans ^ read<int>()), y(ans ^ read<int>());
+		if (!opt) printf("%d\n", ans = query(x, y));
+		else update(x, y);
+	}
 	return 0;
 }
