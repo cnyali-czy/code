@@ -85,132 +85,108 @@ int ord[maxn], a[maxn];
 
 namespace Copy
 {
-	const int maxN = 3.5e7;
-	int ls[maxN], rs[maxN], s[maxN], cur;
-#define lson ls[p], l, mid
-#define rson rs[p], mid + 1, r
-#define mid (l + r >> 1)
-
-	void insert(int &p, int l, int r, int pos)
-	{
-		if (!p) p = ++cur;
-		s[p]++;
-		if (l == r) return;
-		if (pos <= mid) insert(lson, pos);
-		else			insert(rson, pos);
-	}
-	int query(int p, int l, int r, int L, int R)
-	{
-		if (!p) return 0;
-		if (L <= l && r <= R) return s[p];
-		else
-		{
-			if (R <= mid) return query(lson, L, R);
-			if (L >  mid) return query(rson, L, R);
-			return query(lson, L, R) + query(rson, L, R);
-		}
-	}
+	inline int min(const int &x, const int &y) {if (x < y) return x;return y;}
 	namespace lca
 	{
-		int lg[maxn << 1];
-		int dfs_clock, dep[maxn], fir[maxn], Min[maxn << 1][19], Pos[maxn << 1][19];
+		int st[maxn << 1][20], dfn, lg[maxn << 1], dep[maxn], fir[maxn];
 		void dfs(int x, int fa = 0)
 		{
-			fir[x] = ++dfs_clock;
-			dep[x] = dep[fa] + 1;
-			Min[dfs_clock][0] = dep[x];Pos[dfs_clock][0] = x;
+			st[++dfn][0] = dep[x];
+			fir[x] = dfn;
 			for (int i = bg[x]; i; i = ne[i]) if (to[i] ^ fa)
 			{
-				dfs(to[i], x);
-				++dfs_clock;
-				Min[dfs_clock][0] = dep[x];Pos[dfs_clock][0] = x;
-			}
-		}
-		void init()
-		{
-			REP(i, 2, n + n) lg[i] = lg[i >> 1] + 1;
-			dfs(1);
-			DEP(i, n + n, 1)
-				for (int j = 1; i + (1 << j) - 1 <= n + n; j++)
-					if (dep[Pos[i][j-1]] < dep[Pos[i + (1 << j - 1)][j-1]])
-						Pos[i][j] = Pos[i][j - 1];
-					else
-						Pos[i][j] = Pos[i + (1 << j - 1)][j - 1];
-		}
-		inline int lca(int x, int y)
-		{
-			int l = fir[x], r = fir[y];if (l > r) swap(l, r);
-			int k = lg[r - l + 1];
-			int pos1 = Pos[l][k], pos2 = Pos[r - (1 << k) + 1][k];
-			return dep[pos1] < dep[pos2] ? pos1 : pos2;
-		}
-		inline int dist(int x, int y) {return dep[x] + dep[y] - 2 * dep[lca(x, y)];}
-	}
-	int dep[maxn];
-
-	namespace cd
-	{
-		int siz[maxn], Max[maxn], allnode, rt;
-		bool vis[maxn];
-
-		void findrt(int x, int fa = 0)
-		{
-			siz[x] = 1;Max[x] = 0;
-			for (int i = bg[x]; i; i = ne[i]) if (to[i] ^ fa && !vis[to[i]])
-			{
-				findrt(to[i], x);
-				siz[x] += siz[to[i]];
-				chkmax(Max[x], siz[to[i]]);
-			}
-			chkmax(Max[x], allnode - siz[x]);
-			if (Max[x] < Max[rt] || !rt) rt = x;
-		}
-
-		int tfa[maxn], drt[maxn], crt[maxn];
-		void dfs(int x)
-		{
-			vis[x] = 1;
-			for (int i = bg[x]; i; i = ne[i]) if (!vis[to[i]])
-			{
-				allnode = siz[to[i]];
-				rt = 0;
 				dep[to[i]] = dep[x] + 1;
-				findrt(to[i]);
-				tfa[rt] = x;
-				dfs(rt);
+				dfs(to[i], x);
+				st[++dfn][0] = dep[x];
 			}
 		}
-
+		inline int qry(int x, int y)
+		{
+			int l(fir[x]), r(fir[y]);if (l > r) swap(l, r);
+			int k = lg[r - l + 1];
+			return min(st[l][k], st[r - (1 << k) + 1][k]);
+		}
+		inline int dist(int x, int y) {return dep[x] + dep[y] - 2 * qry(x, y);}
 		void init()
 		{
-			allnode = 0;
-			findrt(1);
+			dfs(1);
+			REP(i, 2, dfn) lg[i] = lg[i >> 1] + 1;
+			REP(j, 1, 19)
+				REP(i, 1, dfn + 1 - (1 << j))
+				st[i][j] = min(st[i][j-1], st[i + (1 << j-1)][j-1]);
+		}
+	}
+	using lca::dist;
+	struct bit
+	{
+		int n, *c;
+		inline void init(int _n)
+		{
+			n = _n + 1;
+			c = new int[n + 1];
+			REP(i, 0, n) c[i] = 0;
+		}
+		void add(int x, int y) {for (; x <= n; x += x & -x) c[x] += y;}
+		int sum(int x) {int res = 0;for (chkmin(x, n); x > 0; x &= (x - 1)) res += c[x];return res;}
+	}g[maxn], f[maxn];
+
+	int siz[maxn], Max[maxn], rt, allnode;
+	bool vis[maxn];
+	void findrt(int x, int fa = 0)
+	{
+		siz[x] = 1;Max[x] = 0;
+		for (int i = bg[x]; i; i = ne[i]) if (!vis[to[i]] && to[i] ^ fa)
+		{
+			findrt(to[i], x);
+			siz[x] += siz[to[i]];
+			chkmax(Max[x], siz[to[i]]);
+		}
+		chkmax(Max[x], allnode - siz[x]);
+		if (!rt || Max[x] < Max[rt]) rt = x;
+	}
+
+	int par[maxn];
+
+	void dfs(int x)
+	{
+		vis[x] = 1;
+		for (int i = bg[x]; i; i = ne[i]) if (!vis[to[i]])
+		{
+			rt = 0;
+			allnode = siz[to[i]];
+			findrt(to[i]);
+			par[rt] = x;
+			f[rt].init(allnode);g[rt].init(allnode);
 			dfs(rt);
 		}
+	}
 
-		int query(int x, int y)
+	void update(int x, int y)
+	{
+		int delta = 1;
+		for (int i = x; i; i = par[i])
 		{
-			int res = Copy::query(drt[x], 0, n, 0, y);
-			int nww = 0;
-			for (int i = x; tfa[i]; i = tfa[i])
-			{
-				nww = lca::dist(x, tfa[i]);
-				res += Copy::query(drt[tfa[i]], 0, n, 0, y - nww);
-				res -= Copy::query(crt[i], 0, n, 0, y - nww);
-			}
-			return res;
+			g[i].add(dist(x, i) + 1, delta);
+			if (par[i]) f[i].add(dist(par[i], x) + 1, delta);
 		}
-		void update(int x)
+	}
+	int query(int x, int k)
+	{
+		int res = 0;
+		for (int i = x; i; i = par[i])
 		{
-			int nww = 0;
-			insert(drt[x], 0, n, 0);
-			for (int i = x; tfa[i]; i = tfa[i])
-			{
-				nww = lca::dist(x, tfa[i]);
-				Copy::insert(drt[tfa[i]], 0, n, nww);
-				Copy::insert(crt[i], 0, n, nww);
-			}
+			res += g[i].sum(k - dist(i, x) + 1);
+			if (par[i]) res -= f[i].sum(k - dist(par[i], x) + 1);
 		}
+		return res;
+	}
+	void init()
+	{
+		lca::init();
+		allnode = n;
+		findrt(1);
+		f[rt].init(n);g[rt].init(n);
+		dfs(rt);
 	}
 }
 namespace Poly
@@ -253,7 +229,6 @@ namespace Poly
 		NTT(res, N, -1);
 	}
 }
-using Copy::lca::lca;
 using Copy::lca::dist;
 
 int main()
@@ -263,14 +238,13 @@ int main()
 #endif
 	n = read<int>();lim = read<int>();
 	REP(i, 2, n) {int x(read<int>()), y(read<int>());add_edge(x, y);add_edge(y, x);}
-	Copy::lca::init();
-	Copy::cd::init();
+	Copy::init();
 	REP(i, 1, n) ord[i] = i;
 	sort(ord + 1, ord + 1 + n, [&](int x, int y) {return Copy::lca::dep[x] < Copy::lca::dep[y];});
 	REP(i, 1, n)
 	{
-		a[ord[i]] = Copy::cd::query(ord[i], lim);
-		Copy::cd::update(ord[i]);
+		a[ord[i]] = Copy::query(ord[i], lim);
+		Copy::update(ord[i], 1);
 	}
 	Poly::work();
 	REP(k, 0, n - 1) printf("%d%c", mul(Inv[k], Poly::res[k + n]), k == end_k ? '\n' : ' ');
