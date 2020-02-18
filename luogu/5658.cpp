@@ -48,11 +48,12 @@ inline T read()
 }
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
-
+#include<cassert>
 int n, sum[maxn], fa[maxn][20], dep[maxn];
 char s[maxn];
 long long res, ans[maxn], Min[maxn][20];
 
+inline int min(int x, int y) {if (x < y) return x;return y;}
 int lg[(1 << 19) + 1];
 int qry(int x, int y)
 {
@@ -83,13 +84,20 @@ void dfs(int x)
 	{
 		int l = 0, r = (int)show(sum[x]).size() - 1;
 		bool flag = 0;
+		int X = x, cur = 1e9;
+		DEP(i, 19, 0) if (fa[X][i] && min(cur, Min[X][i]) >= sum[x])
+		{
+			chkmin(cur, Min[X][i]);
+			X = fa[X][i];
+		}
+		if (X == 1 && sum[1] >= sum[x]) X = 0;
 		while (l < r)
 		{
 			int mid = l + r >> 1;
-			if (sum[x] <= qry(x, show(sum[x])[mid])) r = mid;
+			if (dep[show(sum[x])[mid]] >= dep[X]) r = mid;
 			else l = mid + 1;
 		}
-		if (r >= 0 && sum[show(sum[x])[r]] <= qry(x, show(sum[x])[r])) ans[x] += show(sum[x]).size() - r;
+		if (r >= 0 && dep[show(sum[x])[r]] >= dep[X]) ans[x] += show(sum[x]).size() - r;
 	}
 	show(sum[x]).emplace_back(x);
 	res ^= x * ans[x];
@@ -101,6 +109,8 @@ int main()
 {
 #ifdef CraZYali
 	file("5658");
+#else
+	file("brackets");
 #endif
 	n = read<int>();
 	REP(i, 1, 19) lg[1 << i] = i;
