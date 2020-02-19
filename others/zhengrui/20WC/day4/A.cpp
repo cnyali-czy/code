@@ -1,28 +1,38 @@
 /*
- * File Name:	A.cpp
- * Author	:	CraZYali
- * Time		:	2020.02.08 23:38
- * Email	:	yms-chenziyang@outlook.com
- */
+	Problem:	A.cpp
+	Time:		2020-02-18 20:57
+	Author:		CraZYali
+	E-Mail:		yms-chenziyang@outlook.com 
+*/
 
-#define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
+#define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
-#define chkmax(a, b) (a < (b) ? a = (b) : a) 
-#define chkmin(a, b) (a > (b) ? a = (b) : a) 
+#define chkmax(a, b) (a < (b) ? a = (b) : a)
+#define chkmin(a, b) (a > (b) ? a = (b) : a)
 
-#include <unordered_map>
+#include <set>
+#include <vector>
 #include <iostream>
 #include <cstdio>
-
 using namespace std;
-const int maxn = 1e5 + 10, maxN = 1e7 + 5;
+const int maxn = 1e5 + 10, maxq = 1e5 + 10, maxN = 1e7;
 
-template <typename T> inline T read()
+int bg[maxn], ne[maxn], to[maxn], e;
+void add(int x, int y)
 {
-	T ans(0), flag(1);
-	char c(getchar());
+	e++;
+	to[e] = y;
+	ne[e] = bg[x];
+	bg[x] = e;
+}
+
+template <typename T>
+inline T read()
+{
+	T ans = 0, flag = 1;
+	char c = getchar();
 	while (!isdigit(c))
 	{
 		if (c == '-') flag = -1;
@@ -36,141 +46,135 @@ template <typename T> inline T read()
 	return ans * flag;
 }
 
-#define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout);
+#define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-//unordered_map <bool, int> ch[maxN];
-int ch[maxN][2], s[maxN], cur;
+int n, q, fa[maxn], w[maxn];
 
-inline int newnode()
-{
-	return ++cur;
-}
-
-int n, m, a[maxn], fa[maxn];
-
-int bg[maxn], ne[maxn], to[maxn], e;
-void add(int x, int y)
-{
-	e++;
-	to[e] = y;
-	ne[e] = bg[x];
-	bg[x] = e;
-}
 int dfn[maxn], siz[maxn], dfs_clock;
-
-int rt[maxn];
-void Insert(int p, int dep, int val)
-{
-	s[p]++;
-	if (dep == -1) return;
-	bool flag = !!(val & (1 << dep));
-	if (!ch[p][flag]) ch[p][flag] = newnode();
-	Insert(ch[p][flag], dep - 1, val);
-}
-void Delete(int p, int dep, int val)
-{
-	s[p]--;
-	if (dep == -1) return;
-	bool flag = !!(val & (1 << dep));
-	if (!ch[p][flag]) ch[p][flag] = newnode();
-	Delete(ch[p][flag], dep - 1, val);
-	if (!s[ch[p][flag]])
-	{
-//		stack[++top] = ch[p][flag];
-//		ch[p].erase(flag);
-	}
-}
-
-void ins(int x, int y)
-{
-	while (x <= n)
-	{
-		Insert(rt[x], 30, y);
-		x += x & -x;
-	}
-}
-void del(int x, int y)
-{
-	while (x <= n)
-	{
-		Delete(rt[x], 30, y);
-		x += x & -x;
-	}
-}
-
 void dfs(int x)
 {
-	siz[x] = 1;
 	dfn[x] = ++dfs_clock;
+	siz[x] = 1;
 	for (int i = bg[x]; i; i = ne[i])
 	{
 		dfs(to[i]);
 		siz[x] += siz[to[i]];
 	}
-	ins(dfn[x], a[x]);
-	del(dfn[x] + siz[x], a[x]);
 }
 
-int rts[114], N;
+int ch[maxN][2], cur;
+set <int> s1[maxN], s2[maxN];
 
-int main()
+void insert(int &p, int dep, int val, int time, int delta)
+{
+	if (!p) p = ++cur;
+	if (delta > 0) s1[p].emplace(time);
+	else s2[p].emplace(time);
+	if (dep == -1) return;
+	int flag = ((val >> dep) & 1);
+	insert(ch[p][flag], dep - 1, val, time, delta);
+}
+
+vector <pair <int, int> > Add[maxn];
+vector <pair <int, int> > Del[maxn];
+vector <pair <int, pair <int, int> > > Qry[maxn];
+
+int typ[maxq], x[maxq], y[maxq], ans[maxq];
+
+signed main()
 {
 #ifdef CraZYali
 	file("A");
 #endif
-//	REP(i, 1, maxN - 5) stack[++top] = i;
-	n = read<int>();
-	m = read<int>();
-	REP(i, 1, n)
-	{
-		rt[i] = newnode();
-		Insert(rt[i], 30, 0);
-		a[i] = read<int>();
-	}
+	n = read<int>();q = read<int>();
+	REP(i, 1, n) w[i] = read<int>();
 	REP(i, 2, n) add(fa[i] = read<int>(), i);
 	dfs(1);
-	while (m--)
+	int Time = 0;
+	REP(i, 1, n)
 	{
-		int opt(read<int>()), x(read<int>());
-		if (!opt)
+		Add[dfn[i]].emplace_back(0, w[i]);
+		Del[dfn[i] + siz[i]].emplace_back(0, w[i]);
+	}
+	int Cnt = 0;
+	REP(i, 1, q)
+	{
+		int typ = read<int>(), x = read<int>();
+		if (!typ)
 		{
-			int y = read<int>();
-			del(dfn[x], a[x]);
-			ins(dfn[x] + siz[x], a[x]);
-			a[x] = y;
-			ins(dfn[x], a[x]);
-			del(dfn[x] + siz[x], a[x]);
+			Del[x].emplace_back(i, w[x]);
+			Add[dfn[x] + siz[x]].emplace_back(i, w[x]);
+			w[x] = read<int>();
+			Add[x].emplace_back(i, w[x]);
+			Del[dfn[x] + siz[x]].emplace_back(i, w[x]);
+		}
+		else Qry[x].emplace_back(i, make_pair(++Cnt, w[x]));
+	}
+	/*
+	while (q--)
+	{
+		register int typ = read<int>(), x(read<int>());
+		if (!typ)
+		{
+//			REP(j, dfn[x], dfn[x] + siz[x] - 1) insert(rt[j], 30, w[x], -1);
+			add(dfn[x], w[x], -1);
+			add(dfn[x] + siz[x], w[x], 1);
+			w[x] = read<int>();
+			add(dfn[x], w[x], 1);
+			add(dfn[x] + siz[x], w[x], -1);
+//			REP(j, dfn[x], dfn[x] + siz[x] - 1) insert(rt[j], 30, w[x], 1);
 		}
 		else
 		{
-			int p = dfn[x];
-			N = 0;
-			while (p > 0)
-			{
-				rts[++N] = rt[p];
-				p &= (p - 1);
-			}
-			int ans = 0;
+			top = 0;
+//			stack[top = 1] = rt[dfn[x]];
+			for (int y = dfn[x]; y > 0; y &= (y - 1)) stack[++top] = rt[y];
+			int val = w[x], ans = 0;
 			DEP(dep, 30, 0)
 			{
-				int flag = !!(a[x] & (1 << dep));
-				int cnt = 0;
-				REP(i, 1, N)
-/*					if (ch[rts[i]].find(!flag) != ch[rts[i]].end()) */cnt += s[ch[rts[i]][!flag]];
-				if (cnt > 0)
+				int flag = !((val >> dep) & 1), here = 0;
+				REP(i, 1, top) here += s[ch[stack[i]][flag]];
+				if (here > 0)
 				{
 					ans |= (1 << dep);
-					REP(i, 1, N)
-						/*if (ch[rts[i]].find(!flag) != ch[rts[i]].end()) */rts[i] = ch[rts[i]][!flag];
-						//else rts[i] = 0;
+					REP(i, 1, top) stack[i] = ch[stack[i]][flag];
 				}
-				else
-					REP(i, 1, N)
-						/*if (ch[rts[i]].find(flag) != ch[rts[i]].end()) */rts[i] = ch[rts[i]][flag];
-						//else rts[i] = 0;
+				else 
+					REP(i, 1, top) stack[i] = ch[stack[i]][!flag];
 			}
-			printf("%d\n", ans);
+			cout << ans << '\n';
 		}
 	}
+	*/
+	int rt = 0;
+	REP(i, 1, n)
+	{
+		for (auto j : Add[i]) insert(rt, 30, j.second, j.first, 1);
+		for (auto j : Del[i]) insert(rt, 30, j.second, j.first, -1);
+		for (auto j : Qry[i])
+		{
+			int &res = ans[j.second.first];res = 0;
+			int val = j.second.second;
+			int u = rt;
+			DEP(dep, 30, 0)
+			{
+				int flag = !((val >> dep) & 1);
+				if (!ch[u][flag])
+				{
+					u = ch[u][!flag];
+					continue;
+				}
+				auto it1 = s1[ch[u][flag]].upper_bound(j.first);
+				auto it2 = s2[ch[u][flag]].upper_bound(j.first);
+//				if (it != s[ch[u][flag]].begin())
+//				{
+//					res |= (1 << dep);
+//					u = ch[u][flag];
+//				}
+//				else u = ch[u][!flag];
+			}
+		}
+	}
+	REP(i, 1, Cnt) printf("%d\n", ans[i]);
 	return 0;
 }
