@@ -1,113 +1,71 @@
-#define DREP(i, s, e) for(int i = s; i >= e ;i--)
-#define  REP(i, s, e) for(int i = s; i <= e ;i++)
+/*
+	Problem:	A.cpp
+	Time:		2020-02-21 13:53
+	Author:		CraZYali
+	E-Mail:		yms-chenziyang@outlook.com 
+*/
 
+#define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
+#define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
-#define chkmax(a, b) a = max(a, b)
-#define chkmin(a, b) a = min(a, b)
 
-#include <algorithm>
+#define chkmax(a, b) (a < (b) ? a = (b) : a)
+#define chkmin(a, b) (a > (b) ? a = (b) : a)
+
+#include <bitset>
 #include <iostream>
 #include <cstdio>
-
+#define i64 long long
 using namespace std;
-const int maxm = 400 + 10 << 1, MOD = 1e9 + 7;
+const int maxm = 400 + 5, MOD = 1e9 + 7;
 
-int power_pow(long long base, int b)
+inline int add(int x, int y) {register int res = x + y;return res >= MOD ? res - MOD : res;}
+inline int sub(int x, int y) {register int res = x - y;return res <    0 ? res + MOD : res;}
+inline i64 mul(i64 x, int y) {register i64 res = x * y;return res >= MOD ? res % MOD : res;}
+inline void inc(int &x, int y) {x += y;if (x >= MOD) x -= MOD;}
+
+template <typename T>
+inline T read()
 {
-	long long ans(1);
-	while (b)
+	T ans = 0, flag = 1;
+	char c = getchar();
+	while (!isdigit(c))
 	{
-		if (b & 1) (ans *= base) %= MOD;
-		(base *= base) %= MOD;
-		b >>= 1;
+		if (c == '-') flag = -1;
+		c = getchar();
 	}
-	return (ans + MOD) % MOD;
+	while (isdigit(c))
+	{
+		ans = ans * 10 + c - 48;
+		c = getchar();
+	}
+	return ans * flag;
 }
-#define inv(x) power_pow(x, MOD - 2)
+
+#define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
 int m, k, s;
-int ans, l[maxm], r[maxm];
+int l[maxm], r[maxm];
 
-pair <int, int> p[maxm];
-
-namespace solve2
+namespace two
 {
-	inline int work()
+	bitset <200000005> In;
+	void work()
 	{
-		int ans(0);
-		REP(i, 1, m + m)
-			REP(j, 1, m + m)
-			if (p[i].first + p[j].first <= s) (ans += 1ll * p[i].second * p[j].second * (s - p[i].first - p[j].first + 1)) %= MOD;
-		if (s % 2 == 0)
-			REP(i, 1, m + m)
-				if (p[i].first + p[i].first <= s) (ans -= p[i].second) %= MOD;
-		return (ans *= inv(2)) %= MOD;
+		REP(i, 1, m) REP(j, l[i], r[i]) In[j] = 1;
+		int ans = 0;
+		REP(i, 1, m) REP(j, l[i], min((s - 1) / 2, r[i])) if (In[s - j]) ans++;
+		cout << ans << '\n';
 	}
 }
-pair <int, int> p2[maxm * maxm];int cur;
-inline int c2(long long x) {return x * (x-1) / 2 % MOD;}
-namespace solve3
-{
-	inline int calc1()
-	{
-		int res(0), s1(0), s2(0), s3(0), j(1);
-		DREP(i, m + m, 1)
-			if (p[i].first <= s)
-			{
-				while (p[i].first + p2[j].first <= s && j <= cur)
-				{
-					(s1 += p2[j].second) %= MOD;
-					(s2 -= 1ll * p2[j].second * p2[j].first) %= MOD;
-					(s3 += 1ll * p2[j].second * c2(p2[j].first + 1)) %= MOD;
-					j++;
-				}
-				int len = s - p[i].first + 2;
-				(res += (1ll * s1 * c2(len) % MOD + 1ll * len * s2 % MOD + s3) % MOD * p[i].second) %= MOD;
-			}
-		return res;	
-	}
-	inline int calc2()
-	{
-		int res(0);
-		REP(i, 1, m + m)
-			REP(j, 1, m + m)
-			if (p[i].first + p[i].first + p[j].first <= s)
-				(res += 1ll * ((s - p[i].first - p[i].first - p[j].first) / 2 + 1) * p[j].second * p[i].second) %= MOD;
-		return res;
-	}
-	inline int calc3()
-	{
-		int res(0);
-		if (s % 3 == 0)
-			REP(i, 1, m + m)
-				if (3 * p[i].first <= s) (res += p[i].second) %= MOD;
-		return res;
-	}
-	inline int work() {return 1ll * inv(6) * (calc1() - 3ll * calc2() % MOD + 2ll * calc3() % MOD) % MOD;	}
-}
-namespace solve4
-{
-	inline int work()
-	{}
-}
-inline bool cmp(pair <int, int> A, pair <int, int> B) {return A.first < B.first;}
 
 int main()
 {
 #ifdef CraZYali
-	freopen("A.in", "r", stdin);
-	freopen("A.out", "w", stdout);
+	file("A");
 #endif
-	cin >> m >> k >> s;
-	REP(i, 1, m) scanf("%d%d", l + i, r + i);
-	REP(i, 1, m) p[i] = make_pair(l[i], 1), p[i + m] = make_pair(r[i] + 1, -1);
-	sort(p + 1, p + m + m + 1, cmp);
-	REP(i, 1, m + m)
-		REP(j, 1, m + m) p2[++cur] = make_pair(p[i].first + p[j].first, p[i].second * p[j].second);
-	sort(p2 + 1, p2 + cur + 1, cmp);
-	if (k == 2) ans = solve2::work();
-	if (k == 3) ans = solve3::work();
-	if (k == 4) ans = solve4::work();
-	cout << (ans + MOD) % MOD << endl;
+	m = read<int>();k = read<int>();s = read<int>();
+	REP(i, 1, m) l[i] = read<int>(), r[i] = read<int>();
+	if (k == 2) two::work();
 	return 0;
 }
