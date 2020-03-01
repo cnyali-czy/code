@@ -8,13 +8,12 @@
 #define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
 #define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
-
+#define go(u, i, v) for (int i = Bg[u], v = To[i]; i; v = To[i = Ne[i]])
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
 #include <ctime>
 #include <cstring>
-#include <vector>
 #include <iostream>
 #include <cstdio>
 
@@ -30,11 +29,18 @@ inline void add(int x, int y)
 	bg[x] = e;
 }
 
-vector <int> G[maxn];
+int Bg[maxn], Ne[maxn * maxn << 1], To[maxn * maxn << 1], E;
 inline void Add(int x, int y)
 {
-	G[x].emplace_back(y);
-	G[y].emplace_back(x);
+	E++;
+	To[E] = y;
+	Ne[E] = Bg[x];
+	Bg[x] = E;
+	swap(x, y);
+	E++;
+	To[E] = y;
+	Ne[E] = Bg[x];
+	Bg[x] = E;
 }
 template <typename T>
 inline T read()
@@ -99,25 +105,17 @@ int main()
 		flag = 1;
 		vis[i] = 0;
 		dfs(i);
-		if (!flag) G[i].emplace_back(i);
+		if (!flag) Add(i, i);
 	}
 	tail = -1;
 	REP(i, 1, n) Q[++tail] = {i, i}, good[i][i] = 1;
-	REP(v, 1, n) for (int u : G[v]) if (s[u] == s[v]) Q[++tail] = {u, v}, good[u][v] = good[v][u] = 1;
+	REP(v, 1, n) for (int i = Bg[v], u = To[i]; i; u = To[i = Ne[i]]) if (s[u] == s[v]) Q[++tail] = {u, v}, good[u][v] = good[v][u] = 1;
 	cerr << clock() *1. / CLOCKS_PER_SEC << endl;
 	while (head <= tail)
 	{
 		int u = Q[head].first, v = Q[head].second;
 		head++;
-		/*
-		   for (int i = bg[u]; i; i = ne[i])
-		   for (int j = bg[v]; j; j = ne[j])
-		   {
-		   int U = to[i], V = to[j];
-		   if (s[U] == s[V] && !good[U][V]) Q.emplace(U, V);
-		   }
-		   */
-		for (int U : G[u]) for (int V : G[v]) if (s[U] == s[V] && !good[U][V])
+		go(u, i, U) go(v, j, V) if (s[U] == s[V] && !good[U][V])
 		{
 			Q[++tail] = {U, V};
 			good[U][V] = good[V][U] = 1;
