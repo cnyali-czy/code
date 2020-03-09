@@ -12,6 +12,7 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <vector>
 #include <cstring>
 #include <iostream>
 #include <cstdio>
@@ -42,6 +43,43 @@ inline T read()
 int n, m;
 char s[maxn];
 
+namespace SAM
+{
+	const int maxN = maxn << 1;
+	const int siz = 10;
+	int ch[maxN][siz], fail[maxN], len[maxN], pos[maxN], lst = 1, cur = 1;
+	inline int newnode(int l, int p = 0)
+	{
+		pos[++cur] = p;
+		len[cur] = l;
+		return cur;
+	}
+	inline void extend(int c, int i)
+	{
+		int v = lst, u = newnode(len[v] + 1, i);
+		for (; !ch[v][c]; v = fail[v]) ch[v][c] = u;
+		if (!v) fail[u] = 1;
+		else if (len[ch[v][c]] == len[v] + 1) fail[u] = ch[v][c];
+		else
+		{
+			int Old(ch[v][c]), New(newnode(len[v] + 1));
+			copy(ch[Old], ch[Old] + siz, ch[New]);
+			fail[New] = fail[Old];
+			fail[Old] = fail[u] = New;
+			for (; ch[v][c] == Old;v = fail[v]) ch[v][c] = New;
+		}
+		lst = u;
+	}
+}
+
+namespace SMT
+{
+#define lson ls[p], l, mid
+#define rson rs[p], mid + 1, r
+#define mid (l + r >> 1)
+#undef mid
+}
+
 int main()
 {
 #ifdef CraZYali
@@ -49,5 +87,6 @@ int main()
 #endif
 	n = read<int>();m = read<int>();
 	scanf("%s", s + 1);
+	REP(i, 1, n) SAM::extend(s[i] - '0', i);
 	return 0;
 }
