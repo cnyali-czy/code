@@ -16,7 +16,16 @@
 #include <cstdio>
 #define i64 long long
 using namespace std;
-const int maxn = 500 + 5, MOD = 1e9 + 7;
+const int maxn = 5000 + 5, MOD = 1e9 + 7;
+
+int bg[maxn], ne[maxn << 1], to[maxn << 1], e;
+inline void Add(int x, int y)
+{
+	e++;
+	to[e] = y;
+	ne[e] = bg[x];
+	bg[x] = e;
+}
 
 inline int add(int x, int y) {x += y;return x >= MOD ? x - MOD : x;}
 inline int sub(int x, int y) {x -= y;return x <    0 ? x + MOD : x;}
@@ -58,91 +67,109 @@ inline T read()
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
 int n, k, a[maxn][maxn], u[maxn], v[maxn], deg[maxn];
-
-int det(int n)
+/*
+   int det(int n)
+   {
+   int ans = 1;
+//	REP(i, 1, n) REP(j, 1, n) printf("%d%c", a[i][j], j == n ? '\n' : ' ');
+REP(i, 1, n)
 {
-	int ans = 1;
-	//	REP(i, 1, n) REP(j, 1, n) printf("%d%c", a[i][j], j == n ? '\n' : ' ');
-	REP(i, 1, n)
-	{
-		if (!a[i][i])
-			REP(j, i + 1, n) if (a[j][i])
-			{
-				swap(a[i], a[j]);
-				ans = MOD - ans;
-				break;
-			}
-		if (!a[i][i]) return 0;
-		ans = mul(ans, a[i][i]);
-		const int Inv = inv(a[i][i]);
-		REP(j, i + 1, n) if (a[j][i])
-		{
-			int qaq = mul(a[j][i], Inv);
-			REP(k, i, n) dec(a[j][k], mul(a[i][k], qaq));
-		}
-	}
-	//	cout << ans << endl;
-	//	puts("");
-	return ans;
+if (!a[i][i])
+REP(j, i + 1, n) if (a[j][i])
+{
+swap(a[i], a[j]);
+ans = MOD - ans;
+break;
+}
+if (!a[i][i]) return 0;
+ans = mul(ans, a[i][i]);
+const int Inv = inv(a[i][i]);
+REP(j, i + 1, n) if (a[j][i])
+{
+int qaq = mul(a[j][i], Inv);
+REP(k, i, n) dec(a[j][k], mul(a[i][k], qaq));
+}
+}
+return ans;
 }
 
 int f[maxn];
 namespace Gauss
 {
-	int a[maxn][maxn];
-	void solve()
+int a[maxn][maxn];
+void solve()
+{
+REP(i, 0, n - 1)
+{
+if (!a[i][i])
+REP(j, i + 1, n - 1) if (a[j][i])
+{
+swap(a[i], a[j]);
+break;
+}
+const int Inv = inv(a[i][i]);
+REP(j, i + 1, n) if (a[j][i])
+{
+int qaq = mul(a[j][i], Inv);
+REP(k, i, n) dec(a[j][k], mul(a[i][k], qaq));
+}
+}
+DEP(i, n - 1, 0)
+{
+REP(j, i + 1, n - 1) dec(a[i][n], mul(a[i][j], f[j]));
+f[i] = mul(a[i][n], inv(a[i][i]));
+}
+}
+}
+*/
+
+int dp[maxn][maxn][2], c[maxn][maxn], siz[maxn];
+void dfs(int x, int fa = 0)
+{
+	dp[x][0][0] = dp[x][1][1] = 1;
+	siz[x] = 1;
+	for (int i = bg[x]; i; i = ne[i]) if (to[i] ^ fa)
 	{
-		REP(i, 0, n - 1)
-		{
-			if (!a[i][i])
-				REP(j, i + 1, n - 1) if (a[j][i])
-				{
-					swap(a[i], a[j]);
-					break;
-				}
-			const int Inv = inv(a[i][i]);
-			REP(j, i + 1, n) if (a[j][i])
+		dfs(to[i], x);
+		DEP(s1, siz[x], 0)
+			REP(s2, 1, siz[to[i]])
 			{
-				int qaq = mul(a[j][i], Inv);
-				REP(k, i, n) dec(a[j][k], mul(a[i][k], qaq));
+				int t = add(dp[to[i]][s2][0], dp[to[i]][s2][1]);
+				inc(dp[x][s1 + s2][0], mul(dp[x][s1][0], t));
+				inc(dp[x][s1 + s2][1], add(mul(dp[x][s1][1], t), mul(dp[x][s1][0], dp[to[i]][s2][1])));
 			}
-		}
-		DEP(i, n - 1, 0)
-		{
-			REP(j, i + 1, n - 1) dec(a[i][n], mul(a[i][j], f[j]));
-			f[i] = mul(a[i][n], inv(a[i][i]));
-		}
+		siz[x] += siz[to[i]];
 	}
 }
-
+int g[maxn];
 int main()
 {
 #ifdef CraZYali
 	file("B");
 #endif
 	n = read<int>();k = read<int>();
+	c[0][0] = 1;
+	REP(i, 1, n) REP(j, 0, i) c[i][j] = add(c[i-1][j], j ? c[i-1][j-1] : 0);
 	REP(i, 2, n)
 	{
 		u[i] = read<int>();
 		v[i] = read<int>();
+		Add(u[i], v[i]);Add(v[i], u[i]);
 		deg[u[i]]++;deg[v[i]]++;
 	}
-	REP(x, 0, n - 1)
+	dfs(1, 0);
+	g[0] = 1;
+	int bin = 1;
+	REP(i, 1, k)
 	{
-		REP(i, 1, n) a[i][i] = add(n - 1 - deg[i], mul(deg[i], x));
-		REP(i, 1, n) REP(j, 1, n) if (i ^ j) a[i][j] = MOD - 1;
-		REP(i, 2, n) a[u[i]][v[i]] = a[v[i]][u[i]] = MOD - x;
-		int bin = 1;
-		REP(i, 0, n - 1)
-		{
-			Gauss::a[x][i] = bin;
-			bin = mul(bin, x);
-		}
-		Gauss::a[x][n] = det(n - 1);
+		g[i] = mul(bin, dp[1][i + 1][1]);
+		bin = mul(bin, n);
 	}
-	Gauss::solve();
+	REP(i, 1, n) REP(j, 0, i - 1) dec(g[i], mul(c[n - 1 - j][i - j], g[j]));
 	int ans = 0;
-	DEP(i, n - 1, n - k - 1) inc(ans, f[i]);
+//	REP(i, 0, n) cout << g[i] << ' ';cout<<endl;
+	REP(i, 0, k) inc(ans, g[i]);
 	cout << ans << '\n';
 	return 0;
 }
+

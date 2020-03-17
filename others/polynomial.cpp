@@ -12,9 +12,11 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <random>
 #include <algorithm>
 #include <iostream>
 #include <cstdio>
+#define i64 long long
 
 using namespace std;
 
@@ -55,29 +57,65 @@ inline T read_MOD(int MOD)
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-#define i64 long long
-namespace polynomial
-{
-	const int maxn = 1 << 21;
 #define prime_g 3
 #define MOD 998244353
 #define inv2 499122177
 #define inv3 332748118
-	inline int add(int x, int y) {x += y;return x >= MOD ? x - MOD : x;}
-	inline int sub(int x, int y) {x -= y;return x <    0 ? x + MOD : x;}
-	inline i64 mul(i64 x, int y) {x *= y;return x >= MOD ? x % MOD : x;}
-	inline int power_pow(int base, int b)
+inline int add(int x, int y) {x += y;return x >= MOD ? x - MOD : x;}
+inline int sub(int x, int y) {x -= y;return x <    0 ? x + MOD : x;}
+inline i64 mul(i64 x, int y) {x *= y;return x >= MOD ? x % MOD : x;}
+inline int power_pow(int base, int b)
+{
+	int ans = 1;
+	while (b)
 	{
-		int ans = 1;
+		if (b & 1) ans = mul(ans, base);
+		base = mul(base, base);
+		b >>= 1;
+	}
+	return ans;
+}
+#define inv(x) power_pow(x, MOD - 2)
+namespace Less
+{
+	int II;
+	struct num
+	{
+		int x, y;
+		inline num(int x = 0, int y = 0) : x(x), y(y) {}
+		inline num operator * (num B) {return num(add(mul(x, B.x), mul(II, mul(y, B.y))), add(mul(x, B.y), mul(y, B.x)));}
+		inline num operator *=(num B) {return *this = *this * B;}
+	};
+
+	num power_pow(num base, int b)
+	{
+		num ans(1);
 		while (b)
 		{
-			if (b & 1) ans = mul(ans, base);
-			base = mul(base, base);
+			if (b & 1) ans *= base;
+			base *= base;
 			b >>= 1;
 		}
 		return ans;
 	}
-#define inv(x) power_pow(x, MOD - 2)
+
+	mt19937 hh;
+	int solve(int n)
+	{
+		int a = MOD - 1;
+		while (1)
+		{
+			II = sub(mul(a, a), n);
+			if (a && ::power_pow(II, MOD - 1 >> 1) == MOD - 1) break;
+			a = hh() % MOD;
+		}
+		int ans1 = power_pow(num(a, 1), MOD + 1 >> 1).x, ans2 = sub(0, ans1);
+		return min(ans1, ans2);
+	}
+}
+namespace polynomial
+{
+	const int maxn = 1 << 21;
 	int R[maxn], Wn[30], Invwn[30], lastRN;
 	struct __init__
 	{
@@ -123,7 +161,7 @@ namespace polynomial
 		}
 	}
 	int mul_tmp_A[maxn], mul_tmp_B[maxn];
-	void mul(int A[], int n, int B[], int m, int C[]) // deg(A) = n, deg(B) = m
+	void Mul(int A[], int n, int B[], int m, int C[]) // deg(A) = n, deg(B) = m
 	{
 #define tmpA mul_tmp_A
 #define tmpB mul_tmp_B
@@ -210,15 +248,15 @@ namespace polynomial
 		getExp(B, n, C);
 #undef B
 	}
-	int getSqrt_simple_F[maxn], getSqrt_simple_Inv[maxn];
-	void getSqrt_simple(int A[], int n, int C[])
+	int getSqrt_F[maxn], getSqrt_Inv[maxn];
+	void getSqrt(int A[], int n, int C[])
 	{
-#define F getSqrt_simple_F
-#define Inv getSqrt_simple_Inv
+#define F getSqrt_F
+#define Inv getSqrt_Inv
 		int l = 1;
 		while (l <= n) l <<= 1;
 		REP(i, 0, l + l - 1) C[i] = F[i] = 0;
-		C[0] = 1;
+		C[0] = (A[0] == 1 ? 1 : Less::solve(A[0]));
 		for (int N = 2; N <= l; N <<= 1)
 		{
 			copy(A, A + N, F);
@@ -240,7 +278,7 @@ namespace polynomial
 		n = read<int>();m = read<int>();
 		REP(i, 0, n) A[i] = read<int>();
 		REP(i, 0, m) B[i] = read<int>();
-		mul(A, n, B, m, C);
+		Mul(A, n, B, m, C);
 		REP(i, 0, n + m) printf("%d%c", C[i], i == n + m ? '\n' : ' ');
 		return 0;
 	}
@@ -272,7 +310,7 @@ namespace polynomial
 	{
 		n = read<int>() - 1;
 		REP(i, 0, n) A[i] = read<int>();
-		getSqrt_simple(A, n, C);
+		getSqrt(A, n, C);
 		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
 		return 0;
 	}
@@ -284,6 +322,14 @@ namespace polynomial
 		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
 		return 0;
 	}
+	int main5277()
+	{
+		n = read<int>() - 1;
+		REP(i, 0, n) A[i] = read<int>();
+		getSqrt(A, n, C);
+		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
+		return 0;
+	}
 }
 
 
@@ -292,5 +338,5 @@ int main()
 #ifdef CraZYali
 	file("polynomial");
 #endif
-	return polynomial::main5205();
+	return polynomial::main5277();
 }
