@@ -192,6 +192,7 @@ namespace polynomial
 			NTT(C, N + N, -1);
 			REP(i, N, N + N - 1) C[i] = 0;
 		}
+		REP(i, n + 1, l - 1) C[i] = 0;
 #undef F
 	}
 	int getLn_df[maxn], getLn_Inv[maxn], invs[maxn], lastinvn = 1;
@@ -272,7 +273,36 @@ namespace polynomial
 #undef F
 #undef Inv
 	}
-	int A[maxn], B[maxn], n, m, C[maxn];
+	int Divide_tmp_F[maxn], Divide_tmp_G[maxn], Divide_Inv_G[maxn];
+	void Divide(int F[], int n, int G[], int m, int D[], int R[])
+	{
+#define tF Divide_tmp_F
+#define tG Divide_tmp_G
+#define Inv Divide_Inv_G
+		copy(F, F + 1 + n, tF);reverse(tF, tF + 1 + n);
+		copy(G, G + 1 + m, tG);reverse(tG, tG + 1 + m);
+		int l = 1;
+		while (l <= n - m + n - m) l <<= 1;
+		REP(i, n - m + 1, l - 1) tF[i] = tG[i] = 0;
+		getInv(tG, n - m, Inv);
+		NTT(Inv, l, 1);NTT(tF, l, 1);
+		REP(i, 0, l - 1) D[i] = mul(Inv[i], tF[i]);
+		NTT(D, l, -1);
+		REP(i, n - m + 1, l - 1) D[i] = 0;
+		reverse(D, D + n - m + 1);
+		l = 1;
+		while (l <= n) l <<= 1;
+		copy(G, G + 1 + m, tG);REP(i, m + 1, l - 1) tG[i] = 0;
+		copy(D, D + 1 + n - m, tF);REP(i, n - m + 1, l - 1) tF[i] = 0;
+		NTT(tG, l, 1);NTT(tF, l, 1);
+		REP(i, 0, l - 1) tG[i] = mul(tG[i], tF[i]);
+		NTT(tG, l, -1);
+		REP(i, 0, m - 1) R[i] = sub(F[i], tG[i]);
+#undef tF
+#undef tG
+#undef Inv
+	}
+	int A[maxn], B[maxn], n, m, C[maxn], D[maxn], _R[maxn];
 	int main3803()
 	{
 		n = read<int>();m = read<int>();
@@ -288,6 +318,16 @@ namespace polynomial
 		REP(i, 0, n) A[i] = read<int>();
 		getInv(A, n, C);
 		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
+		return 0;
+	}
+	int main4512()
+	{
+		n = read<int>();m = read<int>();
+		REP(i, 0, n) A[i] = read<int>();
+		REP(i, 0, m) B[i] = read<int>();
+		Divide(A, n, B, m, D, _R);
+		REP(i, 0, n - m) printf("%d%c", D[i], i == end_i ? '\n' : ' ');
+		REP(i, 0, m - 1) printf("%d%c", _R[i], i == end_i ? '\n' : ' ');
 		return 0;
 	}
 	int main4725()
@@ -338,5 +378,5 @@ int main()
 #ifdef CraZYali
 	file("polynomial");
 #endif
-	return polynomial::main5277();
+	return polynomial::main4512();
 }
