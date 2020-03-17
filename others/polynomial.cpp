@@ -12,6 +12,7 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <cassert>
 #include <random>
 #include <algorithm>
 #include <iostream>
@@ -37,9 +38,11 @@ inline T read()
 	}
 	return ans * flag;
 }
+unsigned long long very_big, very_shit;
 	template <typename T>
 inline T read_MOD(int MOD)
 {
+	very_big = very_shit = 0;
 	T ans = 0, flag = 1;
 	char c = getchar();
 	while (!isdigit(c))
@@ -47,9 +50,13 @@ inline T read_MOD(int MOD)
 		if (c == '-') flag = MOD - 1;
 		c = getchar();
 	}
+	int ccc = 0;
 	while (isdigit(c))
 	{
+		ccc++;
 		ans = ans * 10ll % MOD + c - 48;
+		very_shit = very_shit * 10 % (MOD - 1) + c - 48;
+		if (ccc <= 10) very_big = very_big * 10 + c - 48;
 		c = getchar();
 	}
 	return (MOD + ans * flag) % MOD;
@@ -244,6 +251,7 @@ namespace polynomial
 	void pow_simple(int A[], int n, int k, int C[])
 	{
 #define B pow_simple_B
+		assert(A[0] == 1);
 		getLn(A, n, B);
 		REP(i, 0, n) B[i] = mul(B[i], k);
 		getExp(B, n, C);
@@ -301,6 +309,17 @@ namespace polynomial
 #undef tF
 #undef tG
 #undef Inv
+	}
+	void pow(int A[], int n, int k, int C[])
+	{
+		REP(i, 0, n) C[i] = 0;
+		int s = 0;
+		while (s <= n && !A[s]) s++;
+		if (s == n + 1 || 1ll * s * k > n) return;
+		int qaq = A[s], iq = inv(qaq), pw = power_pow(qaq, very_shit);
+		REP(i, s, n) A[i] = mul(A[i], iq);
+		pow_simple(A + s, n - s, k, C + s * k);
+		REP(i, s * k, n) C[i] = mul(C[i], pw);
 	}
 	int A[maxn], B[maxn], n, m, C[maxn], D[maxn], _R[maxn];
 	int main3803()
@@ -362,6 +381,19 @@ namespace polynomial
 		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
 		return 0;
 	}
+	int main5273()
+	{
+		n = read<int>() - 1;m = read_MOD<int>(MOD);
+		REP(i, 0, n) A[i] = read<int>();
+		if (very_big >= n && !A[0])
+		{
+			REP(i, 0, n) printf("0 ");
+			return 0;
+		}
+		pow(A, n, m, C);
+		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
+		return 0;
+	}
 	int main5277()
 	{
 		n = read<int>() - 1;
@@ -372,11 +404,10 @@ namespace polynomial
 	}
 }
 
-
 int main()
 {
 #ifdef CraZYali
 	file("polynomial");
 #endif
-	return polynomial::main4512();
+	return polynomial::main5273();
 }
