@@ -385,7 +385,7 @@ namespace polynomial
 	{
 		n = read<int>() - 1;m = read_MOD<int>(MOD);
 		REP(i, 0, n) A[i] = read<int>();
-		if (very_big >= n && !A[0])
+		if (very_big >= n + 1 && !A[0])
 		{
 			REP(i, 0, n) printf("0 ");
 			return 0;
