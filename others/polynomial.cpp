@@ -12,7 +12,6 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
-#include <cassert>
 #include <random>
 #include <algorithm>
 #include <iostream>
@@ -251,7 +250,6 @@ namespace polynomial
 	void pow_simple(int A[], int n, int k, int C[])
 	{
 #define B pow_simple_B
-		assert(A[0] == 1);
 		getLn(A, n, B);
 		REP(i, 0, n) B[i] = mul(B[i], k);
 		getExp(B, n, C);
@@ -409,5 +407,5 @@ int main()
 #ifdef CraZYali
 	file("polynomial");
 #endif
-	return polynomial::main5273();
+	return polynomial::main5205();
 }
