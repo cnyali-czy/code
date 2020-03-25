@@ -157,7 +157,9 @@ int query(int x, int k)
 int main()
 {
 #ifdef CraZYali
-	file("3730");
+	freopen("3730-new.in","r",stdin);
+	freopen("std.out","w",stdout);
+//	file("3730");
 #endif
 	n = read<int>();m = read<int>();
 	REP(i, 1, n) v[i] = read<int>();

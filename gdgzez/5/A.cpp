@@ -72,7 +72,7 @@ int main()
 		{
 			int t = vec[i].size() - 1;
 			if (vec[i][t] < vec[i][0])
-				vec[vec[i][0] - 1].push_back(vec[i][t]);
+				vec[vec[i][0] - 1].emplace_back(vec[i][t]);
 			vec[i].pop_back();
 		}
 		if (!vec[i].empty()) uni(i, vec[i][0] - 1);
@@ -99,10 +99,9 @@ int main()
 			f[0][S] = v[S];
 	long long t;
 	REP(i, 1, 8)
-		REP(j, 0, lim - 1)
-			if (t = f[i-1][j])
-				for (int k(j); k < lim; k = (k + 1) | j)
-					(f[i][k] += t * v[k ^ j] % MOD) %= MOD;
+		REP(j, 0, lim - 1) if (t = f[i-1][j])
+		for (int k(j); k < lim; k = (k + 1) | j)
+			(f[i][k] += t * v[k ^ j] % MOD) %= MOD;
 	REP(i, 1, n) n0 -= b[i];
 	long long ans = power_pow(10, n0);
 	REP(i, 1, n) (ans *= calcv(b[i])) %= MOD;

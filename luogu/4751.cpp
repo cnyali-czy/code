@@ -17,7 +17,7 @@
 #include <cstdio>
 #define i64 long long
 using namespace std;
-const int maxn = 1e5 + 10;
+const int maxn = 1e6 + 10;
 
 int bg[maxn], ne[maxn << 1], to[maxn << 1], e;
 void add(int x, int y)
@@ -75,10 +75,7 @@ void dfs1(int x)
 
 struct Matrix
 {
-	int n, m;
 	i64 a[2][2];
-	Matrix(){memset(a, 0, sizeof a);}
-	void min_init() {REP(i, 0, n) REP(j, 0, m) a[i][j] = 0;}
 	i64* operator [] (int x) {return a[x];}
 	Matrix operator * (Matrix b)
 	{
@@ -109,7 +106,6 @@ void dfs2(int x, int y)
 	}
 	else End[y] = x;
 
-	G[x].n = 1;G[x].m = 1;
 	G[x][0][0] = g[x][0];G[x][0][1] = g[x][0];
 	G[x][1][0] = g[x][1];G[x][1][1] = -inf;
 }
@@ -172,7 +168,7 @@ void update(int x, int val)
 signed main()
 {
 #ifdef CraZYali
-	file("4719");
+	file("4751");
 #endif
 	n = read<int>();m = read<int>();
 	REP(i, 1, n) a[i] = read<int>();
@@ -183,11 +179,12 @@ signed main()
 	}
 	dfs1(1);dfs2(1, 1);
 	REP(i, 1, n) if (i == top[i]) build(rt[i], dfn[i], dfn[End[i]]);
+    i64 lastans = 0;
 	while (m--)
 	{
-		int x = read<int>(), y = read<int>();
+		int x = lastans ^ read<int>(), y = read<int>();
 		update(x, y);
-		cout << max(mul[1][0][0], mul[1][1][0]) << '\n';
+		cout << (lastans = max(mul[1][0][0], mul[1][1][0])) << '\n';
 	}
 	return 0;
 }
