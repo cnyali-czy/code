@@ -193,11 +193,10 @@ signed main()
 	lca::init();
 	allnode = n;
 	findrt(1);
-	f[rt].init(n);g[rt].init(n);
+	f[rt].init(maxddd + 2);g[rt].init(maxddd + 2);
 	dfs(rt);
 	REP(i, 1, n)
-		for (int x = par[i], j = 1; x; x = par[x], j++)
-			up[i][j] = dist(x, i);
+		for (int x = par[i], j = 1; x; x = par[x], j++) up[i][j] = dist(x, i);
 	int lastans = 0;
 	while (m--)
 	{

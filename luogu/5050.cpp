@@ -70,7 +70,6 @@ inline T read_MOD(int MOD)
 inline int add(int x, int y) {x += y;return x >= MOD ? x - MOD : x;}
 inline int sub(int x, int y) {x -= y;return x <    0 ? x + MOD : x;}
 inline i64 mul(i64 x, int y) {x *= y;return x >= MOD ? x % MOD : x;}
-inline void inc(int &x, int y) {x += y;if (x >= MOD) x -= MOD;}
 inline int power_pow(int base, int b)
 {
 	int ans = 1;
@@ -167,21 +166,26 @@ namespace polynomial
 			REP(i, 0, n - 1) a[i] = 1ll * a[i] * invn % MOD;
 		}
 	}
+	int mul_tmp_A[maxn], mul_tmp_B[maxn];
 	void Mul(int A[], int n, int B[], int m, int C[]) // deg(A) = n, deg(B) = m
 	{
-		static int tmpA[maxn], tmpB[maxn];
+#define tmpA mul_tmp_A
+#define tmpB mul_tmp_B
 		int l = 1;
 		while (l <= n + m) l <<= 1;
-		copy(A, A + n + 1, tmpA);REP(i, n + 1, l - 1) tmpA[i] = 0;
-		copy(B, B + m + 1, tmpB);REP(i, m + 1, l - 1) tmpB[i] = 0;
+		copy(A, A + n + 1, tmpA);REP(i, n + 1, l - 1) mul_tmp_A[i] = 0;
+		copy(B, B + m + 1, tmpB);REP(i, m + 1, l - 1) mul_tmp_B[i] = 0;
 		NTT(tmpA, l, 1);NTT(tmpB, l, 1);
 		REP(i, 0, l - 1) C[i] = 1ll * tmpA[i] * tmpB[i] % MOD;
 		NTT(C, l, -1);
 		REP(i, n + m + 1, l - 1) C[i] = 0;
+#undef tmpA
+#undef tmpB
 	}
+	int getInv_F[maxn];
 	void getInv(int A[], int n, int C[]) //deg(A) = n
 	{
-		static int F[maxn];
+#define F getInv_F
 		int l = 1;
 		while (l <= n) l <<= 1;
 		REP(i, 0, l + l - 1) F[i] = C[i] = 0;
@@ -195,19 +199,16 @@ namespace polynomial
 			REP(i, N, N + N - 1) C[i] = 0;
 		}
 		REP(i, n + 1, l - 1) C[i] = 0;
+#undef F
 	}
-	int invs[maxn], lastinvn = 1;
-	void prepare_invs(int n)
-	{
-		invs[0] = invs[1] = 1;
-		REP(i, lastinvn + 1, n)
-			invs[i] = 1ll * (MOD - MOD / i) * invs[MOD % i] % MOD;
-		chkmax(lastinvn, n);
-	}
+	int getLn_df[maxn], getLn_Inv[maxn], invs[maxn], lastinvn = 1;
 	void getLn(int A[], int n, int ln[])
 	{
-		static int df[maxn], Inv[maxn];
-		prepare_invs(n);
+#define df getLn_df
+#define Inv getLn_Inv
+		invs[0] = invs[1] = 1;
+		REP(i, lastinvn + 1, n) invs[i] = mul(MOD - MOD / i, invs[MOD % i]);
+		chkmax(lastinvn, n);
 		REP(i, 0, n - 1) df[i] = mul(A[i + 1], i + 1);df[n] = 0;
 		getInv(A, n, Inv);
 		int l = 1;
@@ -219,10 +220,14 @@ namespace polynomial
 		REP(i, n + 1, l - 1) ln[i] = 0;
 		DEP(i, n, 1) ln[i] = 1ll * ln[i - 1] * invs[i] % MOD;
 		ln[0] = 0;
+#undef df
+#undef Inv
 	}
+	int getExp_tmp_F[maxn], getExp_tmp_ln[maxn];
 	void getExp(int A[], int n, int C[])
 	{
-		static int F[maxn], ln[maxn];
+#define F getExp_tmp_F
+#define ln getExp_tmp_ln
 		int l = 1;
 		while (l <= n) l <<= 1;
 		REP(i, 0, l + l - 1) C[i] = F[i] = 0;
@@ -239,17 +244,23 @@ namespace polynomial
 			REP(i, N, N + N - 1) C[i] = 0;
 		}
 		REP(i, n + 1, l - 1) C[i] = 0;
+#undef F
+#undef ln
 	}
+	int pow_simple_B[maxn];
 	void pow_simple(int A[], int n, int k, int C[])
 	{
-		static int B[maxn];
+#define B pow_simple_B
 		getLn(A, n, B);
 		REP(i, 0, n) B[i] = mul(B[i], k);
 		getExp(B, n, C);
+#undef B
 	}
+	int getSqrt_F[maxn], getSqrt_Inv[maxn];
 	void getSqrt(int A[], int n, int C[])
 	{
-		static int F[maxn], Inv[maxn];
+#define F getSqrt_F
+#define Inv getSqrt_Inv
 		int l = 1;
 		while (l <= n) l <<= 1;
 		REP(i, 0, l + l - 1) C[i] = F[i] = 0;
@@ -266,10 +277,15 @@ namespace polynomial
 			REP(i, N, N + N - 1) C[i] = 0;
 		}
 		REP(i, n + 1, l - 1) C[i] = 0;
+#undef F
+#undef Inv
 	}
+	int Divide_tmp_F[maxn], Divide_tmp_G[maxn], Divide_Inv_G[maxn];
 	void Divide(int F[], int n, int G[], int m, int D[], int R[])
 	{
-		static int tF[maxn], tG[maxn], Inv[maxn];
+#define tF Divide_tmp_F
+#define tG Divide_tmp_G
+#define Inv Divide_Inv_G
 		copy(F, F + 1 + n, tF);reverse(tF, tF + 1 + n);
 		copy(G, G + 1 + m, tG);reverse(tG, tG + 1 + m);
 		int l = 1;
@@ -289,6 +305,9 @@ namespace polynomial
 		REP(i, 0, l - 1) tG[i] = 1ll * tG[i] * tF[i] % MOD;
 		NTT(tG, l, -1);
 		REP(i, 0, m - 1) R[i] = sub(F[i], tG[i]);
+#undef tF
+#undef tG
+#undef Inv
 	}
 	void pow(int A[], int n, int k, int C[])
 	{
@@ -300,57 +319,6 @@ namespace polynomial
 		REP(i, s, n) A[i] = mul(A[i], iq);
 		pow_simple(A + s, n - s, k, C + s * k);
 		REP(i, s * k, n) C[i] = mul(C[i], pw);
-	}
-	void cdqFFT(int A[], int B[], int l, int r)
-	{
-		if (l == r)
-		{
-			if (!l) A[l] = 1;
-			return;
-		}
-		int mid = l + r >> 1;
-		int L = 1;
-		while (L <= r - l + 1) L <<= 1;
-		cdqFFT(A, B, l, mid);
-		static int F[maxn], G[maxn];
-		REP(i, 0, mid - l) F[i] = A[i + l];
-		REP(i, mid - l + 1, L - 1) F[i] = 0;
-		REP(i, 0, r - l) G[i] = B[i];
-		REP(i, r - l + 1, L - 1) G[i] = 0;
-		NTT(F, L, 1);NTT(G, L, 1);
-		REP(i, 0, L - 1) F[i] = 1ll * F[i] * G[i] % MOD;
-		NTT(F, L, -1);
-		REP(i, mid + 1, r) inc(A[i], F[i - l]);
-		cdqFFT(A, B, mid + 1, r);
-	}
-	void cdqExp(int f[], int g[], int l, int r)
-	{
-		if (l == r)
-		{
-			if (l) g[l] = 1ll * g[l] * invs[l] % MOD;
-			else g[l] = 1;
-			return;
-		}
-		int mid = l + r >> 1;
-		cdqExp(f, g, l, mid);
-		int L = 1;
-		while (L <= r - l + 1) L <<= 1;
-		static int A[maxn], B[maxn];
-		REP(i, 0, mid - l) A[i] = g[i + l];REP(i, mid - l + 1, L - 1) A[i] = 0;
-		REP(i, 0, r - l - 1) B[i] = f[i];REP(i, r - l, L - 1) B[i] = 0;
-		NTT(A, L, 1);NTT(B, L, 1);
-		REP(i, 0, L - 1) A[i] = 1ll * A[i] * B[i] % MOD;
-		NTT(A, L, -1);
-		REP(i, mid - l, r - l - 1) inc(g[i + l + 1], A[i]);
-		cdqExp(f, g, mid + 1, r);
-	}
-	void getExp_log2(int A[], int n, int C[])
-	{
-		prepare_invs(n);
-		static int f[maxn];
-		REP(i, 0, n - 1) f[i] = (i + 1ll) * A[i + 1] % MOD;
-		REP(i, 0, n) C[i] = 0;
-		cdqExp(f, C, 0, n);
 	}
 	int A[maxn], B[maxn], n, m, C[maxn], D[maxn], _R[maxn];
 	int main3803()
@@ -380,23 +348,6 @@ namespace polynomial
 		REP(i, 0, m - 1) printf("%d%c", _R[i], i == end_i ? '\n' : ' ');
 		return 0;
 	}
-	int main4721()
-	{
-		n = read<int>() - 1;
-		REP(i, 1, n) B[i] = read<int>();
-		cdqFFT(A, B, 0, n);
-		REP(i, 0, n) printf("%d%c", A[i], i == n ? '\n' : ' ');
-		return 0;
-	}
-	int main4721_faster()
-	{
-		n = read<int>() - 1;
-		REP(i, 1, n) B[i] = MOD - read<int>();
-		B[0] = 1;
-		getInv(B, n, A);
-		REP(i, 0, n) printf("%d%c", A[i], i == n ? '\n' : ' ');
-		return 0;
-	}
 	int main4725()
 	{
 		n = read<int>() - 1;
@@ -410,14 +361,6 @@ namespace polynomial
 		n = read<int>() - 1;
 		REP(i, 0, n) A[i] = read<int>();
 		getExp(A, n, C);
-		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
-		return 0;
-	}
-	int main4726_log2()
-	{
-		n = read<int>() - 1;
-		REP(i, 0, n) A[i] = read<int>();
-		getExp_log2(A, n, C);
 		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
 		return 0;
 	}
@@ -465,5 +408,5 @@ int main()
 #ifdef CraZYali
 	file("polynomial");
 #endif
-	return polynomial::main4726_log2();
+	return polynomial::main5205();
 }
