@@ -12,6 +12,7 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <vector>
 #include <random>
 #include <algorithm>
 #include <iostream>
@@ -240,12 +241,48 @@ namespace polynomial
 		}
 		REP(i, n + 1, l - 1) C[i] = 0;
 	}
+	void cdqExp(int f[], int g[], int l, int r)
+	{
+		if (l == r)
+		{
+			if (l) g[l] = 1ll * g[l] * invs[l] % MOD;
+			else g[l] = 1;
+			return;
+		}
+		int mid = l + r >> 1;
+		cdqExp(f, g, l, mid);
+		int L = 1;
+		while (L <= r - l + 1) L <<= 1;
+		static int A[maxn], B[maxn];
+		REP(i, 0, mid - l) A[i] = g[i + l];REP(i, mid - l + 1, L - 1) A[i] = 0;
+		REP(i, 0, r - l - 1) B[i] = f[i];REP(i, r - l, L - 1) B[i] = 0;
+		NTT(A, L, 1);NTT(B, L, 1);
+		REP(i, 0, L - 1) A[i] = 1ll * A[i] * B[i] % MOD;
+		NTT(A, L, -1);
+		REP(i, mid - l, r - l - 1) inc(g[i + l + 1], A[i]);
+		cdqExp(f, g, mid + 1, r);
+	}
+	void getExp_log2(int A[], int n, int C[])
+	{
+		prepare_invs(n);
+		static int f[maxn];
+		REP(i, 0, n - 1) f[i] = (i + 1ll) * A[i + 1] % MOD;
+		REP(i, 0, n) C[i] = 0;
+		cdqExp(f, C, 0, n);
+	}
 	void pow_simple(int A[], int n, int k, int C[])
 	{
 		static int B[maxn];
 		getLn(A, n, B);
 		REP(i, 0, n) B[i] = mul(B[i], k);
 		getExp(B, n, C);
+	}
+	void pow_simple_log2(int A[], int n, int k, int C[])
+	{
+		static int B[maxn];
+		getLn(A, n, B);
+		REP(i, 0, n) B[i] = mul(B[i], k);
+		getExp_log2(B, n, C);
 	}
 	void getSqrt(int A[], int n, int C[])
 	{
@@ -301,6 +338,17 @@ namespace polynomial
 		pow_simple(A + s, n - s, k, C + s * k);
 		REP(i, s * k, n) C[i] = mul(C[i], pw);
 	}
+	void pow_log2(int A[], int n, int k, int C[])
+	{
+		REP(i, 0, n) C[i] = 0;
+		int s = 0;
+		while (s <= n && !A[s]) s++;
+		if (s == n + 1 || 1ll * s * k > n) return;
+		int qaq = A[s], iq = inv(qaq), pw = power_pow(qaq, very_shit);
+		REP(i, s, n) A[i] = mul(A[i], iq);
+		pow_simple_log2(A + s, n - s, k, C + s * k);
+		REP(i, s * k, n) C[i] = mul(C[i], pw);
+	}
 	void cdqFFT(int A[], int B[], int l, int r)
 	{
 		if (l == r)
@@ -323,34 +371,68 @@ namespace polynomial
 		REP(i, mid + 1, r) inc(A[i], F[i - l]);
 		cdqFFT(A, B, mid + 1, r);
 	}
-	void cdqExp(int f[], int g[], int l, int r)
+	namespace FastCalc
 	{
-		if (l == r)
+		const int maxn = 1 << 18;
+		int A[maxn], B[maxn], *QAQ[maxn], n, m;
+		const int End = 250;
+#define ls p << 1
+#define rs p << 1 | 1
+#define lson ls, l, mid
+#define rson rs, mid + 1, r
+		void Init(int p, int l, int r)
 		{
-			if (l) g[l] = 1ll * g[l] * invs[l] % MOD;
-			else g[l] = 1;
-			return;
+			if (l == r)
+			{
+				QAQ[p] = new int[2];
+				QAQ[p][0] = B[l];
+				QAQ[p][1] = MOD - 1;
+				return;
+			}
+			int L = 1, mid = l + r >> 1;
+			while (L <= r - l + 1) L <<= 1;
+			int F[L], G[L];
+			Init(lson);Init(rson);
+			REP(i, 0, mid - l + 1) F[i] = QAQ[ls][i];
+			REP(i, mid - l + 2, L - 1) F[i] = 0;
+			REP(i, 0, r - mid) G[i] = QAQ[rs][i];
+			REP(i, r - mid + 1, L - 1) G[i] = 0;
+			NTT(F, L, 1);NTT(G, L, 1);
+			REP(i, 0, L - 1) F[i] = 1ll * F[i] * G[i] % MOD;
+			NTT(F, L, -1);
+			QAQ[p] = new int[r - l + 2];
+			REP(i, 0, r - l + 1) QAQ[p][i] = F[i];
 		}
-		int mid = l + r >> 1;
-		cdqExp(f, g, l, mid);
-		int L = 1;
-		while (L <= r - l + 1) L <<= 1;
-		static int A[maxn], B[maxn];
-		REP(i, 0, mid - l) A[i] = g[i + l];REP(i, mid - l + 1, L - 1) A[i] = 0;
-		REP(i, 0, r - l - 1) B[i] = f[i];REP(i, r - l, L - 1) B[i] = 0;
-		NTT(A, L, 1);NTT(B, L, 1);
-		REP(i, 0, L - 1) A[i] = 1ll * A[i] * B[i] % MOD;
-		NTT(A, L, -1);
-		REP(i, mid - l, r - l - 1) inc(g[i + l + 1], A[i]);
-		cdqExp(f, g, mid + 1, r);
-	}
-	void getExp_log2(int A[], int n, int C[])
-	{
-		prepare_invs(n);
-		static int f[maxn];
-		REP(i, 0, n - 1) f[i] = (i + 1ll) * A[i + 1] % MOD;
-		REP(i, 0, n) C[i] = 0;
-		cdqExp(f, C, 0, n);
+		int calc(int F[], int n, int x)
+		{
+			int res = 0;
+			DEP(i, n, 0) res = (1ll * res * x + F[i]) % MOD;
+			return res;
+		}
+		void Work(int F[], int n, int p, int l, int r)
+		{
+			if (r - l + 1 <= End)
+			{
+				REP(i, l, r) cout << calc(F, n, B[i]) << '\n';
+				return;
+			}
+			int L = 1;
+			while (L <= r - l + 1) L <<= 1;
+			int tmp1[L], tmp2[L], mid = l + r >> 1;
+			Divide(F, n, QAQ[ls], mid - l + 1, tmp1, tmp2);
+			Work(tmp2, mid - l, lson);
+			Divide(F, n, QAQ[rs], r - mid, tmp1, tmp2);
+			Work(tmp2, r - mid - 1, rson);
+		}
+		int main()
+		{
+			n = read<int>();m = read<int>();
+			REP(i, 0, n) A[i] = read<int>();
+			REP(i, 1, m) B[i] = read<int>();
+			Init(1, 1, m);
+			Work(A, n, 1, 1, m);
+			return 0;
+		}
 	}
 	int A[maxn], B[maxn], n, m, C[maxn], D[maxn], _R[maxn];
 	int main3803()
@@ -421,11 +503,20 @@ namespace polynomial
 		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
 		return 0;
 	}
+	int main5050() {return FastCalc::main();}
 	int main5205()
 	{
 		n = read<int>() - 1;
 		REP(i, 0, n) A[i] = read<int>();
 		getSqrt(A, n, C);
+		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
+		return 0;
+	}
+	int main5205_log2()
+	{
+		n = read<int>() - 1;
+		REP(i, 0, n) A[i] = read<int>();
+		pow_simple_log2(A, n, inv2, C);
 		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
 		return 0;
 	}
@@ -465,5 +556,5 @@ int main()
 #ifdef CraZYali
 	file("polynomial");
 #endif
-	return polynomial::main4726_log2();
+	return polynomial::main5205();
 }
