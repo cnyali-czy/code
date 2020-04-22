@@ -1,5 +1,3 @@
-// luogu-judger-enable-o2
-// luogu-judger-enable-o2
 #define DREP(i, s, e) for(int i = s; i >= e ;i--)
 #define  REP(i, s, e) for(int i = s; i <= e ;i++)
 

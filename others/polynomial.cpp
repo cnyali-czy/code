@@ -18,7 +18,7 @@
 #include <iostream>
 #include <cstdio>
 #define i64 long long
-
+#define int long long
 using namespace std;
 
 	template <typename T>
@@ -71,6 +71,7 @@ inline T read_MOD(int MOD)
 inline int add(int x, int y) {x += y;return x >= MOD ? x - MOD : x;}
 inline int sub(int x, int y) {x -= y;return x <    0 ? x + MOD : x;}
 inline i64 mul(i64 x, int y) {x *= y;return x >= MOD ? x % MOD : x;}
+inline int upd(i64 x) {if (x <= -MOD || x >= MOD) x %= MOD;if (x < 0) x += MOD;return x;}
 inline void inc(int &x, int y) {x += y;if (x >= MOD) x -= MOD;}
 inline int power_pow(int base, int b)
 {
@@ -123,7 +124,7 @@ namespace Less
 }
 namespace polynomial
 {
-	const int maxn = 1 << 21;
+	const int maxn = 1 << 20;
 	int R[maxn], Wn[30], Invwn[30], lastRN;
 	struct __init__
 	{
@@ -434,6 +435,42 @@ namespace polynomial
 			return 0;
 		}
 	}
+	int linear_recurrence(int f[], int n, int a[], int k)
+	{
+		static int g[maxn], A[maxn], B[maxn], tmp[maxn], R[maxn];
+		int l = 1;
+		while (l <= k + k) l <<= 1;
+		REP(i, 0, l - 1) g[i] = A[i] = B[i] = 0;
+		g[k] = 1;
+		REP(i, 0, k - 1) if (a[k - i]) g[i] = MOD - a[k - i];
+		B[1] = 1;A[0] = 1;
+		while (n)
+		{
+			if (n & 1)
+			{
+				copy(B, B + l, tmp);
+				//ans *= base
+				NTT(A, l, 1);NTT(tmp, l, 1);
+				REP(i, 0, l - 1) A[i] = 1ll * A[i] * tmp[i] % MOD;
+				NTT(A, l, -1);
+				Divide(A, k - 1 + k - 1, g, k, tmp, R);
+				REP(i, 0, k) A[i] = R[i];
+				if (n == 1) break;
+				REP(i, k + 1, l - 1) A[i] = 0;
+			}
+			//base *= base
+			NTT(B, l, 1);
+			REP(i, 0, l - 1) B[i] = 1ll * B[i] * B[i] % MOD;
+			NTT(B, l, -1);
+			Divide(B, k - 1 + k - 1, g, k, tmp, R);
+			REP(i, 0, k) B[i] = R[i];
+			REP(i, k + 1, l - 1) B[i] = 0;
+			n >>= 1;
+		}
+		int ans = 0;
+		REP(i, 0, k - 1) inc(ans, 1ll * A[i] * f[i] % MOD);
+		return ans;
+	}
 	int A[maxn], B[maxn], n, m, C[maxn], D[maxn], _R[maxn];
 	int main3803()
 	{
@@ -477,6 +514,14 @@ namespace polynomial
 		B[0] = 1;
 		getInv(B, n, A);
 		REP(i, 0, n) printf("%d%c", A[i], i == n ? '\n' : ' ');
+		return 0;
+	}
+	int main4723()
+	{
+		n = read<int>();m = read<int>();
+		REP(i, 1, m) B[i] = upd(read<int>());
+		REP(i, 0, m - 1) A[i] = upd(read<int>());
+		cout << linear_recurrence(A, n, B, m) << endl;
 		return 0;
 	}
 	int main4725()
@@ -551,10 +596,10 @@ namespace polynomial
 	}
 }
 
-int main()
+signed main()
 {
 #ifdef CraZYali
 	file("polynomial");
 #endif
-	return polynomial::main5205();
+	return polynomial::main4723();
 }
