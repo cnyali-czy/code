@@ -18,7 +18,6 @@
 #include <iostream>
 #include <cstdio>
 #define i64 long long
-#define int long long
 using namespace std;
 
 	template <typename T>
@@ -125,21 +124,29 @@ namespace Less
 namespace polynomial
 {
 	const int maxn = 1 << 20;
-	int R[maxn], Wn[30], Invwn[30], lastRN;
+	int R[maxn], lastRN;
+	vector <int> w[30][2];
 	struct __init__
 	{
 		__init__()
 		{
-			REP(i, 0, 29)
+			REP(i, 0, 18)
 			{
-				Wn[i] = power_pow(prime_g, (MOD - 1) / (1 << i + 1));
-				Invwn[i] = inv(Wn[i]);
+				int Wn = power_pow(prime_g, (MOD - 1) / (1 << i + 1));
+				int InvWn = inv(Wn);
+				i64 w0 = 1, w1 = 1;
+				REP(j, 0, (1 << i) - 1)
+				{
+					w[i][0].emplace_back(w0);(w0 *= Wn) %= MOD;
+					w[i][1].emplace_back(w1);(w1 *= InvWn) %= MOD;
+				}
 			}
 		}
 	}__INIT__;
 	unsigned i64 NTTtmp[maxn];
 	void NTT(int a[], int n, int flag)
 	{
+		bool fff = (flag > 0);
 		if (lastRN ^ n)
 		{
 			lastRN = n;
@@ -148,16 +155,13 @@ namespace polynomial
 		REP(i, 1, n - 1) if (i < R[i]) swap(a[i], a[R[i]]);
 		copy(a, a + n, NTTtmp);
 		for (int ccc = 0, i = 2, i2 = 1; i <= n; i <<= 1, i2 <<= 1, ccc++)
-		{
-			const int wn = (flag > 0 ? Wn[ccc] : Invwn[ccc]);
 			for (int k = 0; k < n; k += i)
-				for (int l = 0, w = 1; l < i2; l++, w = 1ll * w * wn % MOD)
+				REP(l, 0, i2 - 1)
 				{
-					unsigned i64 x(NTTtmp[k + l]), y(w * NTTtmp[k + l + i2] % MOD);
+					unsigned i64 x(NTTtmp[k + l]), y(1ll * w[ccc][fff][l] * NTTtmp[k + l + i2] % MOD);
 					NTTtmp[k + l] = x + y;
 					NTTtmp[k + l + i2] = MOD + x - y;
 				}
-		}
 		REP(i, 0, n - 1)
 		{
 			a[i] = NTTtmp[i] % MOD;
@@ -601,5 +605,5 @@ signed main()
 #ifdef CraZYali
 	file("polynomial");
 #endif
-	return polynomial::main4723();
+	return polynomial::main5050();
 }
