@@ -236,6 +236,53 @@ namespace polynomial
 		A.resize(n + 1);
 		return A;
 	}
+	inline poly operator + (poly a, poly b)
+	{
+		if (a.size() < b.size()) swap(a, b);
+		REP(i, 0, (int)b.size() - 1) inc(a[i], b[i]);
+		return a;
+	}
+	inline poly operator - (poly a, poly b)
+	{
+		if (a.size() < b.size()) a.resize(b.size());
+		REP(i, 0, (int)a.size() - 1) dec(a[i], b[i]);
+		return a;
+	}
+	inline poly operator * (int k, poly a)
+	{
+		for (auto &i : a) i = 1ll * i * k % MOD;
+		return a;
+	}
+	inline poly operator * (poly a, int k) {return k * a;}
+	inline poly operator / (poly a, int k) {return inv(k) * a;}
+	void cdqExp(const poly &f, poly &g, int l, int r)
+	{
+		if (l == r)
+		{
+			if (l) g[l] = 1ll * g[l] * invs[l] % MOD;
+			else g[l] = 1;
+			return;
+		}
+		int mid = l + r >> 1;
+		cdqExp(f, g, l, mid);
+		int L = 1;
+		while (L <= r - l + 1) L <<= 1;
+		poly A(L, 0), B(L, 0);
+		REP(i, 0, mid - l) A[i] = g[i + l];
+		REP(i, 0, r - l - 1) B[i] = f[i];
+		NTT(A, L, 1);NTT(B, L, 1);
+		REP(i, 0, L - 1) A[i] = 1ll * A[i] * B[i] % MOD;
+		NTT(A, L, -1);
+		REP(i, mid - l, r - l - 1) inc(g[i + l + 1], A[i]);
+		cdqExp(f, g, mid + 1, r); }
+	inline poly exp(poly f)
+	{
+		int n = deg(f);
+		prepare_invs(n);
+		poly res(n + 1, 0);
+		cdqExp(Der(f), res, 0, n);
+		return res;
+	}
 	int n, m;
 	poly f, g;
 	int main3803()
@@ -264,6 +311,14 @@ namespace polynomial
 		REP(i, 0, n) printf("%d%c", f[i], i == end_i ? '\n' : ' ');
 		return 0;
 	}
+	int main4726()
+	{
+		n = read<int>() - 1;f.resize(n + 1);
+		REP(i, 0, n) f[i] = read<int>();
+		f = exp(f);
+		REP(i, 0, n) printf("%d%c", f[i], i == end_i ? '\n' : ' ');
+		return 0;
+	}
 	int main5205()
 	{
 		n = read<int>() - 1;f.resize(n + 1);
@@ -278,5 +333,5 @@ int main()
 #ifdef CraZYali
 	file("polynomial-vec");
 #endif
-	return polynomial::main5205();
+	return polynomial::main4726();
 }
