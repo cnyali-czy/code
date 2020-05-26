@@ -115,18 +115,18 @@ namespace WA
 		bin[0] = 1;
 		REP(i, 1, n) bin[i] = (bin[i - 1] << 1) % MOD;
 		dp[0] = 1;
-		REP(i, 1, n) if (!a[i]) inc(dp[0], dp[0]);
-		REP(i, 1, 19) LG[1 << i] = i;
-		REP(S, 1, lim)
+		REP(i, 0, lim)
 		{
-			for (int x = S & (S - 1); ; x = (x - 1) & S)
-			{
-				inc(dp[S], 1ll * dp[x] * bin[cnt[S - x]] % MOD);
-				if (!x) break;
-			}
+			for(int j = (lim ^ i); j > i; j = (j - 1) & (lim ^ i))
+				inc(dp[i + j], 1ll * dp[i] * cnt[j] % MOD);
 		}
 		ans = 0;
 		REP(i, 0, lim) ans += 1ll * dp[i] * phi[i + 1] % MOD;
+		REP(i, 1, n) if (!a[i])
+		{
+			ans <<= 1;
+			if (ans >= MOD) ans %= MOD;
+		}
 	}
 }
 int main()
@@ -135,9 +135,7 @@ int main()
 	n = read<int>();
 	Max = 0;
 	REP(i, 1, n) a[i] = read<int>(), chkmax(Max, a[i]);
-	if (Max == 1) ans = 1;
-	else if (n <= 20) small::main();
-	else WA::main();
+	WA::main();
 	cout << ans % MOD << endl;
 	return 0;
 }
