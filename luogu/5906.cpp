@@ -48,7 +48,7 @@ struct Query
 	int l, r, id;
 	Query(){}
 	Query(int l, int r, int id) : l(l), r(r), id(id) {}
-	inline bool operator < (const Query &B) const {return blg[l] < blg[B.l] || blg[l] == blg[B.l] && r < B.r;}
+	inline bool operator < (const Query &B) const {return r < B.r;}
 };
 vector <Query> v[maxn];
 int lmost[maxn], rmost[maxn], ans[maxn], res, a[maxn], b[maxn];
@@ -71,8 +71,6 @@ int Lower_Bound(int x)
 		else l = mid + 1;
 	}
 }
-int qq;
-Query Q[maxn];
 int main()
 {
 #ifdef CraZYali
@@ -90,31 +88,31 @@ int main()
 	{
 		int l(read<int>()), r(read<int>());
 		if (r - l + 1 <= block) bf(l, r, i);
-		else Q[++qq] = Query(l, r, i);//v[blg[l]].emplace_back(l, r, i);
+		else v[blg[l]].emplace_back(l, r, i);
 	}
-	sort(Q + 1, Q + 1 + qq);
-	int r;
-	REP(i, 1, qq)
+	REP(i, 1, tot) if (v[i].size())
 	{
-		if (i == 1 || blg[Q[i].l] ^ blg[Q[i - 1].l])
+		sort(v[i].begin(), v[i].end());
+		int r = R[i];
+		res = 0;
+		for (auto j : v[i])
 		{
-			if (i > 1) REP(j, R[blg[Q[i-1].l]], r) rmost[a[j]] = 0;
-			res = 0;
-			r = R[blg[Q[i].l]];
+			while (r < j.r)
+			{
+				r++;
+				if (!rmost[a[r]]) lmost[a[r]] = r;
+				rmost[a[r]] = r;
+				chkmax(res, r - lmost[a[r]]);
+			}
+			ans[j.id] = res;
+			REP(k, j.l, R[i]) chkmax(ans[j.id], rmost[a[k]] - k);
+			if (ans[j.id] < R[i] - j.l + 1)
+			{
+				bf(j.l, R[i], 0);
+				chkmax(ans[j.id], ans[0]);
+			}
 		}
-#define j Q[i]
-#define I blg[Q[i].l]
-		while (r < j.r)
-		{
-			r++;
-			if (!rmost[a[r]]) lmost[a[r]] = r;
-			rmost[a[r]] = r;
-			chkmax(res, r - lmost[a[r]]);
-		}
-		ans[j.id] = res;
-		REP(k, j.l, R[I]) chkmax(ans[j.id], rmost[a[k]] - k);
-		bf(j.l, R[I], 0);
-		chkmax(ans[j.id], ans[0]);
+		REP(j, R[i], r) rmost[a[j]] = 0;
 	}
 	REP(i, 1, q) cout << ans[i] << '\n';
 	return 0;
