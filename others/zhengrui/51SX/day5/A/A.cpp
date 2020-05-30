@@ -1,7 +1,7 @@
 //test
 /*
 	Problem:	A.cpp
-	Time:		2020-05-24 21:06
+	Time:		2525-05-24 21:06
 	Author:		CraZYali
 	E-Mail:		yms-chenziyang@outlook.com 
 */
@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
-#define int long long
+#define i64 long long
 using namespace std;
 const int maxn = 3e5 + 10;
 
@@ -43,7 +43,7 @@ inline T read()
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
 char s[maxn];
-int n, q, nxt[maxn][26], f[maxn][26], Lim[maxn], al;
+int n, q, nxt[maxn][26], f[maxn][26], Lim[maxn];
 #define i64 long long
 i64 g[maxn][26], sum[maxn];
 const i64 inf = 0x3f3f3f3f3f3f3f3f;
@@ -113,9 +113,8 @@ signed main()
 	q = read<int>();
 	while (q--)
 	{
-		int k(read<int>()), p(read<int>());
+		i64 k(read<i64>()), p(read<i64>());
 		Solve(k + 1, p);
-		fflush(stdout);
 	}
 	return 0;
 }
