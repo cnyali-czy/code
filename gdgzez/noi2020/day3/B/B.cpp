@@ -2,9 +2,6 @@
 #define DEP(i, s, e) for (register int i = (s), end_##i = (e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
-#define chkmax(a, b) (a < (b) ? a = (b) : a)
-#define chkmin(a, b) (a > (b) ? a = (b) : a)
-
 #include <algorithm>
 #include <iostream>
 #include <cassert>
@@ -15,8 +12,9 @@
 #include <cmath>
 
 using namespace std;
-const int maxn = 50 + 5, maxs = 70, maxx = 70, inf = 1e9;
 #define int long long
+#define i64 long long
+inline int chkmin(int &x, int y) {if (x > y) {x = y;return 1;}return 0;}
 template <typename T> T read()
 {
 	T ans(0), flag(1);
@@ -40,68 +38,98 @@ void file(string s)
 	freopen((s + ".out").c_str(), "w", stdout);
 }
 
-int n, s, x;
-int dp[maxn][maxs][maxx];
-void mark(int &x, int y) {x |= (1ll << y);}
-namespace three
+i64 n, s, x;
+
+namespace bf
 {
-	void work()
+	const int N = 70;
+	int f[65][N + 5], dig[70];
+	inline int get(i64 x, int p) {return x >> p & 1;}
+	inline void mark(i64 &x, int p) {x |= (1ll << p);}
+	bool check(i64 M)
 	{
-		if (n == 1)
+		memset(f, 0x3f, sizeof f);
+		const int inf = f[0][0];
+		f[60][0] = 0;
+		DEP(i, 60, 1)
 		{
-			if (s == x) cout << s << '\n';
-			else puts("-1");
-		}
-		if (n == 2)
-		{
-			int a = 0, b = 0;
-			bool cur = 0;
-			//a <= b
-			DEP(i, 60, 0) if (x & (1ll << i))
+			int mi = get(M, i - 1);
+			REP(j, 0, N) if (f[i][j] < inf)
 			{
-				if (cur) a |= (1ll << i);
-				else b |= (1ll << i);
-				cur ^= 1;
-			}
-			if (a + b > s) puts("-1");
-			else if (a + b == s) cout << b << '\n';
-			else
-			{
-				int qaq = s - a - b;
-				REP(i, 0, 60) if (!(a >> i & 1) && !(b >> i & 1))
-					if (qaq >= (1ll << i + 1)) qaq -= (1ll << i + 1), a |= (1ll << i), b |= (1ll << i);
-				if (a + b == s && (a ^ b) == x) cout << b << '\n';
-				else puts("-1");
-			}
-		}
-		if (n == 3)
-		{
-			//a <= b <= c
-			int a = 0, b = 0, c = 0;
-			int cur = 0, cur2 = 0;
-			DEP(i, 60, 0)
-				if (x >> i & 1)
+				int u = dig[i - 1] + f[i][j];
+				if (!mi)
 				{
-					cur++;
-					if (cur == 1) mark(c, i);
-					if (cur == 2) mark(b, i);
-					if (cur == 3) mark(a, i), cur = 0;
+					int v = 0;
+					if (u > j)
+					{
+						int qaq = (u - j + 1) / 2;
+						u -= 2 * qaq;
+						v += 4 * qaq;
+					}
+					if (u < 0) continue;
+					chkmin(f[i - 1][j], v);
 				}
-			if (a + b + c > s) puts("-1");
-			else if (a + b + c == s) cout << c << '\n';
-			else
-			{
-				int qaq = s - a - b - c;
-				cur = 0;
-				REP(i, 0, 60) if (qaq >= (1ll << i + 1))
+				else
 				{
-					qaq -= (1ll << i + 1);
-					mark(a, i);mark(b, i);mark(c, i);
+					if (j >= 3 && !f[i][j]) return 1;
+					int v = 0;
+					if (u > n)
+					{
+						int qaq = (u - n + 1) / 2;
+						u -= 2 * qaq;
+						v += 4 * qaq;
+					}
+					while (u >= 0)
+					{
+						int jj = n - max(u, j) + j;
+						if (jj >= 3 && !v) return 1;
+						if (jj <= N) chkmin(f[i - 1][jj], v);
+						if (v > 0 && jj >= 5 && jj - j >= 2) break;
+						u -= 2;v += 4;
+					}
 				}
-				if (a + b + c == s && (a ^ b ^ c) == x) cout << c << '\n';
-				else puts("-1");
 			}
 		}
+		REP(i, 0, N) if (!f[0][i]) return 1;
+		return 0;
+	}
+	int main()
+	{
+		register int T = read<int>();
+		REP(Case, 1, T) 
+		{
+			n = read<i64>();s = read<i64>();x = read<i64>();
+			if (s < x || (x & 1) != (s & 1)) {puts("-1");continue;}
+			if (n == 1) {printf("%lld\n", s == x ? s : -1);continue;}
+			REP(i, 0, 59) dig[i] = get(x, i) + 2 * get(s - x >> 1, i);
+			if (n == 2)
+			{
+				i64 a = 0, b = 0;
+				bool flag = 1;
+				DEP(i, 59, 0)
+				{
+					if (dig[i] == 1) mark(b, i);
+					else if (dig[i] == 2) mark(b, i), mark(a, i);
+					else if (dig[i] == 3) flag = 0;
+					if (a < b) swap(a, b);
+				}
+				printf("%lld\n", flag && a + b == s && (a ^ b) == x ? max(a, b) : -1);
+				continue;
+			}
+			register i64 l = 0, r = s , ans = -1;
+			while (l <= r)
+			{
+				i64 mid = l + r >> 1;
+				if (check(mid))
+				{
+					ans = mid;
+					r = mid - 1;
+				}
+				else l = mid + 1;
+			}
+			cout << ans << '\n';
+		}
+		return 0;
 	}
 }
 
@@ -110,25 +138,5 @@ signed main()
 #ifdef CraZYali
 	file("B");
 #endif
-	register int T = read<int>();
-	while (T--)
-	{
-		n = read<int>();s = read<int>();x = read<int>();
-		if (n <= 50 && s <= 50 && x <= 50)
-		{
-			int lim = 1;
-			while (lim <= s) lim <<= 1;
-			memset(dp, 127, sizeof dp);
-			int inf = dp[0][0][0];
-			lim--;
-			dp[0][0][0] = 0;
-			REP(i, 0, n - 1)
-				REP(j, 0, s)
-				REP(k, 0, lim) if (dp[i][j][k] < inf)
-				REP(u, 0, s - j) chkmin(dp[i + 1][j + u][k ^ u], max(dp[i][j][k], u));
-			printf("%lld\n", dp[n][s][x] < inf ? dp[n][s][x] : -1);
-		}
-		else three::work();
-	}
-	return 0;
+	return bf::main();
 }
