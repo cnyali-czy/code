@@ -16,7 +16,7 @@
 #include <cmath>
 
 using namespace std;
-const int maxn = 1e5 + 10, maxN = 5e6;
+const int maxn = 1e5 + 10;
 
 int bg[maxn], ne[maxn << 1], to[maxn << 1], e;
 inline void add(int x, int y)
@@ -48,10 +48,9 @@ void file(string s)
 #define i64 long long
 int n, q;
 
-int rt, w[maxn], ww[maxn];
+int rt, w[maxn];
 i64 Ans[maxn];
 
-int opt[maxn], l[maxn], r[maxn];
 int blg[maxn], block;
 i64 sum[maxn];
 void getsum(int x, int fa = 0)
@@ -71,35 +70,42 @@ struct SHIT
 	SHIT(int l = 0, int r = 0, int v = 0, int id = 0) : l(l), r(r), v(v), id(id) {}
 };
 vector <SHIT> Qry[maxn];
-namespace fenwick
+namespace dog
 {
-	int c[maxn];
+	int blg[maxn], L[maxn], R[maxn], s[maxn], sp[maxn], ss[maxn], tot;
+	void init()
+	{
+		const int block = sqrt(n);
+		REP(i, 1, n) blg[i] = (i - 1) / block + 1;
+		REP(i, 1, n) R[blg[i]] = i;
+		DEP(i, n, 1) L[blg[i]] = i;
+		tot = blg[n];
+	}
 	void add(int x, int y = 1)
 	{
-		while (x <= n)
-		{
-			c[x] += y;
-			x += x & -x;
-		}
+		int b = blg[x];
+		REP(i, b, tot) s[i] += y;
+		REP(i, L[b], x) ss[i] += y;
+		REP(i, x, R[b]) sp[i] += y;
 	}
 	int sum(int l, int r)
 	{
-		int y = 0;
-		l--;
-		while (r > l) y += c[r], r &= (r - 1);
-		while (l > r) y -= c[l], l &= (l - 1);
-		return y;
+		int bl = blg[l], br = blg[r];
+		if (bl == br) return sp[r] - (l == L[bl] ? 0 : sp[l - 1]);
+		else return ss[l] + sp[r] + s[br - 1] - s[bl];
 	}
 }
 void dfs(int x, int fa = 0)
 {
-	fenwick :: add(x);
+	dog :: add(x);
 	for (auto i : Qry[x])
-		Ans[i.id] += 1ll * fenwick :: sum(i.l, i.r) * i.v;
+		Ans[i.id] += 1ll * dog :: sum(i.l, i.r) * i.v;
 	for (int i = bg[x]; i; i = ne[i]) if (to[i] ^ fa)
 		dfs(to[i], x);
-	fenwick :: add(x, -1);
+	dog :: add(x, -1);
 }
+int Top;
+pair <int, int> tmp[maxn];
 
 int main()
 {
@@ -107,21 +113,22 @@ int main()
 	file("B");
 #endif
 	n = read();q = read();
-	REP(i, 1, n) w[i] = ww[i] = read();
+	dog::init();
+	REP(i, 1, n) w[i] = read();
 	REP(i, 1, n)
 	{
 		int x(read()), y(read());
 		if (!x) rt = y;
 		else add(x, y), add(y, x);
 	}
-	block = max(5., pow(1. * q * n / log2(n + 1), 1. / 3));
-	vector <pair <int, int> > tmp;
+	block = 2 * sqrt(n);
+//	cerr<<block<<endl;
 	REP(i, 1, q)
 	{
 		blg[i] = (i - 1) / block + 1;
 		if (blg[i] ^ blg[i - 1])
 		{
-			tmp.clear();
+			Top = 0;
 			getsum(rt);
 			REP(j, 2, n) sum[j] += sum[j - 1];
 		}
@@ -130,13 +137,13 @@ int main()
 		{
 			r -= w[l];
 			w[l] += r;
-			tmp.emplace_back(l, r);
+			tmp[++Top] = make_pair(l, r);
 		}
 		else
 		{
 			need[i] = 1;
 			Ans[i] = sum[r] - sum[l - 1];
-			for (auto k : tmp) Qry[k.first].emplace_back(l, r, k.second, i);
+			REP(k, 1, Top) Qry[tmp[k].first].emplace_back(l, r, tmp[k].second, i);
 		}
 	}
 	dfs(rt);
