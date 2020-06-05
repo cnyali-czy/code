@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /*
 	Problem:	B.cpp
 	Time:		2020-06-03 23:08
@@ -7,11 +8,16 @@
 
 #define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
 #define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
+=======
+#define REP(i, s, e) for (register int i = (s), end_##i = (e); i <= end_##i; i++)
+#define DEP(i, s, e) for (register int i = (s), end_##i = (e); i >= end_##i; i--)
+>>>>>>> a200118b12379e72bda6a0360d5e90d7ccc09cfc
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+<<<<<<< HEAD
 #include <iostream>
 #include <cstdio>
 #include <cstring>
@@ -29,6 +35,25 @@ inline T read()
 {
 	T ans = 0, flag = 1;
 	char c = getchar();
+=======
+#include <algorithm>
+#include <iostream>
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+const int MOD = 1e9 + 7, maxn = 4050;
+#define i64 long long
+
+template <typename T> T read()
+{
+	T ans(0), flag(1);
+	char c(getchar());
+>>>>>>> a200118b12379e72bda6a0360d5e90d7ccc09cfc
 	while (!isdigit(c))
 	{
 		if (c == '-') flag = -1;
@@ -42,6 +67,7 @@ inline T read()
 	return ans * flag;
 }
 
+<<<<<<< HEAD
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
 int n;
@@ -177,6 +203,19 @@ namespace lct
 	}
 }
 int ans[maxn];
+=======
+void file(string s)
+{
+	freopen((s + ".in").c_str(), "r", stdin);
+	freopen((s + ".out").c_str(), "w", stdout);
+}
+
+int m, n, k;
+char s[maxn];
+
+long long ans[maxn], tot[maxn];
+int fail[maxn], dep[maxn];
+>>>>>>> a200118b12379e72bda6a0360d5e90d7ccc09cfc
 
 int main()
 {
@@ -185,6 +224,7 @@ int main()
 #endif
 	n = read<int>();
 	scanf("%s", s + 1);
+<<<<<<< HEAD
 	REP(i, 1, n) SAM :: extend(s[i] - 'a', i);
 //	SAM :: Debug();
 	REP(i, 1, SAM :: cur)
@@ -205,5 +245,33 @@ int main()
 		ans[i] = add(ans[i - 1], now);
 	}
 	REP(i, 1, n) printf("%d\n", ans[i]);
+=======
+	REP(i, 1, n)
+	{
+		char *s = ::s + i - 1;
+		dep[0] = -1;
+		int k = 0;
+		long long tot = 0;
+		REP(j, 2, n - i + 1)
+		{
+			while (k && s[j] != s[k + 1]) k = fail[k];
+			fail[j] = (k += (s[j] == s[k + 1]));
+			dep[j] = dep[k] + 1;
+			tot += dep[j];
+			ans[i + j - 1] += tot;
+		}
+		/*
+		REP(j, 1, i - 1) putchar(' ');puts(s + 1);
+		REP(j, 1, n - i + 1) printf("%d%c", fail[j], j == end_j ? '\n' : ' ');
+		REP(j, 1, n - i + 1) printf("%d%c", dep[j], j == end_j ? '\n' : ' ');
+		puts("");
+		*/
+	}
+	REP(i, 1, n)
+	{
+		(ans[i] += ans[i - 1]) %= MOD;
+		cout << ans[i] << '\n';
+	}
+>>>>>>> a200118b12379e72bda6a0360d5e90d7ccc09cfc
 	return 0;
 }
