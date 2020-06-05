@@ -63,10 +63,12 @@ string magic[26];int lm[26];
 int lst[maxn], nex[maxn];
 bool check(int k)
 {
-	int times = 50;
+	const static int N = n;
+	int times = 10;
 	while (times--)
 	{
-		int i = rand() % n, nex = (n + (i - 1ll * a * k) % n) % n;
+		int i = rand() % N, nex = (i - 1ll * a * k) % N;
+		if (nex < 0) nex += N;
 		if (magic[s[i] - 'a'][k % lm[s[i] - 'a']] != t[nex]) return 0;
 	}
 	return 1;
