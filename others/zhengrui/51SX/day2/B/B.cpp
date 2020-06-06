@@ -1,6 +1,6 @@
 /*
 	Problem:	B.cpp
-	Time:		2020-05-02 10:02
+	Time:		2020-06-06 22:56
 	Author:		CraZYali
 	E-Mail:		yms-chenziyang@outlook.com 
 */
@@ -12,11 +12,14 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <algorithm>
 #include <iostream>
 #include <cstdio>
 
 using namespace std;
-const int maxn = 20, MOD = 1e9 + 7, maxm = maxn * maxn;
+const int maxn = 15 + 5, MOD = 1e9 + 7;
+
+inline void inc(int &x, int y) {x += y; if (x >= MOD) x -= MOD;}
 
 template <typename T>
 inline T read()
@@ -38,39 +41,8 @@ inline T read()
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-int n, m, u[maxm], v[maxm], R[maxn], w[maxn];
-
-namespace smallR
-{
-	bool judge()
-	{
-		return 1;
-		REP(i, 1, n) if (R[i] > 2) return 0;
-		return 1;
-	}
-	int ans = 0;
-	bool vis[114];
-	void calc()
-	{
-		REP(i, 1, m) if (w[u[i]] == w[v[i]]) return;
-		REP(i, 1, n) vis[w[i]] = 0;
-		REP(i, 1, n) if (!vis[w[i]]) vis[w[i]] = 1, ans++;
-	}
-	void dfs(int x)
-	{
-		if (x == n) calc();
-		else
-		{
-			x++;
-			REP(i, 0, R[x]) w[x] = i, dfs(x);
-		}
-	}
-	void work()
-	{
-		dfs(0);
-		cout << ans << endl;
-	}
-}
+int n, m, r[maxn], id[maxn];
+int f[16][1 << 15], mem[1 << 15], gg[1 << 15], a[15], p[15];
 
 int main()
 {
@@ -78,13 +50,26 @@ int main()
 	file("B");
 #endif
 	n = read<int>();m = read<int>();
-	REP(i, 1, n) R[i] = read<int>();
-	REP(i, 1, m) u[i] = read<int>(), v[i] = read<int>();
-	if (n == 1)
+	REP(i, 0, n - 1)
 	{
-		cout << R[1] + 1 << endl;
-		return 0;
+		r[i] = read<int>() + 1;
+		id[i] = i;
 	}
-	else if (smallR::judge()) smallR::work();
+	sort(id, id + n, [](int x, int y) {return r[x] < r[y];});
+	REP(i, 0, n - 1) a[i] = r[id[i]], p[id[i]] = i;
+	while (m--)
+	{
+		int x(p[read<int>() - 1]), y(p[read<int>() - 1]);
+		REP(i, 0, (1 << n) - 1)
+			gg[i] |= i >> x & i >> y & 1;
+	}
+	REP(i, 1, (1 << n) - 1) mem[i] = __builtin_ctz(i);
+	f[0][(1 << n) - 1] = 1;
+	REP(i, 0, n - 1) REP(S, 0, (1 << n) - 1) if (f[i][S])
+		for (int x = S; x; x = (x - 1) & S) if (!gg[x] && (x >> mem[S] & 1) && a[mem[x]] > i)
+			inc(f[i + 1][S ^ x], 1ll * f[i][S] * (a[mem[x]] - i) % MOD);
+	int ans = 0;
+	REP(i, 1, n) inc(ans, 1ll * i * f[i][0] % MOD);
+	cout << ans << endl;
 	return 0;
 }
