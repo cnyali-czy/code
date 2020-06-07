@@ -46,6 +46,7 @@ void file(string s)
 }
 i64 n;
 int prime[maxn], phi[maxn], p_cnt, N, sg[maxn], mu[maxn], smu[maxn];
+int G[maxn];
 vector <int> H[maxn];
 bool notp[maxn];
 //G(x) = phi(x)
@@ -80,8 +81,7 @@ void init(int N)
 	REP(i, 1, p_cnt)
 	{
 		int p = prime[i];
-		vector <int> G(1, 1);
-		G.emplace_back(p - 1);
+		G[0] = 1;G[1] = p - 1;
 		//G[j]		= phi(p ^ j)
 		
 		//H[i][j]	= H(p ^ j)
@@ -92,7 +92,7 @@ void init(int N)
 		i64 lim = n / p;
 		for (i64 k = 2, x = 1ll * p * p; ; x *= p, k++)
 		{
-			G.emplace_back(1ll * G.back() * p % MOD);
+			G[k] = 1ll * G[k - 1] * p % MOD;
 			i64 res = p ^ k;
 			REP(j, 0, k - 1) res -= 1ll * H[i][j] * G[k - j] % MOD;
 			res %= MOD;if (res < 0) res += MOD;
