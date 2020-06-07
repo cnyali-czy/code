@@ -45,7 +45,7 @@ void file(string s)
 	freopen((s + ".out").c_str(), "w", stdout);
 }
 i64 n;
-int prime[maxp], phi[maxn], p_cnt, N, sg[maxn], mu[maxn], smu[maxn];
+int prime[maxp], phi[maxn], p_cnt, N, sg[maxn];
 int G[35], H[maxp][35], l[maxp];
 bool notp[maxn];
 //G(x) = phi(x)
@@ -54,19 +54,15 @@ void init(int N)
 {
 	::N = N;
 	phi[1] = sg[1] = 1;
-	mu[1] = smu[1] = 1;
 	REP(i, 2, N)
 	{
-		if (!notp[i]) phi[prime[++p_cnt] = i] = i - 1, mu[i] = -1;
+		if (!notp[i]) phi[prime[++p_cnt] = i] = i - 1;
 		REP(j, 1, p_cnt)
 		{
 			int tmp = i * prime[j];if (tmp > N) break;
 			notp[tmp] = 1;
 			if (i % prime[j])
-			{
 				phi[tmp] = phi[i] * (prime[j] - 1);
-				mu[tmp] = -mu[i];
-			}
 			else
 			{
 				phi[tmp] = phi[i] * prime[j];
@@ -74,7 +70,6 @@ void init(int N)
 			}
 		}
 		sg[i] = add(sg[i - 1], phi[i]);
-		smu[i] = smu[i - 1] + mu[i];
 	}
 	cerr << "p_cnt = " << p_cnt << endl;
 	REP(i, 1, p_cnt)
@@ -100,28 +95,6 @@ void init(int N)
 		}
 	}
 }
-namespace SMU
-{
-	int mem[maxn];
-	bool vis[maxn];
-	int s(i64 n)
-	{
-		if (n <= N) return smu[n] < 0 ? MOD + smu[n] : smu[n];
-		int pos = ::n / n;
-		if (vis[pos]) return mem[pos];
-		vis[pos] = 1;
-		i64 res = 1;
-		int blk = sqrt(n + .5);
-		for (i64 i = 2; i <= blk; i++) res -= s(n / i);
-		for (i64 i = blk + 1, j; i <= n; i = j + 1)
-		{
-			j = n / (n / i);
-			res -= (j - i + 1ll) * s(n / i) % MOD;
-		}
-		res %= MOD;if (res < 0) res += MOD;
-		return mem[pos] = res;
-	}
-}
 namespace SG
 {
 	int mem[maxn];
@@ -132,16 +105,16 @@ namespace SG
 		int pos = ::n / n;
 		if (vis[pos]) return mem[pos];
 		vis[pos] = 1;
-		unsigned i64 res = 0;
+		i64 adjjs = n >= MOD ? n % MOD : n;
+		i64 res = adjjs * (adjjs + 1) / 2 % MOD;
 		int blk = sqrt(n + .5);
-		for (i64 i = 1; i <= blk; i++) res += i * SMU :: s(n / i) % MOD;
-		res = 2ll * res % MOD;
+		for (i64 i = 2; i <= blk; i++) res -= s(n / i);
 		for (i64 i = blk + 1, j; i <= n; i = j + 1)
 		{
 			j = n / (n / i);
-			res += (unsigned i64)(i + j) % MOD * (j - i + 1) % MOD * SMU :: s(n / i) % MOD;
+			res -= (j - i + 1ll) * s(n / i) % MOD;
 		}
-		res = res % MOD * inv2 % MOD;
+		res %= MOD;if (res < 0) res += MOD;
 		return mem[pos] = res;
 	}
 }
