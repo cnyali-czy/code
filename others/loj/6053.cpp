@@ -15,7 +15,7 @@
 #include <cmath>
 
 using namespace std;
-const int maxn = 4700000, MOD = 1e9 + 7, inv2 = MOD + 1 >> 1;
+const int maxn = 4700000, MOD = 1e9 + 7, inv2 = MOD + 1 >> 1, maxp = 325200;
 #define i64 long long
 inline int add(int x, int y) {return (x += y) >= MOD ? x - MOD : x;}
 inline int sub(int x, int y) {return (x -= y) <    0 ? x + MOD : x;}
@@ -45,9 +45,8 @@ void file(string s)
 	freopen((s + ".out").c_str(), "w", stdout);
 }
 i64 n;
-int prime[maxn], phi[maxn], p_cnt, N, sg[maxn], mu[maxn], smu[maxn];
-int G[maxn];
-vector <int> H[maxn];
+int prime[maxp], phi[maxn], p_cnt, N, sg[maxn], mu[maxn], smu[maxn];
+int G[35], H[maxp][35], l[maxp];
 bool notp[maxn];
 //G(x) = phi(x)
 //F(p ^ k) = p xor k
@@ -86,9 +85,9 @@ void init(int N)
 		
 		//H[i][j]	= H(p ^ j)
 		//			= p ^ {j - 1} (p - 1)
-		H[i].emplace_back(1);
-		if (i == 1)	H[i].emplace_back(2);
-		else 		H[i].emplace_back(0);
+		H[i][0] = 1;
+		if (i == 1) H[i][1] = 2;
+		l[i] = 1;
 		i64 lim = n / p;
 		for (i64 k = 2, x = 1ll * p * p; ; x *= p, k++)
 		{
@@ -96,7 +95,7 @@ void init(int N)
 			i64 res = p ^ k;
 			REP(j, 0, k - 1) res -= 1ll * H[i][j] * G[k - j] % MOD;
 			res %= MOD;if (res < 0) res += MOD;
-			H[i].emplace_back(res);
+			H[i][++l[i]] = res;
 			if (x > lim) break;
 		}
 	}
@@ -159,7 +158,7 @@ void dfs(int lst, i64 d, i64 h)
 		{
 			i64 nd = d * prime[i];
 			if (i == 1) dfs(i, nd, 2);
-			REP(k, 2, (int)H[i].size() - 1)
+			REP(k, 2, l[i])
 			{
 				if (nd > lim) break;
 				nd *= prime[i];
