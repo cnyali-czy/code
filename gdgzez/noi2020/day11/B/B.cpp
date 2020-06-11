@@ -172,6 +172,8 @@ namespace shit
 			merge(rt, rt, i);
 		}
 		i64 ans = 0;
+		int lst;
+		bool first = 0;
 		REP(i, 1, m)
 		{
 			int x(0), y(0), z(0), w(0);
@@ -181,9 +183,12 @@ namespace shit
 			if (k[i] == n) merge(rt, x, y);
 			else
 			{
-				int qaq = get(x, s(x)), aqa = get(y, 1);
+				int qaq = get(x, s(x));
+				if (i == 1 || first || k[i] ^ k[i - 1]) lst = get(y, 1), first = 0;
+				int aqa = lst;
 				if (qaq < aqa)
 				{
+					first = 1;
 					int gd;
 					splitl(y, y, z, aqa);
 //					gd = splitl(y, aqa);
