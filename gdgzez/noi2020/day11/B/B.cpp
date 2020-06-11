@@ -81,19 +81,18 @@ namespace shit
 #define s(x) Node[x].s
 #define order(x) Node[x].order
 #define sum(x) Node[x].sum
-
-	void pushup(int x)
-	{
-		s(x) = 1 + s(ls(x)) + s(rs(x));
-		sum(x) = val(x) + sum(ls(x)) + sum(rs(x));
+#define pushup(x)\
+	{\
+		s(x) = 1 + s(ls(x)) + s(rs(x));\
+		sum(x) = val(x) + sum(ls(x)) + sum(rs(x));\
 	}
-	void maintain(int x, int v)
+	inline void maintain(int x, int v)
 	{
 		val(x) += v;
 		sum(x) += s(x) * v;
 		tag(x) += v;
 	}
-	void pushdown(int x)
+	inline void pushdown(int x)
 	{
 		if (ls(x)) maintain(ls(x), tag(x));
 		if (rs(x)) maintain(rs(x), tag(x));
