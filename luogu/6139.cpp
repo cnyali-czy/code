@@ -1,6 +1,6 @@
 /*
-	Problem:	3804-new.cpp
-	Time:		2020-06-14 19:45
+	Problem:	6139.cpp
+	Time:		2020-06-14 20:36
 	Author:		CraZYali
 	E-Mail:		yms-chenziyang@outlook.com 
 */
@@ -44,12 +44,12 @@ long long ans;
 namespace SAM
 {
 	const int maxn = ::maxn << 1;
-	int ch[maxn][26], len[maxn], fail[maxn], s[maxn];
+	int ch[maxn][26], len[maxn], fail[maxn];
 	int last = 1, cur = 1;
 	void extend(int c)
 	{
 		int u = ++cur, v = last;
-		len[u] = len[v] + 1;
+		len[u] = len[last] + 1;
 		for (; v && !ch[v][c]; v = fail[v]) ch[v][c] = u;
 		if (!v) fail[u] = 1;
 		else
@@ -66,23 +66,11 @@ namespace SAM
 				for (; v && ch[v][c] == Old; v = fail[v]) ch[v][c] = New;
 			}
 		}
-		s[u] = 1;
 		last = u;
 	}
-	vector <int> G[maxn];
-	void dfs(int u)
+	void work()
 	{
-		for (int v : G[u])
-		{
-			dfs(v);
-			s[u] += s[v];
-		}
-		if (s[u] > 1) chkmax(ans, 1ll * s[u] * len[u]);
-	}
-	void build_and_work()
-	{
-		REP(i, 2, cur) G[fail[i]].emplace_back(i);
-		dfs(1);
+		REP(i, 1, cur) ans += len[i] - len[fail[i]];
 	}
 }
 
@@ -92,12 +80,16 @@ char s[maxn];
 int main()
 {
 #ifdef CraZYali
-	file("3804-new");
+	file("6139");
 #endif
-	scanf("%s", s + 1);
-	n = strlen(s + 1);
-	REP(i, 1, n) SAM :: extend(s[i] - 'a');
-	SAM :: build_and_work();
+	REP(Case, 1, read<int>())
+	{
+		SAM :: last = 1;
+		scanf("%s", s + 1);
+		n = strlen(s + 1);
+		REP(i, 1, n) SAM :: extend(s[i] - 'a');
+	}
+	SAM :: work();
 	cout << ans << endl;
 	return 0;
 }
