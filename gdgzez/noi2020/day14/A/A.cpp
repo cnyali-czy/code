@@ -1,31 +1,26 @@
-/*
-	Problem:	A.cpp
-	Time:		2020-06-15 10:41
-	Author:		CraZYali
-	E-Mail:		yms-chenziyang@outlook.com 
-*/
-
-#define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
-#define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
+#define REP(i, s, e) for (register int i = (s), end_##i = (e); i <= end_##i; i++)
+#define DEP(i, s, e) for (register int i = (s), end_##i = (e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
 #include <algorithm>
-#include <unordered_map>
-#include <cmath>
 #include <iostream>
+#include <cassert>
+#include <cstring>
+#include <cstdlib>
 #include <cstdio>
-#define i64 long long
-using namespace std;
-const int maxn = 50000 + 5 << 1, MOD = 998244353;
+#include <vector>
+#include <cmath>
+#include <random>
 
-template <typename T>
-inline T read()
+using namespace std;
+
+template <typename T> T read()
 {
-	T ans = 0, flag = 1;
-	char c = getchar();
+	T ans(0), flag(1);
+	char c(getchar());
 	while (!isdigit(c))
 	{
 		if (c == '-') flag = -1;
@@ -39,147 +34,360 @@ inline T read()
 	return ans * flag;
 }
 
-#define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
-
-int n, a[maxn], k;
-int lst[maxn], cnt[maxn];
-i64 ans;
-pair <int, int> ccc[maxn];
-int ok[maxn];
-inline int to(int x)
+void file(string s)
 {
-	if (x > n) return x - n;
-	else return x + n;
+	freopen((s + ".in").c_str(), "r", stdin);
+	freopen((s + ".out").c_str(), "w", stdout);
 }
-const unsigned i64 base = 1e9 + 7, bb = 1e9 + 9;
-unordered_map <unsigned i64, bool> vis;
-void find(int x)
+inline int min(int x, int y) {if (x < y) return x;return y;}
+namespace polynomial
 {
-	if (!ok[x]) return;
-	ok[x] = 0;
-	k++;
-	find(x == n + n ? 1 : x + 1);
-	find(x == 1 ? n + n : x - 1);
-}
-void calc()
-{
-	REP(i, 1, n + n) if (i != lst[a[i]])
-		ccc[a[i]] = make_pair(lst[a[i]], i);
-	sort(ccc + 1, ccc + 1 + n);
-	unsigned i64 H = 0;
-	REP(i, 1, n) 
-		H = H * base + ccc[i].first * bb + ccc[i].second;
-	if (vis[H]) return;
-	vis[H] = 1;
-	REP(i, 1, n + n) ok[i] = 0;
-	bool shit = 0;
-	REP(i, 1, n + n) if (a[i] == a[to(i)]) ok[i] = ok[to(i)] = -1, shit = 1;
-	if (!shit) return;
-//	REP(i, 1, n + n) cout << ok[i] << ' ';cout << endl;
-	REP(i, 1, n + n) if (ok[i] == -1)
+#define poly vector <int>
+#define i64 long long
+	const int maxn = 1 << 17, MOD = 998244353, Inv2 = MOD + 1 >> 1;
+	inline int add(int x, int y) {x += y;return x >= MOD ? x - MOD : x;}
+	inline int sub(int x, int y) {x -= y;return x <    0 ? x + MOD : x;}
+	inline i64 mul(i64 x, int y) {x *= y;return x >= MOD ? x % MOD : x;}
+	inline void inc(int &x, int y) {x += y;if (x >= MOD) x -= MOD;}
+	inline void dec(int &x, int y) {x -= y;if (x <    0) x += MOD;}
+	int power_pow(i64 base, int b)
 	{
-		k = 0;
-		find(i);
-		if (k > 1) return;
-	}
-	REP(i, 1, n + n) ok[i] = 1;
-	REP(i, 1, n + n) if (a[i] == a[to(i)]) ok[i] = ok[to(i)] = 0, shit = 1;
-	i64 tot = 0;
-	REP(i, 1, n + n) if (ok[i])
-	{
-		if (!tot) tot = 1;
-		k = 0;
-		find(i);
-		(tot *= k) %= MOD;
-	}
-	/*
-	REP(i, 1, n + n) printf("%d%s", a[i], i == end_i ? " : " : " ");
-	cout << tot << endl;
-	REP(i, 1, n) cout << lst[i] << ' ';cout << endl;
-	REP(i, 1, n) cout << ccc[i].first << ' ' << ccc[i].second << endl;
-	*/
-	ans += tot;
-}
-int dis(int x, int y)
-{
-	if (x < y) swap(x, y);
-	return min(abs(y - x + n + n), abs(x - y));
-}
-void dfs(int x)
-{
-	if (x == n + n) calc();
-	else
-	{
-		x++;
-		REP(i, 1, n) if (cnt[i] < 2)
+		i64 ans = 1;
+		while (b)
 		{
-			if (!cnt[i]) lst[i] = x;
-			else if (x != to(lst[i]) && dis(x, lst[i]) > 2) continue;
-			else
+			if (b & 1) (ans *= base) %= MOD;
+			(base *= base) %= MOD;
+			b >>= 1;
+		}
+		return ans;
+	}
+#define inv(x) power_pow(x, MOD - 2)
+	namespace Less
+	{
+		int II;
+		struct num
+		{
+			int x, y;
+			inline num(int x = 0, int y = 0) : x(x), y(y) {}
+			inline num operator * (num B) {return num(add(1ll * x * B.x % MOD, 1ll * II * y % MOD * B.y % MOD), add(1ll * x * B.y % MOD, 1ll * y * B.x % MOD));}
+			inline num operator *=(num B) {return *this = *this * B;}
+		};
+
+		num power_pow(num base, int b)
+		{
+			num ans(1);
+			while (b)
 			{
-				int a = lst[i], b = x;
-				int c = to(a), d = to(b);
-				if (::a[c] && ::a[d] && ::a[c] != ::a[d]) continue;
+				if (b & 1) ans *= base;
+				base *= base;
+				b >>= 1;
 			}
-			cnt[i]++;
-			a[x] = i;
-			dfs(x);
-			cnt[i]--;
-			a[x] = 0;
+			return ans;
+		}
+
+		mt19937 hh;
+		int solve(int n)
+		{
+			if (n == 1) return 1;
+			int a = MOD - 1;
+			while (1)
+			{
+				II = sub(1ll * a * a % MOD, n);
+				if (a && polynomial::power_pow(II, MOD - 1 >> 1) == MOD - 1) break;
+				a = hh() % MOD;
+			}
+			int ans1 = power_pow(num(a, 1), MOD + 1 >> 1).x, ans2 = sub(0, ans1);
+			return min(ans1, ans2);
 		}
 	}
-}
 
-int Ans[] = {2988, 6720};
-
-namespace CCC
-{
-	bool vis[maxn];
-	void dfs(int x)
+	inline int deg(const poly &A) {return A.size() - 1;}
+	unsigned i64 NTTtmp[maxn];
+	int R[maxn], lastRN;
+	vector <int> w[30][2];
+	struct __init__
 	{
-		if (x == n) calc();
-		else
+		__init__()
 		{
-			x++;
-			REP(i, 1, n + n) if (!vis[i])
+			REP(i, 0, 17)
 			{
-				lst[x] = i;
-				vis[i] = 1;
-				a[i] = x;
-				REP(j, i + 1, n + n) if (!vis[j] && (j == to(i) || dis(i, j) <= 2))
+				int Wn = power_pow(3, (MOD - 1) / (1 << i + 1));
+				int InvWn = inv(Wn);
+				i64 w0 = 1, w1 = 1;
+				REP(j, 0, (1 << i) - 1)
 				{
-					int c = to(i), d = to(j);
-					if (a[c] && a[d] && a[c] != a[d]) continue;
-					vis[j] = 1;
-					a[j] = x;
-					dfs(x);
-					vis[j] = a[j] = 0;
+					w[i][0].emplace_back(w0);(w0 *= Wn) %= MOD;
+					w[i][1].emplace_back(w1);(w1 *= InvWn) %= MOD;
 				}
-				vis[i] = a[i] = 0;
 			}
 		}
-	}
-	void work()
+	}__INIT__;
+	void NTT(poly &a, int n, int flag)
 	{
-		a[1] = vis[1] = lst[1] = 1;
-		REP(i, 2, n + n)
+		if (a.size() ^ n) a.resize(n);
+		bool fff = (flag > 0);
+		if (lastRN ^ n)
 		{
-			vis[i] = a[i] = 1;
-			dfs(1);
-			vis[i] = a[i] = 0;
+			lastRN = n;
+			REP(i, 1, n - 1) R[i] = (R[i >> 1] >> 1) | (i & 1 ? n >> 1 : 0);
+		}
+		REP(i, 1, n - 1) if (i < R[i]) swap(a[i], a[R[i]]);
+		REP(i, 0, n - 1) NTTtmp[i] = a[i];
+		for (int ccc = 0, i = 2, i2 = 1; i <= n; i <<= 1, i2 <<= 1, ccc++)
+			for (int k = 0; k < n; k += i)
+				REP(l, 0, i2 - 1)
+				{
+					unsigned i64 x(NTTtmp[k + l]), y(1ll * w[ccc][fff][l] * NTTtmp[k + l + i2] % MOD);
+					NTTtmp[k + l] = x + y;
+					NTTtmp[k + l + i2] = MOD + x - y;
+				}
+		REP(i, 0, n - 1)
+		{
+			a[i] = NTTtmp[i] % MOD;
+			if (a[i] < 0) a[i] += MOD;
+		}
+		if (flag < 0)
+		{
+			const int invn = inv(n);
+			REP(i, 0, n - 1) a[i] = 1ll * a[i] * invn % MOD;
 		}
 	}
-}
+	inline poly operator * (poly a, poly b)
+	{
+		int n(deg(a)), m(deg(b));
+		int l = 1;
+		while (l <= n + m) l <<= 1;
+		NTT(a, l, 1);NTT(b, l, 1);
+		REP(i, 0, l - 1) a[i] = 1ll * a[i] * b[i] % MOD;
+		NTT(a, l, -1);
+		a.resize(n + m + 1);
+		return a;
+	}
+	inline poly&operator *=(poly&a, poly b)
+	{
+		int n(deg(a)), m(deg(b));
+		int l = 1;
+		while (l <= n + m) l <<= 1;
+		NTT(a, l, 1);NTT(b, l, 1);
+		REP(i, 0, l - 1) a[i] = 1ll * a[i] * b[i] % MOD;
+		NTT(a, l, -1);
+		a.resize(n + m + 1);
+		return a;
+	}
+	inline poly Inv(const poly &F)
+	{
+		poly A(1, inv(F[0]));
+		int l = 1, n(deg(F));
+		for (int d = 2; d <= n + n; d <<= 1)
+		{
+			poly H(d, 0);
+			REP(i, 0, min(n, d - 1)) H[i] = F[i];
+			NTT(H, d + d, 1);
+			NTT(A, d + d, 1);
+			REP(i, 0, d + d - 1) A[i] = A[i] * (2 + MOD - 1ll * A[i] * H[i] % MOD) % MOD;
+			NTT(A, d + d, -1);
+			A.resize(d);
+		}
+		A.resize(n + 1);
+		return A;
+	}
+	int invs[maxn], lastinvn = 1;
+	void prepare_invs(int n)
+	{
+		invs[0] = invs[1] = 1;
+		if (n <= lastinvn) return;
+		REP(i, lastinvn + 1, n) invs[i] = 1ll * (MOD - invs[MOD % i]) * (MOD / i) % MOD;
+	}
+	inline poly Der(poly f)
+	{
+		int n(deg(f));
+		REP(i, 0, n - 1) f[i] = (i + 1ll) * f[i + 1] % MOD;
+		f.pop_back();
+		return f;
+	}
+	inline poly Int(const poly &f)
+	{
+		int n(deg(f));
+		prepare_invs(n);
+		poly res(n + 2);
+		res[0] = 0;
+		REP(i, 1, n + 1) res[i] = 1ll * f[i-1] * invs[i] % MOD;
+		return res;
+	}
+	poly ln(const poly &f)
+	{
+		int n(deg(f));
+		poly res = Inv(f) * Der(f);
+		res.resize(n + 2);
+		return Int(res);
+	}
+	poly Sqrt(const poly &f)
+	{
+		poly A(1, Less::solve(f[0]));
+		int n(deg(f));
+		for (int d = 2; d / 2 <= n; d <<= 1)
+		{
+			poly H(d, 0);
+			REP(i, 0, min(n, d - 1)) H[i] = f[i];
+			A.resize(d);
+			poly tmp = H * Inv(A);
+			REP(i, 0, d - 1) A[i] = 1ll * Inv2 * (A[i] + tmp[i]) % MOD;
+		}
+		A.resize(n + 1);
+		return A;
+	}
+	inline poly operator + (poly a, poly b)
+	{
+		if (a.size() < b.size()) swap(a, b);
+		REP(i, 0, (int)b.size() - 1) inc(a[i], b[i]);
+		return a;
+	}
+	inline poly operator - (poly a, poly b)
+	{
+		if (a.size() < b.size()) a.resize(b.size());
+		REP(i, 0, (int)b.size() - 1) dec(a[i], b[i]);
+		return a;
+	}
+	inline poly operator * (int k, poly a)
+	{
+		for (auto &i : a) i = 1ll * i * k % MOD;
+		return a;
+	}
+	inline poly operator * (poly a, int k) {return k * a;}
+	inline poly operator / (poly a, int k) {return inv(k) * a;}
+	void cdqExp(const poly &f, poly &g, int l, int r)
+	{
+		if (l == r)
+		{
+			if (l) g[l] = 1ll * g[l] * invs[l] % MOD;
+			else g[l] = 1;
+			return;
+		}
+		int mid = l + r >> 1;
+		cdqExp(f, g, l, mid);
+		int L = 1;
+		while (L <= r - l + 1) L <<= 1;
+		poly A(L, 0), B(L, 0);
+		REP(i, 0, mid - l) A[i] = g[i + l];
+		REP(i, 0, r - l - 1) B[i] = f[i];
+		NTT(A, L, 1);NTT(B, L, 1);
+		REP(i, 0, L - 1) A[i] = 1ll * A[i] * B[i] % MOD;
+		NTT(A, L, -1);
+		REP(i, mid - l, r - l - 1) inc(g[i + l + 1], A[i]);
+		cdqExp(f, g, mid + 1, r); }
+	inline poly exp(poly f)
+	{
+		int n = deg(f);
+		prepare_invs(n);
+		poly res(n + 1, 0);
+		cdqExp(Der(f), res, 0, n);
+		return res;
+	}
+	int n, m;
+	poly f, g;
+	int main3803()
+	{
+		n = read<int>();f.resize(n + 1);
+		m = read<int>();g.resize(m + 1);
+		REP(i, 0, n) f[i] = read<int>();
+		REP(i, 0, m) g[i] = read<int>();
+		f = f * g;
+		REP(i, 0, n + m) printf("%d%c", f[i], i == end_i ? '\n' : ' ');
+		return 0;
+	}
+	int main4238()
+	{
+		n = read<int>() - 1;f.resize(n + 1);
+		REP(i, 0, n) f[i] = read<int>();
+		f = Inv(f);
+		REP(i, 0, n) printf("%d%c", f[i], i == end_i ? '\n' : ' ');
+		return 0;
+	}
+	int main4725()
+	{
+		n = read<int>() - 1;f.resize(n + 1);
+		REP(i, 0, n) f[i] = read<int>();
+		f = ln(f);
+		REP(i, 0, n) printf("%d%c", f[i], i == end_i ? '\n' : ' ');
+		return 0;
+	}
+	int main4726()
+	{
+		n = read<int>() - 1;f.resize(n + 1);
+		REP(i, 0, n) f[i] = read<int>();
+		f = exp(f);
+		REP(i, 0, n) printf("%d%c", f[i], i == end_i ? '\n' : ' ');
+		return 0;
+	}
+	int main5205()
+	{
+		n = read<int>() - 1;f.resize(n + 1);
+		REP(i, 0, n) f[i] = read<int>();
+		f = Sqrt(f);
+		REP(i, 0, n) printf("%d%c", f[i], i == end_i ? '\n' : ' ');
+		return 0;
+	}
+	inline poly operator / (poly A, poly B)
+	{
+		int qaq = A.size();
+		poly res = A * Inv(B);
+		res.resize(qaq);
+		return res;
+	}
+	inline poly operator >> (poly A, int x)
+	{
+		poly qaq(x, 0);
+		qaq.insert(qaq.end(), A.begin(), A.end());
+		return qaq;
+	}
+	inline poly operator - (poly A, int x) {return A - poly(1, x);}
+	int sqr[maxn];
+	int main()
+	{
+		n = read<int>();
+		vector <int> g(n + 1, 0), g0(n + 1), g1(n + 1), g2(n + 1);
+		g[0] = g[2] = 1;
+		REP(i, 1, n + 2) sqr[i] = 1ll * i * i % MOD;
+		REP(i, 4, n) g[i] = add(g[i - 2], g[i - 4]);
+		REP(i, 0, n)
+		{
+			g0[i] = 1ll * g[i] * sqr[i] % MOD;
+			g1[i] = 1ll * g[i] * sqr[i + 1] % MOD;
+			g2[i] = 1ll * g[i] * sqr[i + 2] % MOD;
+		}
+		poly tmp;
+		tmp = ((g0 >> 1) - 1) * ((g2 >> 3) - 1) - ((g1 * g1) >> 4);tmp.resize(n + 1);
+		poly f1 = g1 / tmp;
+		poly f2 = g2 + ((g1 * f1) >> 1);f2.resize(n + 1);
+		f2 = f2 / (poly(1, 1) - (g2 >> 3));
+		poly f0 = g0 + ((f1 * g1) >> 3);f0.resize(n+1);//(g1 >> 3) - g0 * ((g2 >> 3) - 1);f0.resize(n + 1);
+		tmp = poly(1, 1) - (g0 >> 1);
+		f0 = f0 / tmp;
 
+		i64 ans = 0;
+
+		/*
+		REP(i, 0, n) printf("%d%c", g[i], i == n ? '\n' : ' ');
+		REP(i, 0, n) printf("%d%c", f0[i], i == n ? '\n' : ' ');
+		REP(i, 0, n) printf("%d%c", f1[i], i == n ? '\n' : ' ');
+		REP(i, 0, n) printf("%d%c", f2[i], i == n ? '\n' : ' ');
+		*/
+		ans = 1ll * n * sqr[n - 1] % MOD * (g[n - 1] + g[n - 3]) % MOD;
+		REP(i, 2, n - 2)
+		{
+			ans += 1ll * i * sqr[i - 1] % MOD *
+				((1ll * g[i - 1] * f0[n - i - 1] + 2ll * g[i - 2] * f1[n - i - 2] + (3 <= i && i <= n - 3 ? 1ll * g[i - 3] * f2[n - i - 3] : 0)) % MOD) % MOD;
+		}
+
+		cout << ans % MOD << endl;
+
+		return 0;
+	}
+}
 int main()
 {
 #ifdef CraZYali
 	file("A");
 #endif
-	n = read<int>();
-	CCC :: work();
-//	cnt[1] = lst[1] = a[1] = 1;
-//	dfs(1);
-	cout << ans % MOD << endl;
-	return 0;
+	return polynomial :: main();
 }
