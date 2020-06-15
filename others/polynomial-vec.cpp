@@ -245,7 +245,7 @@ namespace polynomial
 	inline poly operator - (poly a, poly b)
 	{
 		if (a.size() < b.size()) a.resize(b.size());
-		REP(i, 0, (int)a.size() - 1) dec(a[i], b[i]);
+		REP(i, 0, (int)b.size() - 1) dec(a[i], b[i]);
 		return a;
 	}
 	inline poly operator * (int k, poly a)
