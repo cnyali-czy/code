@@ -242,14 +242,36 @@ poly Sqrt(poly f)
 	a.resize(n + 1);
 	return a;
 }
+inline poly operator ^ (poly f, int x)
+{
+	f = Ln(f);
+	REP(i, 0, (int)f.size() - 1) f[i] = 1ll * f[i] * x % MOD;
+	return Exp(f);
+}
+inline poly operator + (poly f, poly g)
+{
+	if (f.size() < g.size()) f.resize(g.size());
+	REP(i, 0, (int)g.size() - 1) (f[i] += g[i]) %= MOD;
+	return f;
+}
+inline poly operator - (poly f, poly g)
+{
+	if (f.size() < g.size()) f.resize(g.size());
+	REP(i, 0, (int)g.size() - 1) f[i] = (f[i] + MOD - g[i]) % MOD;
+	return f;
+}
+inline poly operator + (poly f, int x) {(f[0] += x) %= MOD;return f;}
+inline poly operator + (int x, poly f) {(f[0] += x) %= MOD;return f;}
+inline poly operator - (poly f, int x) {f[0] = (f[0] + MOD - x) % MOD;return f;}
 int main()
 {
 #ifdef CraZYali
 	file("qaq");
 #endif
-	int n = read<int>() - 1;
-	poly a(n + 1);
-	REP(i, 0, n) a[i] = read<int>();
-	output(Sqrt(a));
+	int n = read<int>(), k = read<int>();;
+	poly f(n + 1);
+	REP(i, 0, n) f[i] = read<int>();
+	f = Der(1 + Ln((f - f[0]) + poly(1, 2) - Exp(Int(Inv(Sqrt(f))))) ^ k);
+	REP(i, 0, n - 1) printf("%d%c", f[i], i == n ? '\n' : ' ');
 	return 0;
 }
