@@ -264,6 +264,40 @@ inline poly operator + (poly f, int x) {(f[0] += x) %= MOD;return f;}
 inline poly operator + (int x, poly f) {(f[0] += x) %= MOD;return f;}
 inline poly operator - (poly f, int x) {f[0] = (f[0] + MOD - x) % MOD;return f;}
 int cnt[100005];
+
+poly f, a;
+void cdq(int l, int r)
+{
+	if (l == r)
+	{
+		if (!l) a[l] = 1;
+		else a[l] = 1ll * a[l] * invs[l] % MOD;
+		return;
+	}
+	int mid = l + r >> 1;
+	cdq(l, mid);
+	int len = 1;
+	while (len <= r - l + 1) len <<= 1;
+	poly A(mid - l + 1), B(r - l + 1);
+	REP(i, l, mid)		A[i - l] = a[i];
+	REP(i, 0, r - l)	B[i] = f[i];
+	NTT(A, len, 1);NTT(B, len, 1);
+	REP(i, 0, len - 1) A[i] = 1ll * A[i] * B[i] % MOD;
+	NTT(A, len, -1);
+	REP(i, mid + 1, r) (a[i] += A[i - l]) %= MOD;
+	cdq(mid + 1, r);
+}
+poly Exp_log2(const poly &f)
+{
+	int n = deg(f);
+	prepare(n);
+	::f.resize(n + 1);
+	a.clear();a.resize(n + 1);
+	REP(i, 0, n) ::f[i] = 1ll * i * f[i] % MOD;
+	cdq(0, n);
+	return a;
+}
+
 int main()
 {
 #ifdef CraZYali
@@ -277,7 +311,7 @@ int main()
 		for (int j = x, k = 1; j <= n; j += x, k++)
 			NTTtmp[j] += 1ll * invs[k] * cnt[x] % MOD;
 	REP(i, 0, n) f[i] = NTTtmp[i] % MOD;
-	f = Exp(f);
+	f = Exp_log2(f);
 	REP(i, 1, n) printf("%d\n", f[i]);
 	return 0;
 }
