@@ -44,7 +44,7 @@ namespace polynomial
 {
 #define poly vector <int>
 #define i64 long long
-	const int maxn = 1 << 21, MOD = 998244353, Inv2 = MOD + 1 >> 1;
+	const int maxn = 1 << 17, MOD = 998244353, Inv2 = MOD + 1 >> 1;
 	inline int add(int x, int y) {x += y;return x >= MOD ? x - MOD : x;}
 	inline int sub(int x, int y) {x -= y;return x <    0 ? x + MOD : x;}
 	inline i64 mul(i64 x, int y) {x *= y;return x >= MOD ? x % MOD : x;}
@@ -109,7 +109,7 @@ namespace polynomial
 	{
 		__init__()
 		{
-			REP(i, 0, 19)
+			REP(i, 0, 17)
 			{
 				int Wn = power_pow(3, (MOD - 1) / (1 << i + 1));
 				int InvWn = inv(Wn);
@@ -327,11 +327,67 @@ namespace polynomial
 		REP(i, 0, n) printf("%d%c", f[i], i == end_i ? '\n' : ' ');
 		return 0;
 	}
+	inline poly operator / (poly A, poly B)
+	{
+		int qaq = A.size();
+		poly res = A * Inv(B);
+		res.resize(qaq);
+		return res;
+	}
+	inline poly operator >> (poly A, int x)
+	{
+		poly qaq(x, 0);
+		qaq.insert(qaq.end(), A.begin(), A.end());
+		return qaq;
+	}
+	inline poly operator - (poly A, int x) {return A - poly(1, x);}
+	int sqr[maxn];
+	int main()
+	{
+		n = read<int>();
+		vector <int> g(n + 1, 0), g0(n + 1), g1(n + 1), g2(n + 1);
+		g[0] = g[2] = 1;
+		REP(i, 1, n + 2) sqr[i] = 1ll * i * i % MOD;
+		REP(i, 4, n) g[i] = add(g[i - 2], g[i - 4]);
+		REP(i, 0, n)
+		{
+			g0[i] = 1ll * g[i] * sqr[i] % MOD;
+			g1[i] = 1ll * g[i] * sqr[i + 1] % MOD;
+			g2[i] = 1ll * g[i] * sqr[i + 2] % MOD;
+		}
+		poly tmp;
+		tmp = ((g0 >> 1) - 1) * ((g2 >> 3) - 1) - ((g1 * g1) >> 4);tmp.resize(n + 1);
+		poly f1 = g1 / tmp;
+		poly f2 = g2 + ((g1 * f1) >> 1);f2.resize(n + 1);
+		f2 = f2 / (poly(1, 1) - (g2 >> 3));
+		poly f0 = g0 + ((f1 * g1) >> 3);f0.resize(n+1);//(g1 >> 3) - g0 * ((g2 >> 3) - 1);f0.resize(n + 1);
+		tmp = poly(1, 1) - (g0 >> 1);
+		f0 = f0 / tmp;
+
+		i64 ans = 0;
+
+		/*
+		REP(i, 0, n) printf("%d%c", g[i], i == n ? '\n' : ' ');
+		REP(i, 0, n) printf("%d%c", f0[i], i == n ? '\n' : ' ');
+		REP(i, 0, n) printf("%d%c", f1[i], i == n ? '\n' : ' ');
+		REP(i, 0, n) printf("%d%c", f2[i], i == n ? '\n' : ' ');
+		*/
+		ans = 1ll * n * sqr[n - 1] % MOD * (g[n - 1] + g[n - 3]) % MOD;
+		REP(i, 2, n - 2)
+		{
+			ans += 1ll * i * sqr[i - 1] % MOD *
+				((1ll * g[i - 1] * f0[n - i - 1] + 2ll * g[i - 2] * f1[n - i - 2] + (3 <= i && i <= n - 3 ? 1ll * g[i - 3] * f2[n - i - 3] : 0)) % MOD) % MOD;
+		}
+
+		cout << ans % MOD << endl;
+
+		return 0;
+	}
 }
 int main()
 {
 #ifdef CraZYali
-	file("polynomial-vec");
+	file("A");
 #endif
-	return polynomial::main4726();
+	return polynomial :: main();
 }
