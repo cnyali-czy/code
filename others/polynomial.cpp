@@ -248,10 +248,15 @@ namespace polynomial
 	}
 	void cdqExp(int f[], int g[], int l, int r)
 	{
-		if (l == r)
+		if (r - l + 1 <= 128)
 		{
-			if (l) g[l] = 1ll * g[l] * invs[l] % MOD;
-			else g[l] = 1;
+			REP(i, l, r)
+			{
+				if (!i) g[i] = 1;
+				else g[i] = 1ll * g[i] * invs[i] % MOD;
+				REP(j, i + 1, r)
+					g[j] = (g[j] + 1ll * g[i] * f[j - i]) % MOD;
+			}
 			return;
 		}
 		int mid = l + r >> 1;
@@ -260,18 +265,18 @@ namespace polynomial
 		while (L <= r - l + 1) L <<= 1;
 		static int A[maxn], B[maxn];
 		REP(i, 0, mid - l) A[i] = g[i + l];REP(i, mid - l + 1, L - 1) A[i] = 0;
-		REP(i, 0, r - l - 1) B[i] = f[i];REP(i, r - l, L - 1) B[i] = 0;
+		REP(i, 0, r - l) B[i] = f[i];REP(i, r - l + 1, L - 1) B[i] = 0;
 		NTT(A, L, 1);NTT(B, L, 1);
 		REP(i, 0, L - 1) A[i] = 1ll * A[i] * B[i] % MOD;
 		NTT(A, L, -1);
-		REP(i, mid - l, r - l - 1) inc(g[i + l + 1], A[i]);
+		REP(i, mid + 1, r) inc(g[i], A[i - l]);
 		cdqExp(f, g, mid + 1, r);
 	}
 	void getExp_log2(int A[], int n, int C[])
 	{
 		prepare_invs(n);
 		static int f[maxn];
-		REP(i, 0, n - 1) f[i] = (i + 1ll) * A[i + 1] % MOD;
+		REP(i, 0, n) f[i] = 1ll * i * A[i] % MOD;
 		REP(i, 0, n) C[i] = 0;
 		cdqExp(f, C, 0, n);
 	}
@@ -605,5 +610,5 @@ signed main()
 #ifdef CraZYali
 	file("polynomial");
 #endif
-	return polynomial::main5050();
+	return polynomial::main4726_log2();
 }
