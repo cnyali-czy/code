@@ -267,10 +267,14 @@ inline poly operator - (poly f, int x) {f[0] = (f[0] + MOD - x) % MOD;return f;}
 poly f, a;
 void cdq(int l, int r)
 {
-	if (l == r)
+	if (r - l + 1 <= 128)
 	{
-		if (!l) a[l] = 1;
-		else a[l] = 1ll * a[l] * invs[l] % MOD;
+		REP(i, l, r)
+		{
+			if (!i) a[i] = 1;
+			else a[i] = 1ll * a[i] * invs[i] % MOD;
+			REP(j, i + 1, r) a[j] = (a[j] + 1ll * a[i] * f[j - i]) % MOD;
+		}
 		return;
 	}
 	int mid = l + r >> 1;
