@@ -103,49 +103,40 @@ namespace polynomial
 
 	inline int deg(const poly &A) {return A.size() - 1;}
 	unsigned i64 NTTtmp[maxn];
-	int R[maxn], lastRN;
-	vector <int> w[30][2];
-	struct __init__
-	{
-		__init__()
-		{
-			REP(i, 0, 19)
-			{
-				int Wn = power_pow(3, (MOD - 1) / (1 << i + 1));
-				int InvWn = inv(Wn);
-				i64 w0 = 1, w1 = 1;
-				REP(j, 0, (1 << i) - 1)
-				{
-					w[i][0].emplace_back(w0);(w0 *= Wn) %= MOD;
-					w[i][1].emplace_back(w1);(w1 *= InvWn) %= MOD;
-				}
-			}
-		}
-	}__INIT__;
+	int R[maxn];
 	void NTT(poly &a, int n, int flag)
 	{
 		if (a.size() ^ n) a.resize(n);
-		bool fff = (flag > 0);
-		if (lastRN ^ n)
-		{
-			lastRN = n;
-			REP(i, 1, n - 1) R[i] = (R[i >> 1] >> 1) | (i & 1 ? n >> 1 : 0);
-		}
-		REP(i, 1, n - 1) if (i < R[i]) swap(a[i], a[R[i]]);
-		REP(i, 0, n - 1) NTTtmp[i] = a[i];
-		for (int ccc = 0, i = 2, i2 = 1; i <= n; i <<= 1, i2 <<= 1, ccc++)
-			for (int k = 0; k < n; k += i)
-				REP(l, 0, i2 - 1)
-				{
-					unsigned i64 x(NTTtmp[k + l]), y(1ll * w[ccc][fff][l] * NTTtmp[k + l + i2] % MOD);
-					NTTtmp[k + l] = x + y;
-					NTTtmp[k + l + i2] = MOD + x - y;
-				}
+		if (flag < 0) reverse(a.begin() + 1, a.end());
+		static int *w[30], pool[maxn << 1 | 10];
+		static bool vis[30];
+		w[0] = pool;
 		REP(i, 0, n - 1)
 		{
-			a[i] = NTTtmp[i] % MOD;
-			if (a[i] < 0) a[i] += MOD;
+			R[i] = (R[i >> 1] >> 1) | ((i & 1) ? (n >> 1) : 0);
+			if (i < R[i]) swap(a[i], a[R[i]]);
 		}
+		REP(i, 0, n - 1) NTTtmp[i] = a[i];
+		bool fff = (flag > 0);
+		for (int i = 1, ccc = 0; i < n; i <<= 1, ccc++)
+		{
+			if (!vis[ccc])
+			{
+				vis[ccc] = 1;
+				const i64 wn = power_pow(3, (MOD - 1) >> ccc + 1);
+				if (i < maxn) w[ccc + 1] = w[ccc] + i;
+				w[ccc][0] = 1;
+				REP(j, 1, i - 1) w[ccc][j] = w[ccc][j - 1] * wn % MOD;
+			}
+			for (int k = 0; k < n; k += i + i)
+				for (int l = 0; l < i; l++)
+				{
+					unsigned i64 x(NTTtmp[k + l]), y(NTTtmp[k + l + i] * w[ccc][l] % MOD);
+					NTTtmp[k + l] = x + y;
+					NTTtmp[k + l + i] = MOD + x - y;
+				}
+		}
+		REP(i, 0, n - 1) a[i] = NTTtmp[i] % MOD;
 		if (flag < 0)
 		{
 			const int invn = inv(n);

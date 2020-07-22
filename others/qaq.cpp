@@ -43,7 +43,10 @@ int R[maxn];
 void NTT(poly &a, int n, int flag)
 {
 	if (a.size() ^ n) a.resize(n);
-	static vector <int> w[30][2];
+	if (flag < 0) reverse(a.begin() + 1, a.end());
+	static int *w[30], pool[maxn << 1 | 10];
+	static bool vis[30];
+	w[0] = pool;
 	REP(i, 0, n - 1)
 	{
 		R[i] = (R[i >> 1] >> 1) | ((i & 1) ? (n >> 1) : 0);
@@ -53,21 +56,18 @@ void NTT(poly &a, int n, int flag)
 	bool fff = (flag > 0);
 	for (int i = 1, ccc = 0; i < n; i <<= 1, ccc++)
 	{
-		if (!w[ccc][0].size())
+		if (!vis[ccc])
 		{
-			const i64 wn = power_pow(3, (MOD - 1) >> ccc + 1), Invwn = inv(wn);
-			w[ccc][0].push_back(1);
-			w[ccc][1].push_back(1);
-			REP(j, 1, i - 1)
-			{
-				w[ccc][0].push_back(w[ccc][0].back() * Invwn % MOD);
-				w[ccc][1].push_back(w[ccc][1].back() * wn % MOD);
-			}
+			vis[ccc] = 1;
+			const i64 wn = power_pow(3, (MOD - 1) >> ccc + 1);
+			if (i < maxn) w[ccc + 1] = w[ccc] + i;
+			w[ccc][0] = 1;
+			REP(j, 1, i - 1) w[ccc][j] = w[ccc][j - 1] * wn % MOD;
 		}
 		for (int k = 0; k < n; k += i + i)
 			for (int l = 0; l < i; l++)
 			{
-				ui64 x(NTTtmp[k + l]), y(NTTtmp[k + l + i] * w[ccc][fff][l] % MOD);
+				ui64 x(NTTtmp[k + l]), y(NTTtmp[k + l + i] * w[ccc][l] % MOD);
 				NTTtmp[k + l] = x + y;
 				NTTtmp[k + l + i] = MOD + x - y;
 			}

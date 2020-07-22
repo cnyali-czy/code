@@ -71,14 +71,13 @@ inline int add(int x, int y) {x += y;return x >= MOD ? x - MOD : x;}
 inline int sub(int x, int y) {x -= y;return x <    0 ? x + MOD : x;}
 inline i64 mul(i64 x, int y) {x *= y;return x >= MOD ? x % MOD : x;}
 inline int upd(i64 x) {if (x <= -MOD || x >= MOD) x %= MOD;if (x < 0) x += MOD;return x;}
-inline void inc(int &x, int y) {x += y;if (x >= MOD) x -= MOD;}
-inline int power_pow(int base, int b)
+inline int power_pow(i64 base, int b)
 {
-	int ans = 1;
+	i64 ans = 1;
 	while (b)
 	{
-		if (b & 1) ans = mul(ans, base);
-		base = mul(base, base);
+		if (b & 1) (ans *= base) %= MOD;
+		(base *= base) %= MOD;
 		b >>= 1;
 	}
 	return ans;
@@ -146,27 +145,36 @@ namespace polynomial
 	unsigned i64 NTTtmp[maxn];
 	void NTT(int a[], int n, int flag)
 	{
-		bool fff = (flag > 0);
-		if (lastRN ^ n)
-		{
-			lastRN = n;
-			REP(i, 1, n - 1) R[i] = (R[i >> 1] >> 1) | (i & 1 ? n >> 1 : 0);
-		}
-		REP(i, 1, n - 1) if (i < R[i]) swap(a[i], a[R[i]]);
-		copy(a, a + n, NTTtmp);
-		for (int ccc = 0, i = 2, i2 = 1; i <= n; i <<= 1, i2 <<= 1, ccc++)
-			for (int k = 0; k < n; k += i)
-				REP(l, 0, i2 - 1)
-				{
-					unsigned i64 x(NTTtmp[k + l]), y(1ll * w[ccc][fff][l] * NTTtmp[k + l + i2] % MOD);
-					NTTtmp[k + l] = x + y;
-					NTTtmp[k + l + i2] = MOD + x - y;
-				}
+		if (flag < 0) reverse(a + 1, a + n);
+		static int *w[30], pool[maxn << 1 | 10];
+		static bool vis[30];
+		w[0] = pool;
 		REP(i, 0, n - 1)
 		{
-			a[i] = NTTtmp[i] % MOD;
-			if (a[i] < 0) a[i] += MOD;
+			R[i] = (R[i >> 1] >> 1) | ((i & 1) ? (n >> 1) : 0);
+			if (i < R[i]) swap(a[i], a[R[i]]);
 		}
+		REP(i, 0, n - 1) NTTtmp[i] = a[i];
+		bool fff = (flag > 0);
+		for (int i = 1, ccc = 0; i < n; i <<= 1, ccc++)
+		{
+			if (!vis[ccc])
+			{
+				vis[ccc] = 1;
+				const i64 wn = power_pow(3, (MOD - 1) >> ccc + 1);
+				if (i < maxn) w[ccc + 1] = w[ccc] + i;
+				w[ccc][0] = 1;
+				REP(j, 1, i - 1) w[ccc][j] = w[ccc][j - 1] * wn % MOD;
+			}
+			for (int k = 0; k < n; k += i + i)
+				for (int l = 0; l < i; l++)
+				{
+					unsigned i64 x(NTTtmp[k + l]), y(NTTtmp[k + l + i] * w[ccc][l] % MOD);
+					NTTtmp[k + l] = x + y;
+					NTTtmp[k + l + i] = MOD + x - y;
+				}
+		}
+		REP(i, 0, n - 1) a[i] = NTTtmp[i] % MOD;
 		if (flag < 0)
 		{
 			const int invn = inv(n);
@@ -214,7 +222,7 @@ namespace polynomial
 	{
 		static int df[maxn], Inv[maxn];
 		prepare_invs(n);
-		REP(i, 0, n - 1) df[i] = mul(A[i + 1], i + 1);df[n] = 0;
+		REP(i, 0, n - 1) df[i] = A[i + 1] * (i + 1ll) % MOD;df[n] = 0;
 		getInv(A, n, Inv);
 		int l = 1;
 		while (l <= n + n) l <<= 1;
@@ -269,7 +277,7 @@ namespace polynomial
 		NTT(A, L, 1);NTT(B, L, 1);
 		REP(i, 0, L - 1) A[i] = 1ll * A[i] * B[i] % MOD;
 		NTT(A, L, -1);
-		REP(i, mid + 1, r) inc(g[i], A[i - l]);
+		REP(i, mid + 1, r) (g[i] += A[i - l]) %= MOD;
 		cdqExp(f, g, mid + 1, r);
 	}
 	void getExp_log2(int A[], int n, int C[])
@@ -284,14 +292,14 @@ namespace polynomial
 	{
 		static int B[maxn];
 		getLn(A, n, B);
-		REP(i, 0, n) B[i] = mul(B[i], k);
+		REP(i, 0, n) B[i] = 1ll * B[i] * k % MOD;
 		getExp(B, n, C);
 	}
 	void pow_simple_log2(int A[], int n, int k, int C[])
 	{
 		static int B[maxn];
 		getLn(A, n, B);
-		REP(i, 0, n) B[i] = mul(B[i], k);
+		REP(i, 0, n) B[i] = 1ll * B[i] * k % MOD;
 		getExp_log2(B, n, C);
 	}
 	void getSqrt(int A[], int n, int C[])
@@ -309,7 +317,7 @@ namespace polynomial
 			NTT(Inv, N + N, 1);
 			REP(i, 0, N + N - 1) F[i] = 1ll * F[i] * Inv[i] % MOD;
 			NTT(F, N + N, -1);
-			REP(i, 0, N - 1) C[i] = mul(inv2, add(C[i], F[i]));
+			REP(i, 0, N - 1) C[i] = 1ll * inv2 * (C[i] + F[i]) % MOD;
 			REP(i, N, N + N - 1) C[i] = 0;
 		}
 		REP(i, n + 1, l - 1) C[i] = 0;
@@ -335,7 +343,7 @@ namespace polynomial
 		NTT(tG, l, 1);NTT(tF, l, 1);
 		REP(i, 0, l - 1) tG[i] = 1ll * tG[i] * tF[i] % MOD;
 		NTT(tG, l, -1);
-		REP(i, 0, m - 1) R[i] = sub(F[i], tG[i]);
+		REP(i, 0, m - 1) R[i] = (F[i] - tG[i] + MOD) % MOD;
 	}
 	void pow(int A[], int n, int k, int C[])
 	{
@@ -344,9 +352,9 @@ namespace polynomial
 		while (s <= n && !A[s]) s++;
 		if (s == n + 1 || 1ll * s * k > n) return;
 		int qaq = A[s], iq = inv(qaq), pw = power_pow(qaq, very_shit);
-		REP(i, s, n) A[i] = mul(A[i], iq);
+		REP(i, s, n) A[i] = 1ll * A[i] * iq % MOD;
 		pow_simple(A + s, n - s, k, C + s * k);
-		REP(i, s * k, n) C[i] = mul(C[i], pw);
+		REP(i, s * k, n) C[i] = 1ll * C[i] * pw % MOD;
 	}
 	void pow_log2(int A[], int n, int k, int C[])
 	{
@@ -355,9 +363,9 @@ namespace polynomial
 		while (s <= n && !A[s]) s++;
 		if (s == n + 1 || 1ll * s * k > n) return;
 		int qaq = A[s], iq = inv(qaq), pw = power_pow(qaq, very_shit);
-		REP(i, s, n) A[i] = mul(A[i], iq);
+		REP(i, s, n) A[i] = 1ll * A[i] * iq % MOD;
 		pow_simple_log2(A + s, n - s, k, C + s * k);
-		REP(i, s * k, n) C[i] = mul(C[i], pw);
+		REP(i, s * k, n) C[i] = 1ll * C[i] * pw % MOD;
 	}
 	void cdqFFT(int A[], int B[], int l, int r)
 	{
@@ -378,7 +386,7 @@ namespace polynomial
 		NTT(F, L, 1);NTT(G, L, 1);
 		REP(i, 0, L - 1) F[i] = 1ll * F[i] * G[i] % MOD;
 		NTT(F, L, -1);
-		REP(i, mid + 1, r) inc(A[i], F[i - l]);
+		REP(i, mid + 1, r) (A[i] += F[i - l]) %= MOD;
 		cdqFFT(A, B, mid + 1, r);
 	}
 	namespace FastCalc
@@ -477,7 +485,7 @@ namespace polynomial
 			n >>= 1;
 		}
 		int ans = 0;
-		REP(i, 0, k - 1) inc(ans, 1ll * A[i] * f[i] % MOD);
+		REP(i, 0, k - 1) ans = (ans + 1ll * A[i] * f[i]) % MOD;
 		return ans;
 	}
 	int A[maxn], B[maxn], n, m, C[maxn], D[maxn], _R[maxn];
