@@ -124,24 +124,6 @@ namespace polynomial
 {
 	const int maxn = 1 << 20;
 	int R[maxn], lastRN;
-	vector <int> w[30][2];
-	struct __init__
-	{
-		__init__()
-		{
-			REP(i, 0, 18)
-			{
-				int Wn = power_pow(prime_g, (MOD - 1) / (1 << i + 1));
-				int InvWn = inv(Wn);
-				i64 w0 = 1, w1 = 1;
-				REP(j, 0, (1 << i) - 1)
-				{
-					w[i][0].emplace_back(w0);(w0 *= Wn) %= MOD;
-					w[i][1].emplace_back(w1);(w1 *= InvWn) %= MOD;
-				}
-			}
-		}
-	}__INIT__;
 	unsigned i64 NTTtmp[maxn];
 	void NTT(int a[], int n, int flag)
 	{
