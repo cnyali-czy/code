@@ -101,18 +101,23 @@ void init2()
 namespace SMU
 {
 	unsigned mem[maxn];
-	unsigned S(unsigned i64 n)
+	unsigned S(const unsigned i64 n)
 	{
 		if (n <= N) return smu[n];
 		unsigned &res = mem[::n / n];
 		if (res) return res;
 		res = 1;
 		int div = sqrt(n);
-		REP(i, 2, div) res -= S(n / i);
+		REP(i, 2, div)
+		{
+			const int tmp = i;
+			res -= S(n / tmp);
+		}
 		for (i64 i = div + 1, j; i <= n; i = j + 1)
 		{
-			j = n / (n / i);
-			res -= (j - i + 1) * S(n / i);
+			const i64 tmp = i, ccc = n / tmp;
+			j = n / ccc;
+			res -= (j - i + 1) * S(ccc);
 		}
 		return res;
 	}
@@ -134,9 +139,9 @@ void bfs()
 	que[head = tail = 0] = status{1, 1, 0};
 	while (head <= tail)
 	{
-		i64 d = que[head].d;
-		short H = que[head].H;
-		int lst = que[head].lst;
+		const i64 d = que[head].d;
+		const short H = que[head].H;
+		const int lst = que[head].lst;
 		head++;
 		const i64 End = curn / d;
 		REP(i, lst + 1, lp)
@@ -156,18 +161,23 @@ unsigned mem[200000];
 namespace SPHI
 {
 	unsigned mem[maxn];
-	unsigned s(unsigned i64 n)
+	unsigned s(const unsigned i64 n)
 	{
 		if (n <= N) return sphi[n];
 		unsigned &res = mem[::n / n];
 		if (res) return res;
 		res = (n * (n + 1) / 2) & ((1 << 30) - 1);
 		int div = sqrt(n);
-		REP(i, 2, div) res -= s(n / i);
+		REP(i, 2, div)
+		{
+			const i64 tmp = i;
+			res -= s(n / tmp);
+		}
 		for (i64 i = div + 1, j; i <= n; i = j + 1)
 		{
-			j = n / (n / i);
-			res -= s(n / i) * (unsigned)(j - i + 1);
+			const i64 tmp = i, ccc = n / tmp;
+			j = n / ccc;
+			res -= s(ccc) * (unsigned)(j - i + 1);
 		}
 		return res;
 	}
@@ -181,7 +191,8 @@ int main()
 	cin >> n >> k;
 	for (i64 i = 1, j; i <= n; i = j + 1)
 	{
-		j = n / (n / i);
+		const i64 tmp = i;
+		j = n / (n / tmp);
 		pos[++top] = i - 1;
 	}
 	pos[++top] = n;
@@ -211,8 +222,11 @@ int main()
 					{
 						i64 curn = pos[j];
 						REP(i, 0, tail)
-							if (que[i].d <= curn) ans += que[i].H * SMU :: S(curn / que[i].d);
+						{
+							const i64 d = que[i].d;
+							if (d <= curn) ans += que[i].H * SMU :: S(curn / d);
 							else break;
+						}
 						mem[j] += ans;
 						ans = 0;
 					}
@@ -223,8 +237,11 @@ int main()
 					{
 						curn = pos[j];
 						REP(i, 0, tail)
-							if (que[i].d <= curn) ans += que[i].H * SMU :: S(curn / que[i].d);
+						{
+							const i64 d = que[i].d;
+							if (d <= curn) ans += que[i].H * SMU :: S(curn / d);
 							else break;
+						}
 						mem[j] += ans * (k - lim + 1);
 						ans = 0;
 					}
@@ -233,8 +250,11 @@ int main()
 			}
 			break;
 		}
-	REP(I, lst + 1, top) 
-		Ans += (mem[I] - mem[I - 1]) * (2 * SPHI :: s(n / pos[I]) - 1);
+	REP(I, lst + 1, top)
+	{
+		const i64 p = pos[I];
+		Ans += (mem[I] - mem[I - 1]) * (2 * SPHI :: s(n / p) - 1);
+	}
 	cout << Ans % (1 << 30) << endl;
 #ifdef CraZYali
 	cerr << clock() * 1. / CLOCKS_PER_SEC << endl;
