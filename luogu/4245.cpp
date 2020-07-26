@@ -31,10 +31,10 @@ struct Complex
 	inline Complex operator - (Complex B) {return Complex(a - B.a, b - B.b);}
 	inline Complex operator * (Complex B) {return Complex(a * B.a - b * B.b, a * B.b + B.a * b);}
 	inline Complex operator / (double x) {return Complex(a / x, b / x);}
-	inline Complex operator +=(Complex B) {return *this = *this + B;}
-	inline Complex operator -=(Complex B) {return *this = *this - B;}
-	inline Complex operator *=(Complex B) {return *this = *this * B;}
-	inline Complex operator /=(double x) {return *this = *this / x;}
+	inline Complex&operator +=(Complex B) {return *this = *this + B;}
+	inline Complex&operator -=(Complex B) {return *this = *this - B;}
+	inline Complex&operator *=(Complex B) {return *this = *this * B;}
+	inline Complex&operator /=(double x) {return *this = *this / x;}
 };
 #define poly vector <Complex>
 template <typename T>
@@ -90,7 +90,7 @@ void FFT(poly &f, int n, int flag)
 			}
 	}
 	if (flag < 0)
-		REP(i, 0, n - 1) a[i] /= n;
+		REP(i, 0, n - 1) a[i].a = a[i].a / n / 4 + .5;
 	REP(i, 0, n - 1) f[i] = a[i];
 }
 inline int deg(const poly &f) {return f.size() - 1;}
@@ -105,9 +105,11 @@ inline poly operator / (poly a, double x)
 	REP(i, 0, (int)a.size() - 1) a[i] /= x;
 	return a;
 }
+int MOD;
 poly MTT(poly f, poly g, const int MOD)
 {
-	const int cut = (1 << 15) - 1;
+	::MOD = MOD;
+	const int B = 15, cut = (1 << B) - 1;
 	static poly F[4], tmp;
 	int l = 1, n = deg(f), m = deg(g);
 	f.resize(max(n, m) + 1);g.resize(max(n, m) + 1);
@@ -116,28 +118,32 @@ poly MTT(poly f, poly g, const int MOD)
 	REP(i, 0, max(n, m))
 	{
 		int fi = (int)(f[i].a + .5), gi = (int)(g[i].a + .5);
-		int a = fi >> 15, b = fi & cut;
-		int c = gi >> 15, d = gi & cut;
+		int a = fi >> B, b = fi & cut;
+		int c = gi >> B, d = gi & cut;
 		F[0][i] = Complex(a + c, a - c);
 		F[1][i] = Complex(a + d, a - d);
 		F[2][i] = Complex(b + c, b - c);
 		F[3][i] = Complex(b + d, b - d);
 	}
+	const i64 w = (1 << B) % MOD, w2 = w * w % MOD;
 	REP(i, 0, 3)
 	{
 		FFT(F[i], l, 1);
 		REP(j, 0, l - 1) F[i][j] *= F[i][j];
-		if (i == 1) continue;
-		if (i == 2) REP(j, 0, l - 1) F[2][j] += F[1][j];
-		FFT(F[i], l, -1);
-		REP(j, 0, l - 1) F[i][j] /= 4;
+		if (i == 0) FFT(F[i], l, -1);
+		else if (i == 1 || i == 2) REP(j, 0, l - 1) F[i][j] *= w;
+		else
+		{
+			REP(j, 0, l - 1) F[3][j] += F[1][j] + F[2][j];
+			FFT(F[i], l, -1);
+		}
 	}
 	f.resize(n + m + 1);
-	const i64 w = (1 << 15) % MOD, w2 = w * w % MOD;
 	REP(i, 0, n + m)
 	{
-		i64 A = (i64)(F[0][i].a + .5) % MOD, B = (i64)(F[2][i].a + .5) % MOD, C = (i64)(F[3][i].a + .5) % MOD;
-		i64 tmp = (A * w2 + B * w + C) % MOD;
+//		i64 A = (i64)(F[0][i].a + .5) % MOD, B = (i64)(F[2][i].a + .5) % MOD, C = (i64)(F[3][i].a + .5) % MOD;
+//		i64 tmp = (A * w2 + B * w + C) % MOD;
+		i64 tmp = ((i64)(F[0][i].a) * w2 + (i64)F[3][i].a) % MOD;
 		if (tmp < 0) tmp += MOD;
 		f[i] = Complex(tmp);
 	}
