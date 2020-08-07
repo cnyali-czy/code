@@ -11,29 +11,25 @@
 
 #include <iostream>
 #include <cstdio>
-#include <algorithm>
 
 #define i64 long long
 using namespace std;
 const int maxn = 3e5 + 10;
 const i64 inf = 1e18;
-
-	template <typename T>
-inline T read()
+#ifndef CraZYali
+#define getchar getchar_unlocked
+#endif
+inline int read()
 {
-	T ans = 0, flag = 1;
+	int ans = 0;
 	char c = getchar();
-	while (!isdigit(c))
-	{
-		if (c == '-') flag = -1;
-		c = getchar();
-	}
+	while (!isdigit(c)) c = getchar();
 	while (isdigit(c))
 	{
 		ans = ans * 10 + c - 48;
 		c = getchar();
 	}
-	return ans * flag;
+	return ans;
 }
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
@@ -106,10 +102,10 @@ void solve(int l, int r, int L, int R)
 	i64 Min = inf;
 	REP(j, l, r)
 	{
-		i64 tmp = dp[j - 1] + x + calc(j, mid);
+		i64 tmp = dp[j - 1] + calc(j, mid);
 		if (chkmin(Min, tmp)) bst = j;
 	}
-	chkmin(dp[mid], Min);
+	chkmin(dp[mid], Min + x);
 	solve(l, bst, L, mid - 1);
 	solve(bst, r, mid + 1, R);
 }
@@ -134,10 +130,10 @@ int main()
 #ifdef CraZYali
 	file("B");
 #endif
-	n = read<int>();x = read<int>();
+	n = read();x = read();
 	REP(i, 1, n)
 	{
-		a[i] = read<int>();
+		a[i] = read();
 		dp[i] = inf;
 	}
 	add(a[1], 1);
