@@ -48,7 +48,7 @@ inline int read()
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
 int n, a[maxn];
-i64 s[maxn], pa[maxn];
+i64 s[maxn];
 i64 ans;
 
 //__gnu_pbds :: tree <int, int> cnt;
@@ -66,7 +66,7 @@ void init()
 	REP(i, 1, w) pre1[i] = 2 * pre1[i - 1] % MOD;
 	pre2[0] = 1;
 	REP(i, 1, w) pre2[i] = mul(pre1[w], pre2[i - 1], MOD);
-	REP(i, 1, n) s[i] = (s[i - 1] + (pa[i] = pow2(a[i]))) % MOD;
+	REP(i, 1, n) s[i] = (s[i - 1] + pow2(a[i])) % MOD;
 }
 namespace hash_table
 {
