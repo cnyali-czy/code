@@ -9,13 +9,12 @@
 #define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
-#include <ctime>
 #include <iostream>
 #include <cstdio>
-#include <random>
 #define i64 long long
 using namespace std;
 const int maxn = 2e5 + 10;
+const i64 MOD = 500000003453647861;
 
 inline i64 mul(i64 a, i64 b, const i64 p)
 {
@@ -23,26 +22,25 @@ inline i64 mul(i64 a, i64 b, const i64 p)
 	if (res < 0) res += p;
 	return res;
 }
-i64 MOD;
 const int w = 32000;
 i64 pre1[w + 5], pre2[w + 5];
 inline i64 pow2(int b)
 {
 	return mul(pre1[b % w], pre2[b / w], MOD);
 }
-#ifndef CraZYali
-#define getchar getchar_unlocked
-#endif
-	template <typename T>
-inline T read()
+inline char nc(){
+    static char buf[100000],*p1=buf,*p2=buf;
+    return p1==p2&&(p2=(p1=buf)+fread(buf,1,100000,stdin),p1==p2)?EOF:*p1++;
+}
+inline int read()
 {
-	T ans = 0;
-	char c = getchar();
-	while (!isdigit(c)) c = getchar();
+	int ans = 0;
+	char c = nc();
+	while (!isdigit(c)) c = nc();
 	while (isdigit(c))
 	{
 		ans = ans * 10 + c - 48;
-		c = getchar();
+		c = nc();
 	}
 	return ans;
 }
@@ -62,65 +60,19 @@ int lg[maxn];
 
 //void cdq(int l, int r)
 
-mt19937 hh;
-inline i64 randint(i64 l, i64 r)
+void init()
 {
-	auto res = hh();
-	if (res < 0) res = -res;
-	return res % (r - l + 1) + l;
-}
-
-namespace miller
-{
-	i64 power_pow(i64 base, i64 b, const i64 p)
-	{
-		i64 ans = 1;
-		while (b)
-		{
-			if (b & 1) ans = mul(ans, base, p);
-			base = mul(base, base, p);
-			b >>= 1;
-		}
-		return ans;
-	}
-	int totst[] = {2, 3, 13, 17, 19, 23};
-	bool miller_rabin(i64 n)
-	{
-		if (n < 3) return n == 2;
-		if (!(n & 1)) return 0;
-		i64 a = n - 1, b = 0;
-		while (!(a & 1)) a >>= 1, b++;
-		for (int x : totst)
-		{
-			if (n == x) return 1;
-			i64 v = power_pow(x, a, n);
-			if (v == 1 || v == n - 1) continue;
-			REP(i, 0, b)
-			{
-				if (v == n - 1) break;
-				if (i == b) return 0;
-				v = mul(v, v, n);
-			}
-		}
-		return 1;
-	}
-}
-
-void init(i64 l, i64 r)
-{
-	while (!miller :: miller_rabin(MOD)) MOD = randint(l, r);
-	const i64 mod = MOD;
 	pre1[0] = 1;
-	REP(i, 1, w) pre1[i] = 2 * pre1[i - 1] % mod;
+	REP(i, 1, w) pre1[i] = 2 * pre1[i - 1] % MOD;
 	pre2[0] = 1;
-	REP(i, 1, w) pre2[i] = mul(pre1[w], pre2[i - 1], mod);
-	REP(i, 1, n) s[i] = (s[i - 1] + (pa[i] = pow2(a[i]))) % mod;
+	REP(i, 1, w) pre2[i] = mul(pre1[w], pre2[i - 1], MOD);
+	REP(i, 1, n) s[i] = (s[i - 1] + (pa[i] = pow2(a[i]))) % MOD;
 }
 namespace hash_table
 {
-	const int mod = 400009;//2333323;//11100013;//2e7 + 3;
+	const int mod = 300007;//2333323;//11100013;//2e7 + 3;
 	int bg[mod], e;
-	struct Edge
+	struct
 	{
 		int ne, w;
 		i64 to;
@@ -136,6 +88,7 @@ namespace hash_table
 	}
 	bool vis[mod];
 	int stk[mod], top;
+	int mem[mod];
 	int &get(i64 x)
 	{
 		int h = x % mod;
@@ -164,10 +117,8 @@ namespace hash_table
 const int B = 20;
 void cdq(int l, int r)
 {
-	const i64 MOD = ::MOD;
 	if (l == r) {ans++;return;}
 	int mid = l + r >> 1;
-	cdq(l, mid);
 	register int i, j, Max, Min;
 
 	hash_table :: clear();
@@ -218,6 +169,7 @@ void cdq(int l, int r)
 			}
 		}
 	}
+	cdq(l, mid);
 	cdq(mid + 1, r);
 }
 signed main()
@@ -225,16 +177,13 @@ signed main()
 #ifdef CraZYali
 	file("A");
 #endif
-	n = read<int>();
-	REP(i, 1, n) a[i] = read<int>();
+	n = read();
+	REP(i, 1, n) a[i] = read();
 	REP(i, 2, n) lg[i] = lg[i >> 1] + 1;
-	hh = mt19937(time(0));
 
-	init(5e17, 1e18);
-	cerr << clock() * 1. / CLOCKS_PER_SEC << endl;
+	init();
 
 	cdq(1, n);
 	cout << (long long)ans << endl;
-	cerr << clock() * 1. / CLOCKS_PER_SEC << endl;
 	return 0;
 }
