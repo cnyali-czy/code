@@ -76,7 +76,7 @@ namespace hash_table
 	{
 		int ne, w;
 		i64 to;
-	}E[mod];
+	}E[maxn];
 	inline int &add(int x, i64 y)
 	{
 		e++;
