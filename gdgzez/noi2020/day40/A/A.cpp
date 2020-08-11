@@ -66,27 +66,44 @@ namespace gen
 
 namespace fastsort
 {
-	const int maxN = 2e7 + 10;
-	int cnt[maxN];
-	void sort(int a[])
+	const int w = 8, B = (1 << w) - 1;
+
+	int cnt[B + 1];
+	int *pool, *str[B + 1];
+
+#define work()\
+	{\
+		for (int i = 0; i < n; i++) cnt[a[i] >> w & B]++;\
+		str[0] = pool;\
+		for (int i = 0; i < B; i++) str[i + 1] = str[i] + cnt[i], cnt[i] = 0;\
+		for (int i = 0; i < n; i++) *(str[a[i] >> w & B]++) = a[i];\
+	}
+
+	void sort(int *a, int n)
 	{
-		int Max = 0, Min = 2e7;
-		REP(i, 1, n)
+		pool = new int[n];
+		int w = 0;
 		{
-			cnt[a[i]]++;
-			if (Max < a[i]) Max = a[i];
-			if (Min > a[i]) Min = a[i];
+			for (int i = 0; i < n; i++) cnt[a[i] & B]++;
+			str[0] = pool;
+			for (int i = 0; i < B; i++) str[i + 1] = str[i] + cnt[i], cnt[i] = 0;
+			for (int i = 0; i < n; i++) *(str[a[i] & B]++) = a[i];
+			std :: swap(a, pool);
 		}
-		int N = 0;
-		DEP(i, Max, Min)
-			while (cnt[i])
-			{
-				cnt[i]--;
-				a[++N] = i;
-			}
+		w += fastsort :: w;
+		work();
+		std :: swap(a, pool);
+
+		w += fastsort :: w;
+		work();
+		std :: swap(a, pool);
+
+		w += fastsort :: w;
+		work();
+		std :: swap(a, pool);
+		//a = pool;
 	}
 }
-
 int main()
 {
 #ifdef CraZYali
@@ -94,16 +111,8 @@ int main()
 #endif
 	gen :: gen();
 	i64 ans = 0, Ans = 0;
-	fastsort :: sort(a);
-	fastsort :: sort(b);
-	if (n == 1)
-	{
-		if (k == 1) Ans ^= a[1];
-		if (k == 2) Ans ^= b[1];
-		if (k == 3) Ans ^= a[1] = b[1];
-		cout << Ans << endl;
-		return 0;
-	}
+	fastsort :: sort(a + 1, n);reverse(a + 1, a + 1 + n);
+	fastsort :: sort(b + 1, n);reverse(b + 1, b + 1 + n);
 	int n1 = 0, n2 = 0;
 	REP(i, 1, k)
 	{
