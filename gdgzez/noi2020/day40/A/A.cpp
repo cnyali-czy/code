@@ -96,11 +96,18 @@ int main()
 	i64 ans = 0, Ans = 0;
 	fastsort :: sort(a);
 	fastsort :: sort(b);
+	if (n == 1)
+	{
+		if (k == 1) Ans ^= a[1];
+		if (k == 2) Ans ^= b[1];
+		if (k == 3) Ans ^= a[1] = b[1];
+		cout << Ans << endl;
+		return 0;
+	}
 	int n1 = 0, n2 = 0;
 	REP(i, 1, k)
 	{
-		if (n1 < n)	ans += a[++n1];
-		else		ans += b[++n2];
+		ans += a[++n1];
 		while (n1 >= 2)
 		{
 			int delta = b[n2 + 1] - a[n1] - a[n1 - 1];
