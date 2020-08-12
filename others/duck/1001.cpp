@@ -10,19 +10,19 @@
 #include <iostream>
 #include <cstdio>
 
-const int w = 8, B = (1 << w) - 1;
-
-const int maxn = 100000000;
-int cnt[B + 1];
-unsigned *pool, *str[B + 1];
-
-#define work()\
+#define work(w)\
 {\
 	for (int i = 0; i < n; i++) cnt[a[i] >> w & B]++;\
 	str[0] = pool;\
 	for (int i = 0; i < B; i++) str[i + 1] = str[i] + cnt[i], cnt[i] = 0;\
 	for (int i = 0; i < n; i++) *(str[a[i] >> w & B]++) = a[i];\
 }
+const int w = 8, B = (1 << w) - 1;
+
+const int maxn = 100000000;
+int cnt[B + 1];
+unsigned *pool, *str[B + 1];
+
 
 void sort(unsigned *a, int n)
 {
@@ -35,16 +35,13 @@ void sort(unsigned *a, int n)
 		for (int i = 0; i < n; i++) *(str[a[i] & B]++) = a[i];
 		std :: swap(a, pool);
 	}
-	w += ::w;
-	work();
+	work(8);
 	std :: swap(a, pool);
 
-	w += ::w;
-	work();
+	work(16);
 	std :: swap(a, pool);
 
-	w += ::w;
-	work();
+	work(24);
 	a = pool;
 }
 
