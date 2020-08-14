@@ -69,8 +69,26 @@ namespace bf
 }
 //int ph[maxn << 1], *head = ph + 1000005;
 //vector <int> pv[maxn << 1], *Q = pv + 1000005;
-int head[maxn << 1];
-vector <int> Q[maxn << 1];
+
+struct Queue
+{
+	vector <int> v;
+	int hd;
+	Queue() {v.clear();hd = 0;}
+	void push(int val)
+	{
+		while (v.size() > hd && v.back() < val) v.pop_back();
+		v.emplace_back(val);
+	}
+	int front()
+	{
+		return hd < v.size() ? v[hd] : -inf;
+	}
+	void erase(int val)
+	{
+		if (v[hd] == val) hd++;
+	}
+}Q[maxn << 1];
 
 namespace SMT
 {
@@ -125,33 +143,20 @@ namespace SMT
 	}
 }
 
+
+
+
 void add(int pos)
 {
 	pos--;
-	int val = s[pos] + n, gd = dp[pos];
-	if (Q[val].size() == head[val] || Q[val].size() > head[val] && gd > Q[val][head[val]])
-	{
-		Q[val].clear();
-		Q[val].emplace_back(gd);
-		head[val] = 0;
-		SMT :: update(s[pos], gd);
-		return;
-	}
-//	while (Q[val].size() > head[val] && Q[val].back() < gd) Q[val].pop_back();
-	Q[val].emplace_back(gd);
+	Q[s[pos] + n].push(dp[pos]);
+	SMT :: update(s[pos], Q[s[pos] + n].front());
 }
 void del(int pos)
 {
 	pos--;
-	int val = s[pos] + n, gd = dp[pos];
-	if (gd == Q[val][head[val]])
-	{
-		head[val]++;
-		if (head[val] >= Q[val].size())
-			SMT :: update(s[pos], -inf);
-		else if (Q[val][head[val]] < gd);
-			SMT :: update(s[pos], Q[val][head[val]]);
-	}
+	Q[s[pos] + n].erase(dp[pos]);
+	SMT :: update(s[pos], Q[s[pos] + n].front());
 }
 
 signed main()
