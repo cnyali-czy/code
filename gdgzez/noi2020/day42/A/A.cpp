@@ -43,57 +43,44 @@ inline T read()
 
 int n, l, r, a[maxn], s[maxn], dp[maxn];
 
-inline int w(int j, int i)
-{
-	int qaq = s[i] - s[j - 1];
-	return qaq > 0 ? 1 : qaq < 0 ? -1 : 0;
-}
-
 void output()
 {
 	if (dp[n] > -inf / 2) cout << dp[n] << endl;
 	else puts("Impossible");
 }
 
-namespace bf
-{
-	void work()
-	{
-		REP(i, 1, n)
-		{
-			dp[i] = -inf;
-			REP(j, max(1ll, i + 1ll - r), i - l + 1) chkmax(dp[i], dp[j - 1] + w(j, i));
-		}
-		output();
-	}
-}
-//int ph[maxn << 1], *head = ph + 1000005;
-//vector <int> pv[maxn << 1], *Q = pv + 1000005;
-
 struct Queue
 {
 	vector <int> v;
 	int hd;
 	Queue() {v.clear();hd = 0;}
-	void push(int val)
+	bool push(int val)
 	{
+		if (hd == v.size() || v[hd] < val)
+		{
+			v.clear();v.emplace_back(val);
+			hd = 0;
+			return 1;
+		}
 		while (v.size() > hd && v.back() < val) v.pop_back();
 		v.emplace_back(val);
+		return 0;
 	}
 	int front()
 	{
 		return hd < v.size() ? v[hd] : -inf;
 	}
-	void erase(int val)
+	bool erase(int val)
 	{
 		if (v[hd] == val) hd++;
+		return hd == v.size() || v[hd] < val;
 	}
 }Q[maxn << 1];
 
 namespace SMT
 {
 	const int maxn = ::maxn << 1;
-	int Max[maxn << 2];
+	int Max[maxn << 2], lf[maxn];
 #define ls p << 1
 #define rs p << 1 | 1
 #define lson ls, l, mid
@@ -102,21 +89,15 @@ namespace SMT
 	void build(int p, int l, int r)
 	{
 		Max[p] = -inf;
-		if (l == r) return;
+		if (l == r)
+		{
+			lf[l] = p;
+			return;
+		}
 		else
 		{
 			build(lson);
 			build(rson);
-		}
-	}
-	void update(int p, int l, int r, int pos, int val)
-	{
-		if (l == r) Max[p] = val;
-		else
-		{
-			if (pos <= mid) update(lson, pos, val);
-			else			update(rson, pos, val);
-			Max[p] = max(Max[ls], Max[rs]);
 		}
 	}
 	int query(int p, int l, int r, int L, int R)
@@ -135,7 +116,10 @@ namespace SMT
 	}
 	void update(int pos, int val)
 	{
-		update(1, 0, n + n, pos + n, val);
+		pos += n;
+		Max[lf[pos]] = val;
+		for (int p = lf[pos] >> 1; p; p >>= 1)
+			Max[p] = max(Max[ls], Max[rs]);
 	}
 	int query(int l, int r)
 	{
@@ -143,20 +127,17 @@ namespace SMT
 	}
 }
 
-
-
-
 void add(int pos)
 {
 	pos--;
-	Q[s[pos] + n].push(dp[pos]);
-	SMT :: update(s[pos], Q[s[pos] + n].front());
+	int x = s[pos], val = dp[pos];
+	if (Q[x + n].push(val)) SMT :: update(x, val);
 }
 void del(int pos)
 {
 	pos--;
-	Q[s[pos] + n].erase(dp[pos]);
-	SMT :: update(s[pos], Q[s[pos] + n].front());
+	int x = s[pos], val = dp[pos];
+	if (Q[x + n].erase(val)) SMT :: update(x, Q[x].front());
 }
 
 signed main()
@@ -172,7 +153,7 @@ signed main()
 	{
 		while (i - (R + 1) + 1 >= l)	add(++R);
 		while (i - L + 1 > r)			del(L++);
-		int Max = SMT :: query(s[i], s[i]);
+		int Max = SMT :: Max[SMT :: lf[s[i] + n]];
 		if (s[i] < n) chkmax(Max, SMT :: query(s[i] + 1, n) - 1);
 		if (s[i] >-n) chkmax(Max, SMT :: query(-n, s[i] - 1) + 1);
 		dp[i] = Max;
