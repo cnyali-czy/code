@@ -374,7 +374,7 @@ namespace polynomial
 	namespace FastCalc
 	{
 		const int maxn = 1 << 18;
-		int A[maxn], B[maxn], *QAQ[maxn], n, m;
+		int A[maxn], B[maxn], *QAQ[maxn], n, m, res[maxn], nowN;
 		const int End = 250;
 #define ls p << 1
 #define rs p << 1 | 1
@@ -413,7 +413,8 @@ namespace polynomial
 		{
 			if (r - l + 1 <= End)
 			{
-				REP(i, l, r) cout << calc(F, n, B[i]) << '\n';
+				REP(i, l, r) res[i] = calc(F, n, B[i]);
+//				REP(i, l, r) cout << calc(F, n, B[i]) << '\n';
 				return;
 			}
 			int L = 1;
@@ -429,6 +430,16 @@ namespace polynomial
 			n = read<int>();m = read<int>();
 			REP(i, 0, n) A[i] = read<int>();
 			REP(i, 1, m) B[i] = read<int>();
+			Init(1, 1, m);
+			Work(A, n, 1, 1, m);
+			REP(i, 1, m) printf("%d\n", res[i]);
+			return 0;
+		}
+		int Main(int a[], int nn, int mm)//get 1 ... m
+		{
+			n = nn;m = mm;
+			REP(i, 0, n) A[i] = a[i];
+			REP(i, 1, m) B[i] = i;
 			Init(1, 1, m);
 			Work(A, n, 1, 1, m);
 			return 0;
@@ -593,6 +604,28 @@ namespace polynomial
 		REP(i, 0, n) printf("%d%c", C[i], i == n ? '\n' : ' ');
 		return 0;
 	}
+	int main5383()
+	{
+		n = read<int>() - 1;
+		REP(i, 0, n) A[i] = read<int>();
+		FastCalc :: Main(A, n, n);
+		FastCalc :: res[0] = A[0];
+		prepare_invs(n);
+		int I = 1, fac = 1;
+		REP(i, 0, n)
+		{
+			I = 1ll * I * invs[i] % MOD;
+			A[i] = 1ll * I * FastCalc :: res[i] % MOD;
+			B[i] = ((i & 1) ? MOD - 1ll : 1ll) * I % MOD;
+		}
+		int len = 1;
+		while (len <= n + n) len <<= 1;
+		NTT(A, len, 1);NTT(B, len, 1);
+		REP(i, 0, len - 1) A[i] = 1ll * A[i] * B[i] % MOD;
+		NTT(A, len, -1);
+		REP(i, 0, n) printf("%d%c", A[i], i == end_i ? '\n' : ' ');
+		return 0;
+	}
 }
 
 signed main()
@@ -600,5 +633,5 @@ signed main()
 #ifdef CraZYali
 	file("polynomial");
 #endif
-	return polynomial::main4726_log2();
+	return polynomial::main5383();
 }
