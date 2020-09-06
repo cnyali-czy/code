@@ -311,6 +311,7 @@ namespace polynomial
 		copy(G, G + 1 + m, tG);reverse(tG, tG + 1 + m);
 		int l = 1;
 		while (l <= n - m + n - m) l <<= 1;
+		REP(i, m + 1, l - 1) tG[i] = 0;
 		REP(i, n - m + 1, l - 1) tF[i] = tG[i] = 0;
 		getInv(tG, n - m, Inv);
 		NTT(Inv, l, 1);NTT(tF, l, 1);
