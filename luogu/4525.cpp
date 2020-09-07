@@ -1,6 +1,6 @@
 /*
 	Problem:	4525.cpp
-	Time:		2020-04-05 12:17
+	Time:		2020-09-07 21:20
 	Author:		CraZYali
 	E-Mail:		yms-chenziyang@outlook.com 
 */
@@ -12,12 +12,14 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <cmath>
 #include <iostream>
 #include <cstdio>
-#include <cmath>
+
 using namespace std;
 const double eps = 1e-9;
-template <typename T>
+
+	template <typename T>
 inline T read()
 {
 	T ans = 0, flag = 1;
@@ -37,14 +39,15 @@ inline T read()
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-double a, b, c, d, l, r;
-double f(double x) {return (c * x + d) / (a * x + b);}
-double simpson(double l, double r) {return (r - l) * (f(l) + f(r) + 4 * f((l + r) / 2)) / 6;}
-double calc(double l, double r, double cur)
+double a, b, c, d;
+inline double f(double x) {return (c * x + d) / (a * x + b);}
+double calc(double L, double R) {return (R - L) / 6 * (f(L) + f(R) + 4 * f((L + R) / 2));}
+inline double simpson(double L, double R)
 {
-	double mid = (l + r) / 2, fl = simpson(l, mid), fr = simpson(mid, r);
-	if (fabs(fl + fr - cur) < eps) return cur;
-	else return calc(l, mid, fl) + calc(mid, r, fr);
+	double mid = (L + R) / 2;
+	double ls = calc(L, mid), rs = calc(mid, R), s = calc(L, R);
+	if (fabs(ls + rs - s) < eps) return s;
+	else return simpson(L, mid) + simpson(mid, R);
 }
 
 int main()
@@ -52,7 +55,8 @@ int main()
 #ifdef CraZYali
 	file("4525");
 #endif
-	cin >> a >> b >> c >> d >> l >> r;
-	printf("%.6lf\n", calc(l, r, simpson(l, r)));
+	double L, R;
+	cin >> a >> b >> c >> d >> L >> R;
+	printf("%.6lf\n", simpson(L, R));
 	return 0;
 }
