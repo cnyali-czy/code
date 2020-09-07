@@ -41,13 +41,17 @@ inline T read()
 
 double a, b, c, d;
 inline double f(double x) {return (c * x + d) / (a * x + b);}
-double calc(double L, double R) {return (R - L) / 6 * (f(L) + f(R) + 4 * f((L + R) / 2));}
-inline double simpson(double L, double R)
+//double calc(double L, double R) {return (R - L) / 6 * (f(L) + f(R) + 4 * f((L + R) / 2));}
+#define calc(L, R, fl, fr, fmid) ((R - L) / 6 * (fl + fr + 4 * fmid))
+double simpson(double L, double R, double fl, double fr, double fmid)
 {
 	double mid = (L + R) / 2;
-	double ls = calc(L, mid), rs = calc(mid, R), s = calc(L, R);
-	if (fabs(ls + rs - s) < eps) return s;
-	else return simpson(L, mid) + simpson(mid, R);
+	double flmid = f((L + mid) / 2), frmid = f((mid + R) / 2);
+	double ls = calc(L, mid, fl, fmid, flmid);
+	double rs = calc(mid, R, fmid, fr, frmid);
+	double s = calc(L, R, fl, fr, fmid);
+	if (fabs(ls + rs - s) < eps/* && (R - L) < lim*/) return s;
+	return simpson(L, mid, fl, fmid, flmid) + simpson(mid, R, fmid, fr, frmid);
 }
 
 int main()
@@ -57,6 +61,6 @@ int main()
 #endif
 	double L, R;
 	cin >> a >> b >> c >> d >> L >> R;
-	printf("%.6lf\n", simpson(L, R));
+	printf("%.6lf\n", simpson(L, R, f(L), f(R), f((L + R) / 2)));
 	return 0;
 }
