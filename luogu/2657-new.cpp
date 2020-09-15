@@ -1,29 +1,30 @@
 /*
- * File Name:	2657-new.cpp
- * Author	:	CraZYali
- * Year		:	2019.11.11 21:54
- * Email	:	yms-chenziyang@outlook.com
- */
+	Problem:	2657-new.cpp
+	Time:		2020-09-15 09:37
+	Author:		CraZYali
+	E-Mail:		yms-chenziyang@outlook.com 
+*/
 
-#define DREP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
-#define  REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
+#define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
+#define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
-#define chkmax(a, b) (a < (b) ? a = (b) : a) 
-#define chkmin(a, b) (a > (b) ? a = (b) : a) 
+#define chkmax(a, b) (a < (b) ? a = (b) : a)
+#define chkmin(a, b) (a > (b) ? a = (b) : a)
 
-#include <algorithm>
-#include <iostream>
-#include <cstring>
-#include <cstdio>
 #include <cmath>
-#define int long long
-using namespace std;
+#include <cstring>
+#include <iostream>
+#include <cstdio>
 
-template <typename T> inline T read()
+using namespace std;
+const int maxn = 20;
+
+	template <typename T>
+inline T read()
 {
-	T ans(0), flag(1);
-	char c(getchar());
+	T ans = 0, flag = 1;
+	char c = getchar();
 	while (!isdigit(c))
 	{
 		if (c == '-') flag = -1;
@@ -37,55 +38,43 @@ template <typename T> inline T read()
 	return ans * flag;
 }
 
-#define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout);
+#define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-int dp[100][10][2], qaq[100][10], stack[100], top;
+int dp[maxn][12];
+int lim[maxn], top;
 
-int solve(int n)
+int dfs(int x, int st, bool flag)//flag = (==) 
 {
-	top = 0;
-	int x = n;
-	do
+	if (!x) return 1;
+	if (!flag && ~dp[x][st]) return dp[x][st];
+	int res = 0;
+	REP(i, 0, flag ? lim[x] : 9)
 	{
-		stack[++top] = x % 10;
-		x /= 10;
-	}while (x);
-	reverse(stack + 1, stack + 1 + top);
-	memset(dp, 0, sizeof dp);
-	REP(i, 1, stack[1])
-		dp[1][i][i != stack[1]] = 1;
-	REP(i, 2, top)
-		REP(x, 0, 9)
-		{
-			REP(j, 0, stack[i] - 1) if (abs(x - j) > 1)
-		 		dp[i][j][1] += dp[i-1][x][0] + dp[i-1][x][1];
-			REP(j, stack[i], 9) if (abs(x - j) > 1)
-				dp[i][j][1] += dp[i-1][x][1];
-			if (abs(x - stack[i]) > 1) dp[i][stack[i]][0] += dp[i-1][x][0];
-		}
-	int res(0);
-	REP(j, 0, 9)
-		REP(k, 0, 1) 
-		res += dp[top][j][k];
-	//正好长度的算完了
-	memset(qaq, 0, sizeof qaq);
-	REP(i, 1, 9) qaq[1][i] = 1;
-	REP(i, 2, top - 1)
-		REP(x, 0, 9)
-		REP(j, 0, 9) if (abs(x - j) > 1)
-		qaq[i][j] += qaq[i-1][x];
-	REP(i, 1, top - 1)
-		REP(j, 0, 9) res += qaq[i][j];
+		if (abs(i - st) < 2) continue;
+		if (st == 11 && !i)
+			res += dfs(x - 1, 11, flag & (i == end_i));
+		else
+			res += dfs(x - 1, i, flag & (i == end_i));
+	}
+	if (!flag) dp[x][st] = res;
 	return res;
 }
 
-signed main()
+int work(int n)
+{
+	if (n < 1) return 1;
+	top = 0;
+	for (int x = n; x; x /= 10) lim[++top] = x % 10;
+	memset(dp, -1, sizeof dp);
+	return dfs(top, 11, 1);
+}
+
+int main()
 {
 #ifdef CraZYali
 	file("2657-new");
 #endif
-	int A, B;
-	cin >> A >> B;
-	cout << solve(B) - solve(A - 1) << endl;
+	int l = read<int>(), r = read<int>();
+	cout << work(r) - work(l - 1) << endl;
 	return 0;
 }
