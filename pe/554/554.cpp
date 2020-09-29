@@ -12,6 +12,7 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <ctime>
 #include <cassert>
 #include <vector>
 #include <iostream>
@@ -117,6 +118,7 @@ inline int lucas(num A, num B)
 	return res;
 }
 const int maxn = 100;
+/*
 num fib[maxn];
 int f[maxn];
 int main()
@@ -135,6 +137,28 @@ int main()
 	i64 ans = 0;
 	REP(i, 2, n)
 		ans += 8ll * lucas(fib[i] + fib[i], fib[i]) - 3ll * f[i] * f[i] % MOD - 2 * f[i] - 7;
+	cout << (ans % MOD + MOD) % MOD << endl;
+	return 0;
+}
+*/
+int Lucas(i64 n, i64 m)
+{
+	if (!m) return 1;
+	if (n < m || m < 0) return 0;
+	i64 qaq = C(n % MOD, m % MOD);
+	if (m / MOD) (qaq *= Lucas(n / MOD, m / MOD)) %= MOD;
+	return qaq;
+}
+int main()
+{
+	file("554");
+	int n = read<int>();
+	static i64 fib[maxn];
+	fib[1] = fib[2] = 1;
+	REP(i, 3, n) fib[i] = fib[i - 1] + fib[i - 2];
+	i64 ans = 0;
+	REP(i, 2, n)
+		ans += 8ll * Lucas(fib[i] + fib[i], fib[i]) - 3ll * (fib[i] % MOD) * (fib[i] % MOD) % MOD - 2 * fib[i] % MOD - 7;
 	cout << (ans % MOD + MOD) % MOD << endl;
 	return 0;
 }
