@@ -166,7 +166,7 @@ int n, k;
 
 int main()
 {
-	file("count10");
+	file("count0");
 	n = read<int>();k = read<int>();
 	k = min(k, n - 1);
 	if (n == 1) return 0 * puts("1");

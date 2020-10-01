@@ -65,7 +65,7 @@ void init(int n)
 
 int main()
 {
-	file("hippocentaur12");
+	file("hippocentaur");
 	n = read<int>();
 	init(n << 1);
 	i64 ans = 8 * C(n + n, n) - 3ll * n % MOD * n - 2 * n - 7;

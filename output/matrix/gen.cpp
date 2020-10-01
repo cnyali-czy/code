@@ -51,26 +51,27 @@ int main()
 {
 	freopen("matrix5.in", "w", stdout);
 	hh = mt19937(time(0));
-	int n = 2000;
+	int n = 500;
 	cout << n << endl;
 	auto LIM = (1ll << 32) - 1;
 	const double alpha = 0.2;
 	REP(i, 2, n)
 	{
-		fa[i] = hh() % (i - 1) + 1;
+		fa[i] = randint(max(1, i - 6), i - 1);
 		G[fa[i]][i] = 1;
 	}
-	DEBUG;
+	/*
 	REP(i, 2, n)
 		for (int x = fa[i]; x; x = fa[x])
 			v.emplace_back(x, i);
-	DEBUG;
 	shuffle(v.begin(), v.end(), hh);
-	DEBUG;
-	REP(i, 0, v.size() * .5)
+	REP(i, 0, v.size() * .95)
 		G[v[i].first][v[i].second] = 1;
+		*/
+	REP(i, 2, n)
+		for (int x = fa[i]; x; x = fa[x])
+			G[x][i] = 1;
 	DEBUG;
-	cerr<<endl;
 	REP(i, 1, 10000)
 	{
 		int x = hh() % n + 1, y = hh() % n + 1;
@@ -79,6 +80,9 @@ int main()
 		G[x][y] = 1;
 	}
 	DEBUG;
+	int cnt = 0;
+	REP(i,1,n)REP(j,1,n)if(G[i][j])cnt++;
+	cerr<<cnt<<endl;
 	REP(i, 1, n)
 	{
 		REP(j, 1, n)

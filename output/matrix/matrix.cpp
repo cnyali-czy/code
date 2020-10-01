@@ -12,6 +12,7 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <ctime>
 #include <bitset>
 #include <iostream>
 #include <cstdio>
@@ -132,5 +133,6 @@ int main()
 	int ans = 0;
 	REP(i, 1, n) ans += G[i].count();
 	io.write(ans);
+	cerr << clock() * 1. / CLOCKS_PER_SEC << endl;
 	return 0;
 }
