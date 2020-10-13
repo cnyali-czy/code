@@ -1,0 +1,1 @@
+g++ -o mythological grader.cpp mythological.cpp --std=c++11
