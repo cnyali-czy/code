@@ -63,14 +63,13 @@ int fac[maxn], Inv[maxn], invs[maxn];
 inline i64 C(int n, int m) {return n < m || m < 0 ? 0 : 1ll * fac[n] * Inv[n - m] % P * Inv[m] % P;}
 inline int C2(int x) {return x * (x - 1) / 2;}
 inline i64 all(int x) {return bin[C2(x)];}
-int pw[maxn][maxn];
 
 int main()
 {
 #ifdef CraZYali
 	file("A");
 #endif
-	n = read<int>() - 1;P = read<int>();
+	n = read<int>();P = read<int>();
 	const int MOD = P;
 	bin[0] = 1;
 	REP(i, 1, n * n) bin[i] = 2 * bin[i - 1] % MOD;
@@ -82,23 +81,34 @@ int main()
 		invs[i] = 1ll * invs[MOD % i] * (MOD - MOD / i) % MOD;
 		Inv[i] = 1ll * invs[i] * Inv[i - 1] % MOD;
 	}
-	REP(i, 1, n) REP(j, 1, n)
-		pw[i][j] = power_pow(bin[i] - 1, j);
 
+	f[1][1] = 1;
 	i64 ans = 0;
-	REP(i, 1, n)
+	REP(k, 1, n - 1)
 	{
-		f[i][i] = all(i);
-		g[i][i] = 1ll * i * f[i][i] % MOD;
-		REP(j, 1, i)
-			REP(k, 1, n - i)
+		REP(i, 1, n) REP(j, 1, i)
+		{
+			F[i][j] = f[i][j];f[i][j] = 0;
+			G[i][j] = g[i][j];g[i][j] = 0;
+		}
+		REP(i, 1, n) REP(j, 1, i)
+		{
+			REP(lstj, 1, i - j)
 			{
-				i64 o = all(k) * pw[k][j] % MOD * C(i + k, i) % MOD;
-				f[i + k][k] = (f[i + k][k] + f[i][j] * o) % MOD;
-				g[i + k][k] = (g[i + k][k] + g[i][j] * o + f[i][j] * o % MOD * (i + k)) % MOD;
+				f[i][j] = (f[i][j] + 
+				F[i - j][lstj] * power_pow(bin[lstj] - 1, j)
+				)
+				% MOD;
+				g[i][j] = (g[i][j] + 
+				G[i - j][lstj] * power_pow(bin[lstj] - 1, j)
+				) % MOD;
 			}
+			f[i][j] = f[i][j] * C(i - 1, i - j - 1) % MOD * all(j) % MOD;
+			g[i][j] = g[i][j] * C(i - 1, i - j - 1) % MOD * all(j) % MOD;
+			g[i][j] = (g[i][j] + 1ll * k * j % MOD * f[i][j]) % MOD;
+		}
+		REP(j, 1, n) ans += g[n][j];
 	}
-	REP(i, 1, n) ans += g[n][i];
-	cout << ans % MOD * invs[n] % MOD << endl;
+	cout << ans % MOD * invs[n - 1] % MOD << endl;
 	return 0;
 }
