@@ -1,4 +1,3 @@
-//why
 #define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
 #define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
@@ -73,11 +72,10 @@ void maintain(int i, int j)
 	int sj = stk[j].x, gj = stk[j].y - M * sj;
 	chkmax(f[i], gj + (M - sj) * (s[i] - M));
 }
-const int B = 20;
-int str[maxn], ykw = 0;
-void rebuild(int m)
+void solve(int m)
 {
-	ykw = 0;
+	REP(i, m, n) f[i] = -inf;
+	M = s[m - 1];
 	REP(j, 1, m - 1)
 	{
 		p[j] = Vector(s[j - 1], g[j] + M * s[j - 1]);
@@ -92,14 +90,6 @@ void rebuild(int m)
 		stk[++top] = p[i];
 	}
 	top = unique(stk + 1, stk + 1 + top) - stk - 1;
-}
-void solve(int m)
-{
-	M = s[m - 1];
-	if (ykw == B) rebuild(m);
-	ykw++;
-
-	REP(i, m, n) f[i] = -inf;
 	static int todo[maxn];
 	REP(i, m, n) todo[i - m + 1] = i;
 	sort(todo + 1, todo + 1 + (n - m + 1), cmp_pos);
@@ -114,9 +104,7 @@ void solve(int m)
 		int i = todo[I];
 		while (j < top && (stk[j + 1].y - stk[j].y) > s[i] * (stk[j + 1].x - stk[j].x))
 			maintain(i, j++);
-		if (j <= top) maintain(i, j);
-		REP(j, m - 1 - ykw + 1, m - 1)
-			chkmax(f[i], g[j] + sum(j, m - 1) * sum(m, i));
+		maintain(i, j);
 		//		REP(j, 1, top)
 		//		{
 		//		}
@@ -134,7 +122,6 @@ signed main()
 	REP(i, 2, n)
 	{
 		REP(j, 1, i - 1) g[j] = dp[j][i - 1];
-		top = 0;
 		solve(i);
 		REP(j, i, n) dp[i][j] = f[j];
 		chkmax(ans, f[n]);
@@ -142,4 +129,3 @@ signed main()
 	cout << ans << endl;
 	return 0;
 }
-
