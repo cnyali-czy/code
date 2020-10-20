@@ -2,12 +2,14 @@
 #define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
+#include <algorithm>
+#include <vector>
 #include <iostream>
 #include <cstdio>
-#define i64 long long
+#define int long long
 using namespace std;
 const int maxn = 5000 + 10;
-const i64 inf = 1e15;
+const int inf = 1e15;
 
 	template <typename T>
 inline T read()
@@ -27,7 +29,7 @@ inline T read()
 	return ans * flag;
 }
 
-inline bool chkmax(i64 &x, i64 y)
+inline bool chkmax(int &x, int y)
 {
 	if (x <= y)
 	{
@@ -39,41 +41,72 @@ inline bool chkmax(i64 &x, i64 y)
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-int n, a[maxn];
-i64 s[maxn], dp[maxn][maxn], g[maxn], f[maxn];
-i64 sum(int l, int r) {return s[r] - s[l - 1];}
+int n, a[maxn], s[maxn];
+int dp[maxn][maxn], g[maxn], f[maxn];
+int sum(int l, int r) {return s[r] - s[l - 1];}
+int M;
 
-void solve(int i)
+struct Vector
 {
-	REP(j, i, n) f[j] = -inf;
-	int Max = 1, Min = 1;
-	REP(k, 1, i - 1)
+	int x, y;
+	Vector(int x = 0, int y = 0) : x(x), y(y) {}
+	inline Vector operator - (Vector B) {return Vector(x - B.x, y - B.y);}
+	inline int operator * (Vector B) {return x * B.y - y * B.x;}
+	inline bool operator < (const Vector &B) const
 	{
-		if (g[Max] - s[Max] < g[k] - s[k]) Max = k;
-		if (g[Min] - s[Min] > g[k] - s[k]) Min = k;
+		return make_pair(x, -y) < make_pair(B.x, -B.y);
 	}
-	
-//	REP(k, 1, i - 1)
-		REP(j, i, n)
-		{
-			i64 sj = s[j], si = s[i - 1], sk, k;
-			if (sj > si) k = Max;
-			else k = Min;
-			sk = s[k - 1];
-			chkmax(f[j], g[k] + (sj - si) * (si - sk));
-//			chkmax(f[j], g[k] + (s[j] - s[i - 1]) * (s[i - 1] - s[k - 1]));
-//			chkmax(f[j], g[k] + sum(k, i - 1) * sum(i, j));
-		}
+};
+Vector p[maxn], stk[maxn];
+int top, N;
+
+void solve(int m)
+{
+	M = s[m - 1];
+	REP(i, m, n) f[i] = -inf;
+
+	vector <int> todo(n - m + 1);
+	REP(i, m, n) todo[i - m] = i;
+	sort(todo.begin(), todo.end(), [&](int x, int y) {return s[x] > s[y];});
+
+	REP(j, 1, m - 1)
+		p[j] = Vector(s[j - 1], g[j] + M * s[j - 1]);
+	sort(p + 1, p + m);
+	N = 1;
+	REP(j, 2, m - 1)
+		if (p[j].x == p[j - 1].x) continue;
+		else p[++N] = p[j];
+	stk[top = 1] = p[1];
+	REP(i, 2, N)
+	{
+		while (top > 1 && (p[i] - stk[top]) * (stk[top - 1] - stk[top]) > 0) top--;
+		stk[++top] = p[i];
+	}
+//	REP(i, 1, N) printf("%lld %lld\n", p[i].x,p[i].y);
+//	puts("");
+//	REP(i, 1, top)printf("%lld %lld\n",stk[i].x,stk[i].y);
+//	puts("--------");
+
+	int j = 1;
+	for (int i : todo)
+	{
+		while (j < top && (stk[j + 1].y - stk[j].y) >= s[i] * (stk[j + 1].x - stk[j].x)) j++;
+		int sj = stk[j].x, gj = stk[j].y - M * sj;
+		chkmax(f[i], gj + (M - sj) * (s[i] - M));
+//		REP(j, 1, m - 1)
+//			chkmax(f[i], g[j] + sum(j, m - 1) * sum(m, i));
+	}
+//	REP(i, m , n) printf("%d%c", f[i], i == end_i ? '\n' : ' ' );
 }
 
-int main()
+signed main()
 {
 #ifdef CraZYali
 	file("D");
 #endif
 	n = read<int>();
 	REP(i, 1, n) s[i] = s[i - 1] + (a[i] = read<int>());
-	i64 ans = 0;
+	int ans = 0;
 	REP(i, 2, n)
 	{
 		REP(j, 1, i - 1) g[j] = dp[j][i - 1];
