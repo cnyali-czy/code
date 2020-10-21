@@ -113,7 +113,7 @@ struct IO {
 } io;
 int main()
 {
-	file("matrix5");
+	file("matrix1-1");
 	int n;
 	io.read(n);
 	DEBUG;
