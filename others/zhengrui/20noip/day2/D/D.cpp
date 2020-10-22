@@ -1,9 +1,12 @@
-//why
+#pragma GCC optimize(3)
+#pragma GCC target("avx")
+#pragma GCC optimize("Ofast")
+#pragma GCC optimize("inline")
+
 #define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
 #define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
-#include <cassert>
 #include <algorithm>
 #include <iostream>
 #include <cstdio>
@@ -32,7 +35,7 @@ inline T read()
 
 inline bool chkmax(int &x, int y)
 {
-	if (x < y)
+	if (x <= y)
 	{
 		x = y;
 		return 1;
@@ -45,6 +48,7 @@ inline bool chkmax(int &x, int y)
 int n, a[maxn], s[maxn];
 int dp[maxn][maxn], g[maxn], f[maxn];
 int sum(int l, int r) {return s[r] - s[l - 1];}
+int M;
 
 struct Vector
 {
@@ -52,74 +56,67 @@ struct Vector
 	Vector(int x = 0, int y = 0) : x(x), y(y) {}
 	inline Vector operator - (Vector B) {return Vector(x - B.x, y - B.y);}
 	inline int operator * (Vector B) {return x * B.y - y * B.x;}
-	inline int dis2() {return x * x;}
-	inline bool operator == (const Vector &B) const {return x == B.x && y == B.y;}
 };
-Vector stk[maxn], p[maxn];
-int top, N;
+Vector p[maxn], stk[maxn];
+int top;
 
-inline bool cmp_vec(Vector x, Vector y)//顺时针
-{
-	x = x - p[1], y = y - p[1];
-	auto res = x * y;
-	if (res < 0) return 1;
-	if (res > 0) return 0;
-	return x.dis2() < y.dis2();
-}
-inline bool cmp_pos(int x, int y) {return s[x] > s[y];}
-int M;
-void maintain(int i, int j)
-{
-	int sj = stk[j].x, gj = stk[j].y - M * sj;
-	chkmax(f[i], gj + (M - sj) * (s[i] - M));
-}
-const int B = 20;
-int str[maxn], ykw = 0;
-void rebuild(int m)
-{
-	ykw = 0;
-	REP(j, 1, m - 1)
-	{
-		p[j] = Vector(s[j - 1], g[j] + M * s[j - 1]);
-		if (make_pair(p[j].x, p[j].y) < make_pair(p[1].x, p[1].y)) swap(p[1], p[j]);
-	}
-	sort(p + 2, p + m, cmp_vec);
-	stk[top = 1] = p[1];
-	REP(i, 2, m - 1)
-	{
-		while (top > 1 && (p[i] - stk[top]) * (stk[top] - stk[top - 1]) < 0) top--;
-		if (p[i].x <= stk[top].x) continue;
-		stk[++top] = p[i];
-	}
-	top = unique(stk + 1, stk + 1 + top) - stk - 1;
-}
+pair <int, int*> todo[maxn];
+int tN;
+
+int id[maxn], X[maxn];
+int N;
+
+inline int Y(int j) {return g[j] + s[j - 1] * M;}
+
 void solve(int m)
 {
 	M = s[m - 1];
-	if (ykw == B) rebuild(m);
-	ykw++;
 
-	REP(i, m, n) f[i] = -inf;
-	static int todo[maxn];
-	REP(i, m, n) todo[i - m + 1] = i;
-	sort(todo + 1, todo + 1 + (n - m + 1), cmp_pos);
-	/*
-	   REP(j, 1, m - 1)
-	   REP(i, m, n)
-	   chkmax(f[i], g[j] + sum(j, m - 1) * sum(m, i));
-	   */
-	int j = 1;
-	REP(I, 1, n - m + 1)
+	REP(i, 1, tN)
 	{
-		int i = todo[I];
-		while (j < top && (stk[j + 1].y - stk[j].y) > s[i] * (stk[j + 1].x - stk[j].x))
-			maintain(i, j++);
-		if (j <= top) maintain(i, j);
-		REP(j, m - 1 - ykw + 1, m - 1)
-			chkmax(f[i], g[j] + sum(j, m - 1) * sum(m, i));
-		//		REP(j, 1, top)
-		//		{
-		//		}
+		if (i == 1) tN = 0;
+		if (todo[i].first != m - 1) todo[++tN] = todo[i];
+	}
+
+	bool flag = 0;
+	REP(i, 1, N)
+		if (s[id[i] - 1] < s[m - 2]) continue;
+		else 
+		{
+			++N;
+			DEP(j, N, i + 1) id[j] = id[j - 1];
+			id[i] = m - 1;
+			flag = 1;
+			break;
+		}
+	if (!flag) id[++N] = m - 1;
+	int NN = 0;
+	for (int i = 1, j; i <= N; i = j + 1)
+	{
+		j = i;
+		int ymax = Y(id[i]);
+		while (j < N && s[id[j + 1] - 1] == s[id[i] - 1])
+		{
+			j++;
+			ymax = max(ymax, Y(id[j]));
+		}
+		p[++NN] = Vector(s[id[i] - 1], ymax);
+	}
+	
+	stk[top = 1] = p[1];
+	REP(i, 2, NN)
+	{
+		while (top > 1 && (p[i] - stk[top]) * (stk[top - 1] - stk[top]) > 0) top--;
+		stk[++top] = p[i];
+	}
+
+	int j = 1;
+	REP(I, 1, tN)
+	{
+		int i = todo[I].first;
+		while (j < top && (stk[j + 1].y - stk[j].y) >= s[i] * (stk[j + 1].x - stk[j].x)) j++;
+		int sj = stk[j].x, gj = stk[j].y - M * sj;
+		*todo[I].second = gj + (M - sj) * (s[i] - M);
 	}
 }
 
@@ -130,11 +127,14 @@ signed main()
 #endif
 	n = read<int>();
 	REP(i, 1, n) s[i] = s[i - 1] + (a[i] = read<int>());
+	tN = n;
+	REP(i, 1, n) todo[i] = make_pair(i, f + i);
+	sort(todo + 1, todo + 1 + n, [&](pair <int, int*> x, pair <int, int*> y) {return s[x.first] > s[y.first];});
+	REP(i, 1, n) X[i] = s[i - 1];
 	int ans = 0;
 	REP(i, 2, n)
 	{
 		REP(j, 1, i - 1) g[j] = dp[j][i - 1];
-		top = 0;
 		solve(i);
 		REP(j, i, n) dp[i][j] = f[j];
 		chkmax(ans, f[n]);
@@ -142,4 +142,3 @@ signed main()
 	cout << ans << endl;
 	return 0;
 }
-
