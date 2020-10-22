@@ -49,9 +49,10 @@ vector <pair <int, int> > v;
 
 int main()
 {
-	freopen("matrix5.in", "w", stdout);
+	freopen("matrix4-5.in", "w", stdout);
 	hh = mt19937(time(0));
-	int n = 500;
+	int n;
+	n = 2000;
 	cout << n << endl;
 	auto LIM = (1ll << 32) - 1;
 	const double alpha = 0.2;
