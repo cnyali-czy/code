@@ -7,7 +7,16 @@
 #define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 #include <algorithm>
+#include <vector>
+=======
+#include <cassert>
+=======
+>>>>>>> 51db79f291fd0cdb9a5096aae79d68ae7f0ee98c
+#include <algorithm>
+>>>>>>> 830b6d8209a8f56a8c5df926acc03345867ed836
 #include <iostream>
 #include <cstdio>
 #define int long long
@@ -48,7 +57,14 @@ inline bool chkmax(int &x, int y)
 int n, a[maxn], s[maxn];
 int dp[maxn][maxn], g[maxn], f[maxn];
 int sum(int l, int r) {return s[r] - s[l - 1];}
+<<<<<<< HEAD
+<<<<<<< HEAD
 int M;
+=======
+>>>>>>> 830b6d8209a8f56a8c5df926acc03345867ed836
+=======
+int M;
+>>>>>>> 51db79f291fd0cdb9a5096aae79d68ae7f0ee98c
 
 struct Vector
 {
@@ -56,6 +72,58 @@ struct Vector
 	Vector(int x = 0, int y = 0) : x(x), y(y) {}
 	inline Vector operator - (Vector B) {return Vector(x - B.x, y - B.y);}
 	inline int operator * (Vector B) {return x * B.y - y * B.x;}
+<<<<<<< HEAD
+<<<<<<< HEAD
+	inline bool operator < (const Vector &B) const
+	{
+		return make_pair(x, -y) < make_pair(B.x, -B.y);
+	}
+};
+Vector p[maxn], stk[maxn];
+int top, N;
+
+void solve(int m)
+{
+	M = s[m - 1];
+	REP(i, m, n) f[i] = -inf;
+
+	vector <int> todo(n - m + 1);
+	REP(i, m, n) todo[i - m] = i;
+	sort(todo.begin(), todo.end(), [&](int x, int y) {return s[x] > s[y];});
+
+	REP(j, 1, m - 1)
+		p[j] = Vector(s[j - 1], g[j] + M * s[j - 1]);
+	sort(p + 1, p + m);
+	N = 1;
+	REP(j, 2, m - 1)
+		if (p[j].x == p[j - 1].x) continue;
+		else p[++N] = p[j];
+	stk[top = 1] = p[1];
+	REP(i, 2, N)
+	{
+		while (top > 1 && (p[i] - stk[top]) * (stk[top - 1] - stk[top]) > 0) top--;
+		stk[++top] = p[i];
+	}
+//	REP(i, 1, N) printf("%lld %lld\n", p[i].x,p[i].y);
+//	puts("");
+//	REP(i, 1, top)printf("%lld %lld\n",stk[i].x,stk[i].y);
+//	puts("--------");
+
+	int j = 1;
+	for (int i : todo)
+	{
+		while (j < top && (stk[j + 1].y - stk[j].y) >= s[i] * (stk[j + 1].x - stk[j].x)) j++;
+		int sj = stk[j].x, gj = stk[j].y - M * sj;
+		chkmax(f[i], gj + (M - sj) * (s[i] - M));
+//		REP(j, 1, m - 1)
+//			chkmax(f[i], g[j] + sum(j, m - 1) * sum(m, i));
+	}
+//	REP(i, m , n) printf("%d%c", f[i], i == end_i ? '\n' : ' ' );
+=======
+	inline int dis2() {return x * x;}
+	inline bool operator == (const Vector &B) const {return x == B.x && y == B.y;}
+=======
+>>>>>>> 51db79f291fd0cdb9a5096aae79d68ae7f0ee98c
 };
 Vector p[maxn], stk[maxn];
 int top;
@@ -109,7 +177,30 @@ void solve(int m)
 		while (top > 1 && (p[i] - stk[top]) * (stk[top - 1] - stk[top]) > 0) top--;
 		stk[++top] = p[i];
 	}
+<<<<<<< HEAD
+	top = unique(stk + 1, stk + 1 + top) - stk - 1;
+>>>>>>> 830b6d8209a8f56a8c5df926acc03345867ed836
+}
+void solve(int m)
+{
+	M = s[m - 1];
+	if (ykw == B) rebuild(m);
+	ykw++;
 
+<<<<<<< HEAD
+=======
+	REP(i, m, n) f[i] = -inf;
+	static int todo[maxn];
+	REP(i, m, n) todo[i - m + 1] = i;
+	sort(todo + 1, todo + 1 + (n - m + 1), cmp_pos);
+	/*
+	   REP(j, 1, m - 1)
+	   REP(i, m, n)
+	   chkmax(f[i], g[j] + sum(j, m - 1) * sum(m, i));
+	   */
+=======
+
+>>>>>>> 51db79f291fd0cdb9a5096aae79d68ae7f0ee98c
 	int j = 1;
 	REP(I, 1, tN)
 	{
@@ -120,6 +211,7 @@ void solve(int m)
 	}
 }
 
+>>>>>>> 830b6d8209a8f56a8c5df926acc03345867ed836
 signed main()
 {
 #ifdef CraZYali
