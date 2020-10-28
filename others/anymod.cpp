@@ -1,3 +1,10 @@
+/*
+	Problem:	anymod.cpp
+	Time:		2020-10-24 22:00
+	Author:		CraZYali
+	E-Mail:		yms-chenziyang@outlook.com 
+*/
+
 #define REP(i, s, e) for (register int i(s), end_##i(e); i <= end_##i; i++)
 #define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
@@ -5,7 +12,6 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
-<<<<<<< HEAD
 #include <tuple>
 #include <algorithm>
 #include <vector>
@@ -48,16 +54,6 @@ i64 power_pow(i64 base, int b, const int MOD)
 	}
 	return ans;
 }
-=======
-#include <cstring>
-#include <cmath>
-#include <iostream>
-#include <cstdio>
-#define i64 long long
-
-using namespace std;
-const int maxn = 1e5 + 10;
->>>>>>> 795ce3cf86d2711d1ec0562bcb4ab72eea06f1fd
 
 	template <typename T>
 inline T read()
@@ -71,11 +67,7 @@ inline T read()
 	}
 	while (isdigit(c))
 	{
-<<<<<<< HEAD
 		ans = ans * 10 + c - 48;
-=======
-		ans = ans * 10 + (c - 48);
->>>>>>> 795ce3cf86d2711d1ec0562bcb4ab72eea06f1fd
 		c = getchar();
 	}
 	return ans * flag;
@@ -83,7 +75,6 @@ inline T read()
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-<<<<<<< HEAD
 const int maxn = 1 << 21;
 
 #define NUM tuple <ui64, ui64, ui64>
@@ -139,7 +130,17 @@ void NTT(poly &a, int n, int flag)
 	}
 }
 inline int deg(const poly &a) {return (int)a.size() - 1;}
-int n, p;
+poly operator * (poly A, poly B)
+{
+	int n = deg(A), m = deg(B), l = 1;
+	while (l <= n + m) l <<= 1;
+	NTT(A, l, 1);NTT(B, l, 1);
+	REP(i, 0, l - 1) A[i] = A[i] * B[i];
+	NTT(A, l, -1);
+	A.resize(n + m + 1);
+	return A;
+}
+int p;
 inline int fix(num x)
 {
 	static const int MOD = p;
@@ -150,120 +151,50 @@ inline int fix(num x)
 	i64 k4 = (x.x3 + MOD3 - x4 % MOD3) % MOD3 * inv12 % MOD3;
 	return (x4 + k4 * MOD1 % MOD * MOD2) % MOD;
 }
-poly fix(poly a)
+void fix(poly &a, const int MOD = p)
 {
 	for (auto &i : a)
 	{
 		int r = fix(i);
 		i = num(r, r, r);
 	}
-	return a;
-}
-poly operator * (poly A, poly B)
-{
-	int n = deg(A), m = deg(B), l = 1;
-	while (l <= n + m) l <<= 1;
-	NTT(A, l, 1);NTT(B, l, 1);
-	REP(i, 0, l - 1) A[i] = A[i] * B[i];
-	NTT(A, l, -1);
-	A.resize(n + m + 1);
-	return fix(A);
 }
 poly Inv(poly f)
 {
-	static const int MOD = p;
+	const int MOD = p;
 	int n = deg(f);
 	int l = 1;
 	while (l <= n) l <<= 1;
-	poly a(1, num(inv(f[0].x1, MOD1), inv(f[0].x2, MOD2), inv(f[0].x3, MOD3)));
+	poly a(1, num(inv(f[0].x1, MOD1) % MOD, inv(f[0].x2, MOD2) % MOD, inv(f[0].x3, MOD3) % MOD));
 	for (int N = 2; N <= l; N <<= 1)
 	{
 		poly tmp(f.begin(), f.begin() + min(N, n + 1));
-		tmp = tmp * a;
-		for (auto &i : tmp) i = num(MOD - i.x1, MOD - i.x2, MOD - i.x3);
-		tmp[0] = tmp[0] + num(2, 2, 2);
-		a = a * tmp;
+		NTT(a, N + N, 1);
+		NTT(tmp, N + N, 1);
+		REP(i, 0, N + N - 1) a[i] = a[i] * (num(2, 2, 2) - a[i] * tmp[i]);
+		NTT(a, N + N, -1);
 		a.resize(N);
+		fix(a);
 	}
 	a.resize(n + 1);
 	return a;
 }
-num invs[maxn];
-poly exp(poly f)
-{
-	int n = deg(f);
-	poly a(n + 1, num(1, 1, 1));
-	REP(i, 0, n) f[i] = f[i] * num(i, i, i);
-	REP(m, 0, n - 1)
-	{
-		num z(0, 0, 0);
-		REP(i, 0, m) z = z + (f[i + 1] * a[m - i]);
-		int r = fix(z * invs[m + 1]);
-		a[m + 1] = num(r, r, r);
-	}
-	return a;
-}
-int solve(int S)
-{
-	if (S > n) return 0;
-	poly res(n + 1);
-	REP(i, S, n)
-		REP(j, 1, n / i)
-		res[i * j] = res[i * j] + invs[j];
-	res = exp(fix(res));
-	return fix(res[n]);
-}
-=======
-int n, p, B;
-
-int solve(int s)
-{
-	if (s > n) return 0;
-	const int MOD = p;
-	static int f[maxn], g[maxn], G[maxn];
-	REP(i, 1, n) f[i] = 0;f[0] = 1;
-	int B = max(::B, s - 1);
-	REP(i, s, B)
-		REP(j, i, n) f[j] = (f[j] + f[j - i]) % MOD;
-	memset(g, 0, sizeof g);
-	memset(G, 0, sizeof G);
-	g[0] = G[0] = 1;
-	REP(i, 1, n / B)
-	{
-		REP(j, 0, n)
-		{
-			if (j >= i) g[j] = (g[j] + g[j - i]) % MOD;
-			if (j + i * (B + 1) <= n)
-				G[j + i * (B + 1)] = (G[j + i * (B + 1)] + g[j]) % MOD;
-		}
-	}
-	i64 ans = 0;
-	REP(i, 0, n) ans = (ans + 1ll * f[i] * G[n - i]) % MOD;
-	return ans;
-}
-
->>>>>>> 795ce3cf86d2711d1ec0562bcb4ab72eea06f1fd
-int x, y;
 
 int main()
 {
 #ifdef CraZYali
-	file("C");
+	file("anymod");
 #endif
-	cin >> x >> y >> n >> p;
-<<<<<<< HEAD
-	invs[0] = num(1, 1, 1);
-	invs[1] = num(1, 1, 1);
-	REP(i, 2, n)
+	int n = read<int>() - 1;
+	p = 998244353;
+	const int MOD = p;
+	poly f(n + 1);
+	REP(i, 0, n)
 	{
-		invs[i].x1 = 1ll * (MOD1 - MOD1 / i) * invs[MOD1 % i].x1 % MOD1;
-		invs[i].x2 = 1ll * (MOD2 - MOD2 / i) * invs[MOD2 % i].x2 % MOD2;
-		invs[i].x3 = 1ll * (MOD3 - MOD3 / i) * invs[MOD3 % i].x3 % MOD3;
+		int x = read<int>() % MOD;
+		f[i] = num(x, x, x);
 	}
-	cout << (solve(x) + p - solve(y + 1)) % p << endl;
-=======
-	B = sqrt(n);
-	cout << (solve(x) - solve(y + 1) + p) % p << endl;
->>>>>>> 795ce3cf86d2711d1ec0562bcb4ab72eea06f1fd
+	f = Inv(f);
+	REP(i, 0, n) printf("%d%c", fix(f[i]), i == end_i ? '\n' : ' ');
 	return 0;
 }
