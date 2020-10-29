@@ -38,7 +38,8 @@ inline T read()
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-int n, q, a[maxn], fa[maxn];
+int n, q, a[maxn], fa[maxn], rmost[maxn], siz[maxn];
+
 int find(int x) {return fa[x] == x ? fa[x] : fa[x] = find(fa[x]);}
 
 const int N = 1e9;
@@ -58,26 +59,35 @@ unsigned gen()
 
 	return z % N + 1;
 }
+void uni(int x, int y)
+{
+	x = find(x);y = find(y);
+	if (siz[x] > siz[y]) swap(x, y);
+	siz[y] += siz[x];
+	fa[x] = y;
+	rmost[y] = max(rmost[x], rmost[y]);
+}
 int main()
 {
-	file("easiest0");
+	file("easiest");
 	cin >> n >> q >> z;
 	REP(i, 1, n) a[i] = gen();
-	REP(i, 1, n) fa[i] = i;
+	REP(i, 1, n) fa[i] = i, rmost[i] = i, siz[i] = 1;
 	i64 Ans = 0;
 	while (q--)
 	{
 		int l = gen() % n + 1, r = gen() % n + 1;
 		if (l > r) swap(l, r);
 		i64 ans = 0;
-		int x = find(l);
+		int x = rmost[find(l)];
 		while (1)
 		{
 			if (x > r) break;
 			ans += a[x];
 			a[x] = 0;
 			if (x == n) break;
-			x = fa[x] = find(x + 1);
+			uni(x, x + 1);
+			x = rmost[find(x)];
 		}
 		Ans ^= ans;
 	}

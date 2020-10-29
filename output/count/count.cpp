@@ -196,9 +196,6 @@ int main()
 
 	REP(i, 1, k)
 	{
-		/*
-		a = a * b;
-		*/
 		NTT2D(a, nl, nk, 1);
 		REP(x, 0, nl - 1) REP(y, 0, nk - 1)
 			a[x][y] = 1ll * a[x][y] * b[x][y] % MOD;
