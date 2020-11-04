@@ -72,7 +72,6 @@ namespace lca
 	{
 		dfs(rt);
 		REP(i, 2, (1 << w) - 1) Lg[i] = Lg[i >> 1] + 1;
-		cerr << dfs_clock << endl;
 		REP(j, 1, 25)
 			REP(i, 1, dfs_clock - (1 << j) + 1)
 			{

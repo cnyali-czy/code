@@ -52,23 +52,27 @@ inline T read()
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-int n, fac[maxn << 1], Inv[maxn << 1];
-inline i64 C(int n, int m) {return n < m || m < 0 ? 0 : 1ll * fac[n] * Inv[m] % MOD * Inv[n - m] % MOD;}
-
-void init(int n)
-{
-	fac[0] = 1;
-	REP(i, 1, n) fac[i] = 1ll * fac[i - 1] * i % MOD;
-	Inv[n] = inv(fac[n]);
-	DEP(i, n - 1, 0) Inv[i] = (i + 1ll) * Inv[i + 1] % MOD;
-}
+int n;
 
 int main()
 {
 	file("hippocentaur");
 	n = read<int>();
-	init(n << 1);
-	i64 ans = 8 * C(n + n, n) - 3ll * n % MOD * n - 2 * n - 7;
+	int fac = 1;
+	i64 ans = 1;
+	REP(i, 1, n + n)
+	{
+		fac = 1ll * i * fac % MOD;
+		if (i == n)
+		{
+			const int I = inv(fac);
+			(ans *= I) %= MOD;
+			(ans *= I) %= MOD;
+		}
+	}
+	(ans *= fac) %= MOD;
+
+	ans = 8 * ans - 3ll * n % MOD * n - 2 * n - 7;
 	ans = (ans % MOD + MOD) % MOD;
 	cout << ans << endl;
 	return 0;
