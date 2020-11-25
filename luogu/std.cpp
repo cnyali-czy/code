@@ -1,103 +1,20 @@
-#define  REP(i, s, e) for (register int i = s; i <= e; i++)
-#define DREP(i, s, e) for (register int i = s; i >= e; i--)
-#define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
-
-#define chkmax(a, b) a = max(a, b)
-#define chkmin(a, b) a = min(a, b)
-
-#include <bits/stdc++.h>
-
-using namespace std;
-const int maxn = 1e5 + 10;
-
-template <typename T> T read()
-{
-	T ans = 0, p = 1;
-	char c = getchar();
-	while (!isdigit(c))
-	{
-		if (c == '-') p = -1;
-		c = getchar();
-	}
-	while (isdigit(c))
-	{
-		ans = ans * 10 + c - 48;
-		c = getchar();
-	}
-	return ans * p;
-}
-
-struct node
-{
-	int val, id, dis;
-	node *l, *r;
-	node() {l = r = NULL;dis = 0;}
-	node(int _val, int _id, int _dis = 0) : dis(_dis), id(_id), val(_val) {l = r = NULL;}
-};
-int dis(node *A) {return A == NULL ? -1 : A -> dis;}
-
-struct Heap
-{
-	node *root;
-	Heap() {root = NULL;}
-	void init(int val, int id) {root = new node(val, id);}
-	node* merge(node *A, node *B)
-	{
-		if (A == NULL) return B;
-		else if (B == NULL) return A;
-		else
-		{
-			if (A -> val > B -> val || A -> val == B -> val && A -> id > B -> id) swap(A, B);
-			A -> r = merge(A -> r, B);
-			if (dis(A -> l) < dis(A -> r)) swap(A -> l, A -> r);
-			A -> dis = dis(A -> r) + 1;
-			return A;
-		}
-	}
-	pair <int, int> top() {return make_pair(root -> val, root -> id);}
-	void pop() {root = merge(root -> l, root -> r);}
-	Heap operator + (Heap B) {Heap res = *this;res.root = merge(res.root, B.root);return res;}
-	Heap operator += (Heap B) {return *this = *this + B;}
-}H[maxn];
-int fa[maxn];
-int find(int x) {return fa[x] == x ? fa[x] : fa[x] = find(fa[x]);}
-
-bool del[maxn];
-void uni(int x, int y)
-{
-	if (del[x] || del[y]) return;
-	x = find(x);y = find(y);
-	if (x ^ y)
-	{
-		fa[x] = y;
-		H[y] += H[x];
-	}
-}
-int n, m;
-
+#include<cstdio>
+#include<algorithm>
+using namespace std;const int N=1048580;typedef double db;db eps=1e-10;
+int n;db a[N];db res;int up;int siz[N];
 int main()
 {
-#ifdef CraZYali
-	freopen("3377-new-new-new.in", "r", stdin);
-	freopen("std.out", "w", stdout);
-#endif
-	cin >> n >> m;
-	REP(i, 1, n) H[i].init(read<int>(), fa[i] = i);
-	while (m --> 0)
+	scanf("%d",&n);up=(1<<n);
+	for(int i=0;i<up;i++)scanf("%lf",&a[i]);
+	for(int k=1;k<up;k<<=1)//\\FMT板子
+		for(int s=0;s<up;s+=k<<1)
+			for(int i=s;i<s+k;i++)
+			{db a0=a[i];db a1=a[i+k];a[i]=a0;a[i+k]=a0+a1;}
+	for(int i=0;i<up;i++)printf("%.2lf ",a[i]);
+	for(int i=1;i<up;i++){siz[i]+=siz[i>>1]+(i&1);}
+	for(int i=1;i<up;i++)//\\min-max容斥
 	{
-		register int opt = read<int>(), x = read<int>();
-		if (opt == 1 ) 
-		{
-			register int y = read<int>();
-			uni(x, y);
-		}
-		else if (!del[x])
-		{
-			printf("%d %d\n", H[find(x)].top().first, H[find(x)].top().second);
-			del[H[find(x)].top().second] = 1;
-			H[find(x)].pop();
-		}
-		else printf("-1\n");
-	}
-	return 0;
+		if(1-a[(up-1)^i]<eps){printf("INF\n");return 0;}
+		db ex=1/(1-a[(up-1)^i]);if(siz[i]%2){res+=ex;}else {res-=ex;}
+	}printf("%.10lf",res);return 0;//\\拜拜程序~
 }
