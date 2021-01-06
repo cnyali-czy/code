@@ -1,6 +1,10 @@
 /*
 	Problem:	C.cpp
+<<<<<<< HEAD
 	Time:		2020-12-27 09:36
+=======
+	Time:		2020-12-27 14:45
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 	Author:		CraZYali
 	E-Mail:		yms-chenziyang@outlook.com 
 */
@@ -13,8 +17,13 @@
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
 #include <cassert>
+<<<<<<< HEAD
 #include <set>
 #include <queue>
+=======
+#include <algorithm>
+#include <set>
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 #include <iostream>
 #include <cstdio>
 #define int long long
@@ -34,7 +43,11 @@ inline T read()
 	}
 	while (isdigit(c))
 	{
+<<<<<<< HEAD
 		ans = ans * 10 + c - 48;
+=======
+		ans = ans * 10 + (c - 48);
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 		c = getchar();
 	}
 	return ans * flag;
@@ -45,6 +58,7 @@ inline T read()
 int n, m, k;
 int a[maxn];
 
+<<<<<<< HEAD
 int bg[maxn], ne[maxn << 1], to[maxn << 1], w[maxn << 1], e;
 inline void add(int x, int y, int z)
 {
@@ -65,6 +79,8 @@ void link(int x, int y)
 	Add(x, y, k + a[x] - a[y]);
 }
 
+=======
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 namespace SMT
 {
 	int s[maxn << 2], t[maxn << 2];
@@ -128,6 +144,7 @@ namespace SMT
 		}
 	}
 }
+<<<<<<< HEAD
 int b[maxn];
 
 namespace bf
@@ -272,6 +289,57 @@ namespace wa
 	}
 }
 */
+=======
+struct node
+{
+	int l, r;
+	node() {}
+	node(int l = 0, int r = 0) : l(l), r(r) {}
+	inline bool operator < (const node &B) const {return l < B.l;}
+};
+set <node> S;
+#define IT set <node> :: iterator
+IT split(int pos)
+{
+	if (pos > n) return S.end();
+	auto it = S.lower_bound(node(pos));
+	if (it -> l == pos) return it;
+	--it;
+	int L = it -> l, R = it -> r;
+	S.erase(it);
+	S.emplace(L, pos - 1);
+	return S.emplace(pos, R).first;
+}
+inline int A(int x) {return SMT :: query(1, 1, n, x, x);}
+
+void fix(int l, int r)
+{
+	auto itr = split(r + 1), itl = split(l);
+	static int pr[maxn];
+	int N = 0;
+	for (auto it = itl; it != itr; it = S.erase(it))
+		pr[++N] = it -> r;
+	if (N == 1) return;
+	int lst = l - 1;
+	REP(i, 1, N - 1) if (pr[i] > lst)
+		for (int x = pr[i]; x < r; x++)
+		{
+			int ai = A(x), aii = A(x + 1);
+			if (aii > k + ai) SMT :: update(1, 1, n, x + 1, x + 1, k + ai - aii), lst = x;
+			else break;
+		}
+	lst = r + 1;
+	DEP(i, N, 1) if (pr[i] + (i != N) < lst)
+		for (int x = pr[i] + (i != N); x > l; x--)
+		{
+			int aii = A(x), ai = A(x - 1);
+			if (ai > aii + k) SMT :: update(1, 1, n, x - 1, x - 1, k + aii - ai), lst = x;
+			else break;
+		}
+	S.emplace(l, r);
+}
+
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 signed main()
 {
 #ifdef CraZYali
@@ -280,7 +348,23 @@ signed main()
 	n = read<int>();m = read<int>();k = read<int>();
 	REP(i, 1, n) a[i] = read<int>();
 	SMT :: build(1, 1, n);
+<<<<<<< HEAD
 	//wa :: work();
 	bf :: work();
+=======
+	REP(i, 1, n) S.emplace(i, i);
+
+	while (m--)
+	{
+		int opt = read<int>(), l = read<int>(), r = read<int>();
+		if (opt == 1) printf("%lld\n", SMT :: query(1, 1, n, l, r));
+		else if (opt == 2)
+		{
+			split(r + 1);split(l);
+			SMT :: update(1, 1, n, l, r, read<int>());
+		}
+		else fix(l, r);
+	}
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 	return 0;
 }
