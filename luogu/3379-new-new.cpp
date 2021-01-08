@@ -50,18 +50,21 @@ inline T read()
 int n, m, rt;
 namespace lca
 {
-	int st[26][maxn << 1], dfs_clock, dep[maxn], fir[maxn];
+	int id[maxn << 1], A[maxn << 1], N;
+	int st[19][maxn], dfs_clock, dep[maxn], fir[maxn];
 	void dfs(int x, int fa = 0)
 	{
 		dep[x] = dep[fa] + 1;
-		st[0][fir[x] = ++dfs_clock] = x;
+		A[fir[x] = ++dfs_clock] = x;
+		id[fir[x]] = x;
+//		st[0][fir[x] = ++dfs_clock] = x;
 		for (int i = bg[x]; i; i = ne[i]) if (to[i] ^ fa)
 		{
 			dfs(to[i], x);
-			st[0][++dfs_clock] = x;
+			A[++dfs_clock] = x;
 		}
 	}
-	const int w = 13;
+	const int w = 10;
 	int Lg[1 << w];
 	inline int lg(int x)
 	{
@@ -70,10 +73,20 @@ namespace lca
 	}
 	void init()
 	{
-		dfs(rt);
 		REP(i, 2, (1 << w) - 1) Lg[i] = Lg[i >> 1] + 1;
-		REP(j, 1, 25)
-			REP(i, 1, dfs_clock - (1 << j) + 1)
+		dfs(rt);
+		st[0][N = 1] = A[1];
+		REP(i, 2, dfs_clock)
+		{
+			if (dep[A[i]] < dep[st[0][N]]) st[0][N] = A[i];
+			if (id[i])
+			{
+				st[0][++N] = A[i];
+				fir[id[i]] = N;
+			}
+		}
+		REP(j, 1, 18)
+			REP(i, 1, N - (1 << j) + 1)
 			{
 				int u = st[j - 1][i], v = st[j - 1][i + (1 << j - 1)];
 				st[j][i] = dep[u] < dep[v] ? u : v;
@@ -81,8 +94,10 @@ namespace lca
 	}
 	int query(int x, int y)
 	{
+		if (x == y) return x;
 		int l = fir[x], r = fir[y];
 		if (l > r) swap(l, r);
+		r--;
 		int k = lg(r - l + 1);
 		x = st[k][l], y = st[k][r - (1 << k) + 1];
 		return dep[x] < dep[y] ? x : y;
