@@ -1,6 +1,10 @@
 /*
 	Problem:	A.cpp
+<<<<<<< HEAD
+	Time:		2020-12-27 08:45
+=======
 	Time:		2020-12-28 09:22
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 	Author:		CraZYali
 	E-Mail:		yms-chenziyang@outlook.com 
 */
@@ -9,10 +13,17 @@
 #define DEP(i, s, e) for (register int i(s), end_##i(e); i >= end_##i; i--)
 #define DEBUG fprintf(stderr, "Passing [%s] in Line %d\n", __FUNCTION__, __LINE__)
 
+<<<<<<< HEAD
+#define chkmax(a, b) (a < (b) ? a = (b) : a)
+#define chkmin(a, b) (a > (b) ? a = (b) : a)
+
+#include <cmath>
+=======
 inline void chkmin(int &x, int y) {if (x > y) x = y;}
 
 #include <ctime>
 #include <cstring>
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 #include <iostream>
 #include <cstdio>
 
@@ -31,13 +42,22 @@ inline T read()
 	}
 	while (isdigit(c))
 	{
+<<<<<<< HEAD
+		ans = ans * 10 + c - 48;
+=======
 		ans = ans * 10 + (c - 48);
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 		c = getchar();
 	}
 	return ans * flag;
 }
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
+<<<<<<< HEAD
+int n;
+
+int c1(int n) {return n == 0 ? 0 : (int)ceil(log2(n));}
+=======
 
 int n;
 int lg[maxn];
@@ -67,6 +87,7 @@ namespace bf
 		REP(i, 0, n - 1) printf("%d%c", dfs(i, n - i, 0), i == end_i ? '\n' : ' ' );
 	}
 }
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 
 int main()
 {
@@ -74,8 +95,21 @@ int main()
 	file("A");
 #endif
 	n = read<int>();
+<<<<<<< HEAD
+	REP(x, 1, n)
+	{
+		int ans = 1 + c1(n);
+		REP(y, x, n)
+		{
+			int res = 0;
+			ans = max(ans, 2 * c1(n - x + 1) + 1);
+		}
+		printf("%d%c", ans, x == end_x ? '\n' : ' ');
+	}
+=======
 	REP(i, 2, n) lg[i] = lg[i + 1 >> 1] + 1;
 	bf :: work();
 	cerr << clock() * 1. / CLOCKS_PER_SEC << endl;
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 	return 0;
 }

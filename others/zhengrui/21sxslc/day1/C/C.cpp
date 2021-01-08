@@ -1,6 +1,10 @@
 /*
 	Problem:	C.cpp
+<<<<<<< HEAD
+	Time:		2020-12-27 09:36
+=======
 	Time:		2020-12-27 14:45
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 	Author:		CraZYali
 	E-Mail:		yms-chenziyang@outlook.com 
 */
@@ -13,8 +17,13 @@
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
 #include <cassert>
+<<<<<<< HEAD
+#include <set>
+#include <queue>
+=======
 #include <algorithm>
 #include <set>
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 #include <iostream>
 #include <cstdio>
 #define int long long
@@ -34,7 +43,11 @@ inline T read()
 	}
 	while (isdigit(c))
 	{
+<<<<<<< HEAD
+		ans = ans * 10 + c - 48;
+=======
 		ans = ans * 10 + (c - 48);
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 		c = getchar();
 	}
 	return ans * flag;
@@ -45,6 +58,29 @@ inline T read()
 int n, m, k;
 int a[maxn];
 
+<<<<<<< HEAD
+int bg[maxn], ne[maxn << 1], to[maxn << 1], w[maxn << 1], e;
+inline void add(int x, int y, int z)
+{
+	e++;
+	to[e] = y;
+	ne[e] = bg[x];
+	bg[x] = e;
+	w[e] = z;
+}
+void Add(int x, int y, int z)
+{
+	add(x, y, -z);
+}
+queue <int> q;
+bool vis[maxn];
+void link(int x, int y)
+{
+	Add(x, y, k + a[x] - a[y]);
+}
+
+=======
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 namespace SMT
 {
 	int s[maxn << 2], t[maxn << 2];
@@ -108,6 +144,152 @@ namespace SMT
 		}
 	}
 }
+<<<<<<< HEAD
+int b[maxn];
+
+namespace bf
+{
+	void fix(int l, int r)
+	{
+		if (l == r) return;
+		SMT :: dfs(1, 1, n, l, r);
+		REP(i, l, r) bg[i] = 0;e = 0;
+		REP(i, l, r - 1)
+		{
+			Add(i, i + 1, k + (a[i] - a[i + 1]));
+			Add(i + 1, i, k - (a[i] - a[i + 1]));
+		}
+		REP(i, l, r) b[i] = 0;
+		REP(i, l, r) vis[i] = 1, q.push(i);
+		while (q.size())
+		{
+			int x = q.front();q.pop();
+			vis[x] = 0;
+			for (int i = bg[x]; i; i = ne[i])
+				if (b[to[i]] < b[x] + w[i])
+				{
+					b[to[i]] = b[x] + w[i];
+					if (!vis[to[i]]) vis[to[i]] = 1, q.push(to[i]);
+				}
+		}
+		REP(i, l, r) a[i] -= b[i];
+		REP(i, l, r) SMT :: update(1, 1, n, i, i, -b[i]);
+	}
+	void work()
+	{
+		REP(Case, 1, m)
+		{
+			int opt = read<int>(), l = read<int>(), r = read<int>();
+			if (opt == 1) printf("%lld\n", SMT :: query(1, 1, n, l, r));
+			else if (opt == 2) SMT :: update(1, 1, n, l, r, read<int>());
+			else
+			{
+				fix(l, r);
+			}
+		}
+	}
+}
+
+/*
+namespace wa
+{
+	struct node
+	{
+		int l, r;
+		node() {}
+		node(int l = 0, int r = 0) : l(l), r(r) {}
+		inline bool operator < (const node &B) const {return l < B.l;}
+	};
+	set <node> S;
+#define IT set <node> :: iterator
+	IT split(int pos)
+	{
+		if (pos > n) return S.end();
+		auto it = S.lower_bound(node(pos));
+		if (it -> l == pos) return it;
+		--it;
+		int L = it -> l, R = it -> r;
+		S.erase(it);
+		S.emplace(L, pos - 1);
+		return S.emplace(pos, R).first;
+	}
+	void modify_add(int l, int r, int val)
+	{
+		split(r + 1);split(l);
+		SMT :: update(1, 1, n, l, r, val);
+	}
+	int A(int x) {return SMT :: query(1, 1, n, x);}
+	void fix(int l, int r)
+	{
+		auto itr = split(r + 1), itl = split(l);
+		static int L[maxn], R[maxn], pl[maxn], pr[maxn];int N = 0;
+		REP(i, l, r)
+//		for (auto it = itl; it != itr; it++)
+		{
+			++N;
+			auto itt = (node(i,i));
+			auto it = &itt;
+			pl[N] = it -> l;pr[N] = it -> r;
+			L[N] = A(l);R[N] = A(r);
+		}
+		if (N == 1) return;
+		REP(i, 1, N) bg[i] = 0;e = 0;
+		REP(i, 1, N - 1)
+		{
+			Add(i, i + 1, k + (R[i] - L[i + 1]));
+			Add(i + 1, i, k - (R[i] - L[i + 1]));
+		}
+		REP(i, 1, N) b[i] = 0;
+		REP(i, 1, N) vis[i] = 1, q.push(i);
+		while (q.size())
+		{
+			int x = q.front();q.pop();
+			vis[x] = 0;
+			for (int i = bg[x]; i; i = ne[i])
+				if (b[to[i]] < b[x] + w[i])
+				{
+					b[to[i]] = b[x] + w[i];
+					if (!vis[to[i]]) vis[to[i]] = 1, q.push(to[i]);
+				}
+		}
+		static pair <int, int> stk[maxn];int top = 0 ;
+		int lst = b[1], cnt = 0;
+		REP(i, 1, N - 1)
+		{
+			int lst = SMT :: query(1, 1, n, pl[i]), most = pl[i];
+			while (
+			while (most < pr[i] && abs(SMT :: query(1, 1, n, most) - SMT :: query(1, 1, n, most + 1)) == k) most++;
+			SMT :: update(1, 1, n, pl[i], most, -b[i]);
+			most = pr[i];
+			while (most > pl[i] && abs(SMT :: query(1, 1, n, most) - SMT :: query(1, 1, n, most - 1)) == k) most--;
+			SMT :: update(1, 1, n, most, pr[i], -b[i]);
+		}
+		S.erase(itl, itr);
+		S.emplace(l, r);
+	}
+	void work()
+	{
+		REP(i, 1, n) S.emplace(i, i);
+		while (m--)
+		{
+			int opt = read<int>(), l = read<int>(), r = read<int>();
+			if (opt == 1)
+			{
+				printf("%lld\n", SMT :: query(1, 1, n, l, r));
+			}
+			else if (opt == 2)
+			{
+				modify_add(l, r, read<int>());
+			}
+			else
+			{
+				fix(l, r);
+			}
+		}
+	}
+}
+*/
+=======
 struct node
 {
 	int l, r;
@@ -157,6 +339,7 @@ void fix(int l, int r)
 	S.emplace(l, r);
 }
 
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 signed main()
 {
 #ifdef CraZYali
@@ -165,6 +348,10 @@ signed main()
 	n = read<int>();m = read<int>();k = read<int>();
 	REP(i, 1, n) a[i] = read<int>();
 	SMT :: build(1, 1, n);
+<<<<<<< HEAD
+	//wa :: work();
+	bf :: work();
+=======
 	REP(i, 1, n) S.emplace(i, i);
 
 	while (m--)
@@ -178,5 +365,6 @@ signed main()
 		}
 		else fix(l, r);
 	}
+>>>>>>> c7192327a6a74668e86d9a3a81fdc68e3571f230
 	return 0;
 }
