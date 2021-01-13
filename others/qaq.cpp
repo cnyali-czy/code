@@ -12,6 +12,7 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <cassert>
 #include <cstdlib>
 #include <algorithm>
 #include <vector>
@@ -185,13 +186,15 @@ poly Exp(poly f)
 	for (int N = 2; N <= l; N <<= 1)
 	{
 		poly tmp(f.begin(), f.begin() + min(N, n + 1));
+		poly ard = a;
 		a.resize(N);
 		poly ln = Ln(a);
-		NTT(a, N + N, 1);
-		NTT(ln, N + N, 1);
-		NTT(tmp, N + N, 1);
-		REP(i, 0, N + N - 1) a[i] = a[i] * (1ll + MOD - ln[i] + tmp[i]) % MOD;
-		NTT(a, N + N, -1);
+		NTT(a, N, 1);
+		NTT(ln, N, 1);
+		NTT(tmp, N, 1);
+		REP(i, 0, N - 1) a[i] = a[i] * (1ll + MOD - ln[i] + tmp[i]) % MOD;
+		NTT(a, N, -1);
+		REP(i, 0, deg(ard)) a[i] = ard[i];
 	}
 	a.resize(n + 1);
 	return a;
@@ -242,7 +245,7 @@ poly Sqrt(poly f)
 		poly tmp(f.begin(), f.begin() + min(N, n + 1));
 		a.resize(N);
 		tmp = tmp * Inv(a);
-		REP(i, 0, N - 1) a[i] = 1ll * (a[i] + tmp[i]) * inv2 % MOD;
+		REP(i, N / 2, N - 1) a[i] = 1ll * inv2 * tmp[i] % MOD;
 	}
 	a.resize(n + 1);
 	return a;
@@ -314,6 +317,6 @@ int main()
 	int n = read<int>() - 1;
 	poly f(n + 1);
 	REP(i, 0, n) f[i] = read<int>();
-	output(Exp_log2(f));
+	output(Sqrt(f));
 	return 0;
 }
