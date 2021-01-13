@@ -125,7 +125,12 @@ poly Inv(poly f)
 		poly tmp(f.begin(), f.begin() + min(N, n + 1));
 		NTT(a, N + N, 1);
 		NTT(tmp, N + N, 1);
-		REP(i, 0, N + N - 1) a[i] = 1ll * a[i] * (2 + MOD - 1ll * a[i] * tmp[i] % MOD) % MOD;
+		REP(i, 0, N + N - 1)
+		{
+			a[i] = (2 - 1ll * a[i] * tmp[i]) % MOD * a[i] % MOD;
+			if (a[i] < 0) a[i] += MOD;
+		}
+//		REP(i, 0, N + N - 1) a[i] = 1ll * a[i] * (2 + MOD - 1ll * a[i] * tmp[i] % MOD) % MOD;
 		NTT(a, N + N, -1);
 		a.resize(N);
 	}
