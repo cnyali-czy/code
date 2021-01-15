@@ -89,7 +89,7 @@ void output(poly a)
 {
 	REP(i, 0, (int)a.size() - 1) printf("%d%c", a[i], i == end_i ? '\n' : ' ');
 }
-template <typename T>
+	template <typename T>
 inline T read()
 {
 	T ans = 0, flag = 1;
@@ -125,7 +125,7 @@ poly Inv(poly f)
 			a[i] = (2 - 1ll * a[i] * tmp[i]) % MOD * a[i] % MOD;
 			if (a[i] < 0) a[i] += MOD;
 		}
-//		REP(i, 0, N + N - 1) a[i] = 1ll * a[i] * (2 + MOD - 1ll * a[i] * tmp[i] % MOD) % MOD;
+		//		REP(i, 0, N + N - 1) a[i] = 1ll * a[i] * (2 + MOD - 1ll * a[i] * tmp[i] % MOD) % MOD;
 		NTT(a, N + N, -1);
 		a.resize(N);
 	}
@@ -244,12 +244,6 @@ poly Sqrt(poly f)
 	a.resize(n + 1);
 	return a;
 }
-inline poly operator ^ (poly f, int x)
-{
-	f = Ln(f);
-	REP(i, 0, (int)f.size() - 1) f[i] = 1ll * f[i] * x % MOD;
-	return Exp(f);
-}
 inline poly operator + (poly f, poly g)
 {
 	if (f.size() < g.size()) f.resize(g.size());
@@ -299,7 +293,7 @@ void cdq(int l, int r, int L)
 	if (mid + 1 > cdqLIM) return;
 
 	int len = 1;
-//	while (len <= (r - l + mid - l)) len <<= 1; unnecessary?
+	//	while (len <= (r - l + mid - l)) len <<= 1; unnecessary?
 	while (len <= r - l) len <<= 1;
 
 	poly a(mid - l + 1), b;
@@ -335,6 +329,12 @@ poly Exp_log2(const poly &f)
 	inEXP = 1;cdq(0, len - 1, 0);inEXP = 0;
 	::f.resize(n + 1);
 	return ::f;
+}
+inline poly operator ^ (poly f, int x)
+{
+	f = Ln(f);
+	REP(i, 0, (int)f.size() - 1) f[i] = 1ll * f[i] * x % MOD;
+	return Exp_log2(f);
 }
 
 namespace FASTER_CDQ
