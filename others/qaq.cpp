@@ -41,7 +41,7 @@ i64 power_pow(i64 base, int b)
 const int maxn = 1 << 21;
 ui64 NTTtmp[maxn];
 int R[maxn];
-void NTT(poly &a, int n, int flag)
+void NTT(poly &a, int n, int flag, bool NEED = 1)
 {
 	if (a.size() ^ n) a.resize(n);
 	if (flag < 0) reverse(a.begin() + 1, a.end());
@@ -73,6 +73,7 @@ void NTT(poly &a, int n, int flag)
 				NTTtmp[k + l + i] = MOD + x - y;
 			}
 	}
+	if (!NEED) return;
 	REP(i, 0, n - 1) a[i] = NTTtmp[i] % MOD;
 	if (flag < 0)
 	{
@@ -281,7 +282,7 @@ void cdq(int l, int r, int L)
 	if (r - l + 1 <= 64)
 	{
 		f[0] = 1;
-		REP(i, l, r)
+		REP(i, l, min(cdqLIM, r))
 		{
 			ui64 res = 0;
 			REP(j, l, i - 1)
@@ -302,6 +303,7 @@ void cdq(int l, int r, int L)
 	}
 	int mid = l + r >> 1;
 	cdq(l, mid, L + 1);
+	if (mid + 1 > cdqLIM) return;
 
 	int len = 1;
 //	while (len <= (r - l + mid - l)) len <<= 1; unnecessary?
@@ -320,39 +322,12 @@ void cdq(int l, int r, int L)
 	}
 	NTT(a, len, 1);
 	REP(i, 0, len - 1) a[i] = 1ll * a[i] * b[i] % MOD;
-	NTT(a, len, -1);
-	REP(i, mid + 1, r) f[i] = (f[i] + a[i - l]) % MOD;
+	NTT(a, len, -1, 0);
+	const int ilen = inv(len);
+	REP(i, mid + 1, min(cdqLIM, r)) f[i] = (f[i] + NTTtmp[i - l] % MOD * ilen) % MOD;
 
 	cdq(mid + 1, r, L + 1);
 }
-/*
-   poly f, a;
-   void cdq(int l, int r)
-   {
-   if (r - l + 1 <= 128)
-   {
-   REP(i, l, r)
-   {
-   if (!i) a[i] = 1;
-   else a[i] = 1ll * a[i] * invs[i] % MOD;
-   REP(j, i + 1, r) a[j] = (a[j] + 1ll * a[i] * f[j - i]) % MOD;
-   }
-   return;
-   }
-   int mid = l + r >> 1;
-   cdq(l, mid);
-   int len = 1;
-   while (len <= r - l + 1) len <<= 1;
-   poly A(mid - l + 1), B(r - l + 1);
-   REP(i, l, mid)		A[i - l] = a[i];
-   REP(i, 0, r - l)	B[i] = f[i];
-   NTT(A, len, 1);NTT(B, len, 1);
-   REP(i, 0, len - 1) A[i] = 1ll * A[i] * B[i] % MOD;
-   NTT(A, len, -1);
-   REP(i, mid + 1, r) (a[i] += A[i - l]) %= MOD;
-   cdq(mid + 1, r);
-   }
- */
 poly Exp_log2(const poly &f)
 {
 	int n = deg(f);
