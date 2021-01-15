@@ -272,41 +272,118 @@ inline poly operator + (poly f, int x) {(f[0] += x) %= MOD;return f;}
 inline poly operator + (int x, poly f) {(f[0] += x) %= MOD;return f;}
 inline poly operator - (poly f, int x) {f[0] = (f[0] + MOD - x) % MOD;return f;}
 
-poly f, a;
-void cdq(int l, int r)
+int cdqLIM, inEXP;
+poly f, g, mem[30];
+const ui64 LIM = 17e18;
+void cdq(int l, int r, int L)
 {
-	if (r - l + 1 <= 128)
+	if (l > cdqLIM) return;
+	if (r - l + 1 <= 64)
 	{
+		f[0] = 1;
 		REP(i, l, r)
 		{
-			if (!i) a[i] = 1;
-			else a[i] = 1ll * a[i] * invs[i] % MOD;
-			REP(j, i + 1, r) a[j] = (a[j] + 1ll * a[i] * f[j - i]) % MOD;
+			ui64 res = 0;
+			REP(j, l, i - 1)
+			{
+				res += 1ull * f[j] * g[i - j];
+				if (res >= LIM) res %= MOD;
+			}
+			f[i] = (f[i] + res) % MOD;
+			if (inEXP) f[i] = 1ll * f[i] * invs[i] % MOD;
 		}
 		return;
 	}
+	if (l == r)
+	{
+		if (!l) f[l] = 1;
+		if (inEXP) f[l] = 1ll * invs[l] * f[l] % MOD;
+		return;
+	}
 	int mid = l + r >> 1;
-	cdq(l, mid);
+	cdq(l, mid, L + 1);
+
 	int len = 1;
-	while (len <= r - l + 1) len <<= 1;
-	poly A(mid - l + 1), B(r - l + 1);
-	REP(i, l, mid)		A[i - l] = a[i];
-	REP(i, 0, r - l)	B[i] = f[i];
-	NTT(A, len, 1);NTT(B, len, 1);
-	REP(i, 0, len - 1) A[i] = 1ll * A[i] * B[i] % MOD;
-	NTT(A, len, -1);
-	REP(i, mid + 1, r) (a[i] += A[i - l]) %= MOD;
-	cdq(mid + 1, r);
+//	while (len <= (r - l + mid - l)) len <<= 1; unnecessary?
+	while (len <= r - l) len <<= 1;
+
+	poly a(mid - l + 1), b;
+	REP(i, 0, mid - l)	a[i] = f[i + l];
+
+	if (mem[L].size()) b = mem[L];
+	else
+	{
+		b.resize(r - l + 1);
+		REP(i, 0, r - l)	b[i] = g[i];
+		NTT(b, len, 1);
+		mem[L] = b;
+	}
+	NTT(a, len, 1);
+	REP(i, 0, len - 1) a[i] = 1ll * a[i] * b[i] % MOD;
+	NTT(a, len, -1);
+	REP(i, mid + 1, r) f[i] = (f[i] + a[i - l]) % MOD;
+
+	cdq(mid + 1, r, L + 1);
 }
+/*
+   poly f, a;
+   void cdq(int l, int r)
+   {
+   if (r - l + 1 <= 128)
+   {
+   REP(i, l, r)
+   {
+   if (!i) a[i] = 1;
+   else a[i] = 1ll * a[i] * invs[i] % MOD;
+   REP(j, i + 1, r) a[j] = (a[j] + 1ll * a[i] * f[j - i]) % MOD;
+   }
+   return;
+   }
+   int mid = l + r >> 1;
+   cdq(l, mid);
+   int len = 1;
+   while (len <= r - l + 1) len <<= 1;
+   poly A(mid - l + 1), B(r - l + 1);
+   REP(i, l, mid)		A[i - l] = a[i];
+   REP(i, 0, r - l)	B[i] = f[i];
+   NTT(A, len, 1);NTT(B, len, 1);
+   REP(i, 0, len - 1) A[i] = 1ll * A[i] * B[i] % MOD;
+   NTT(A, len, -1);
+   REP(i, mid + 1, r) (a[i] += A[i - l]) %= MOD;
+   cdq(mid + 1, r);
+   }
+ */
 poly Exp_log2(const poly &f)
 {
 	int n = deg(f);
-	prepare(n);
+	int len = 1;
+	while (len <= n) len <<= 1;
+	prepare(len);
+	::f.clear(); ::f.resize(len);
+	::g.clear(); ::g.resize(len);
+	REP(i, 1, n) ::g[i] = 1ll * i * f[i] % MOD;
+	cdqLIM = n;
+	REP(i, 0, 29) mem[i].clear();
+	inEXP = 1;cdq(0, len - 1, 0);inEXP = 0;
 	::f.resize(n + 1);
-	a.clear();a.resize(n + 1);
-	REP(i, 0, n) ::f[i] = 1ll * i * f[i] % MOD;
-	cdq(0, n);
-	return a;
+	return ::f;
+}
+
+namespace FASTER_CDQ
+{
+	int main4721()
+	{
+		int n = read<int>() - 1;
+		int N = 1;while (N <= n) N <<= 1;
+		g.resize(N);f.resize(N);
+		REP(i, 1, n) g[i] = read<int>();
+		cdqLIM = n;
+		REP(i, 0, 29) mem[i].clear();
+		cdq(0, N - 1, 0);
+		f.resize(n + 1);
+		output(f);
+		return 0;
+	}
 }
 
 int main()
@@ -317,6 +394,6 @@ int main()
 	int n = read<int>() - 1;
 	poly f(n + 1);
 	REP(i, 0, n) f[i] = read<int>();
-	output(Sqrt(f));
+	output(Exp_log2(f));
 	return 0;
 }
