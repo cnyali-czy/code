@@ -19,7 +19,7 @@
 using namespace std;
 const int maxn = 1e6 + 10, maxq = 1e6 + 10, MOD = 1e9 + 7;
 
-i64 power_pow(i64 base, int b)
+i64 power_pow(i64 base, i64 b)
 {
 	i64 ans = 1;
 	if (!base && b == MOD - 2) return 1;
@@ -53,27 +53,21 @@ inline T read()
 
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
-int n, x, y, p;
-int f[3005][3005];
-//f[i][j] 过了i轮了，1号猫还在且还剩下了j只猫的概率
+int n, x, y, p ,v;
 
-int fac[maxn], Inv[maxn], invs[maxn], binp[maxn], bin1p[maxn];
+int binp[maxn], bin1p[maxn], binv[maxn], a[maxn], b[maxn];
+void init(int a[], int x, int n)
+{
+	a[0] = 1;
+	REP(i, 1, n) a[i] = 1ll * a[i - 1] * x % MOD;
+}
 void init(int n)
 {
-	fac[0] = Inv[0] = invs[0] = 1;
-	fac[1] = Inv[1] = invs[1] = 1;
-	binp[0] = bin1p[0] = 1;
-	binp[1] = p;bin1p[1] = MOD + 1 - p;
-	REP(i, 2, n)
-	{
-		fac[i] = 1ll * i * fac[i - 1] % MOD;
-		invs[i] = 1ll * invs[MOD % i] * (MOD - MOD / i) % MOD;
-		Inv[i] = 1ll * invs[i] * Inv[i - 1] % MOD;
-		binp[i] = 1ll * p * binp[i - 1] % MOD;
-		bin1p[i] = (MOD + 1ll - p) * bin1p[i - 1] % MOD;
-	}
+	init(binp, p, n);
+	init(binv, v, n);
+	a[0] = 1;REP(i, 1, n) a[i] = (binv[i] - 1ll) * a[i - 1] % MOD;a[n] = inv(a[n]);DEP(i, n - 1, 0) a[i] = a[i + 1] * (binv[i + 1] - 1ll) % MOD;
+	b[0] = 1;REP(i, 1, n) b[i] = (binp[i] - 1ll) * b[i - 1] % MOD;b[n] = inv(b[n]);DEP(i, n - 1, 0) b[i] = b[i + 1] * (binp[i + 1] - 1ll) % MOD;
 }
-i64 C(int n, int m) {return n < m || m < 0 ? 0 : 1ll * fac[n] * Inv[m] % MOD * Inv[n - m] % MOD;}
 
 int main()
 {
@@ -81,27 +75,23 @@ int main()
 	file("C");
 #endif
 	n = read<int>();x = read<int>();y = read<int>();
-	p = x * inv(y) % MOD;
+	p = x * inv(y) % MOD;v = inv(p);
 	init(n);
-	f[0][n] = 1;
-	REP(i, 0, n - 1)
-		REP(j, 1, n - i) if (f[i][j])
-		{
-			REP(k, 0, j - 2) // 箱子带走几个
-			{
-				i64 res = f[i][j] * (MOD + 1ll - invs[j]) % MOD * bin1p[k] % MOD * binp[j - 1 - k] % MOD * C(j - 2, k) % MOD;
-				(f[i + 1][j - k - 1] += res) %= MOD;
-			}
-		}
-	int q = read<int>();
-	while (q--)
+	const int in = inv(n);
+	REP(Case, 1, read<int>())
 	{
-		int t = read<int>();
-		i64 ans = 0;
-		REP(j, 0, n)
-			(ans += f[t - 1][j] * inv(j)) %= MOD;
-		ans += MOD;
-		printf("%lld\n", ans % MOD);
+		int x = read<int>() - 1;
+		if (!x)
+		{
+			printf("%d\n", in);
+			continue;
+		}
+		i64 res = 0;
+		REP(i, 1, x)
+			res = (res + power_pow((1ll - binp[i]) * binv[i] % MOD, x - 1) * (1 - power_pow(1 - binp[i], n - x)) % MOD * binv[i] % MOD * a[i - 1] % MOD * b[x - i]) % MOD;
+		res = res * power_pow(p, 1ll * x * (x + 1) / 2) % MOD * in % MOD;
+		res = (res + MOD) % MOD;
+		cout << res << '\n';
 	}
 	return 0;
 }
