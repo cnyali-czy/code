@@ -395,21 +395,26 @@ namespace ddqz
 #define rson rs, mid + 1, r
 #define mid (l + r >> 1)
 	int ask[MAXN], n, m;
+	const int B = 64;
+	poly cdq(int l, int r)
+	{
+		if (l == r)
+		{
+			poly f(2);
+			f[0] = MOD - ask[l];
+			f[1] = 1;
+			return f;
+		}
+		return cdq(l, mid) * cdq(mid + 1, r);
+	}
 	void init(int p, int l, int r)
 	{
 		MEM[p].clear();
-		if (l == r)
-		{
-			MEM[p].resize(2);
-			MEM[p][0] = MOD - ask[l];
-			MEM[p][1] = 1;
-			return;
-		}
+		if (r - l + 1 <= B) {MEM[p] = cdq(l, r);return;}
 		init(lson);init(rson);
-		MEM[p] = MEM[ls] * MEM[rs];
+		if (p > 1) MEM[p] = MEM[ls] * MEM[rs];
 	}
 	poly ans;
-	const int B = 64;
 	void work(int p, int l, int r, poly f)
 	{
 		if (r - l + 1 <= B)
