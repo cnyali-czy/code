@@ -364,6 +364,7 @@ namespace FASTER_CDQ
 pair <poly, poly> DIV(poly f, poly g)
 {
 	int n = deg(f), m = deg(g);
+	if (n < m) return make_pair(poly(1, 0), f);
 	poly rf = f;reverse(rf.begin(), rf.end());
 	poly rg = g;reverse(rg.begin(), rg.end());
 	rf.resize(n - m + 1);rg.resize(n - m + 1);
@@ -436,15 +437,39 @@ namespace ddqz
 	}
 }
 
+namespace linear_recurrence
+{
+	int calc(poly g, poly ard, int n)
+	{
+		int m = deg(g);
+		if (n < m) return ard[n];
+		g[0] = 1;
+		REP(i, 1, m) g[i] = MOD - g[i];
+		reverse(g.begin(), g.end());
+		poly base(2, 0), ans(1, 1);
+		base[1] = 1;
+	
+		while (n)
+		{
+			if (n & 1) ans = ans * base % g;
+			base = base * base % g;
+			n >>= 1;
+		}
+		int Ans = 0;
+		REP(i, 0, m - 1) Ans = (Ans + 1ll * ans[i] * ard[i]) % MOD;
+		return Ans;
+	}
+}
+
 int main()
 {
 #ifdef CraZYali
 	file("qaq");
 #endif
-	int n = read<int>(), m = read<int>();
-	poly f(n + 1), g(m);
-	REP(i, 0, n) f[i] = read<int>();
-	REP(i, 0, m - 1) g[i] = read<int>();
-	output(ddqz :: solve(f, g), '\n');
+	int n = read<int>(), k = read<int>();
+	poly g(k + 1, 0), ard(k);
+	REP(i, 1, k) g[i] = (MOD + read<int>()) % MOD;
+	REP(i, 0, k - 1) ard[i] = (MOD + read<int>()) % MOD;
+	cout << linear_recurrence :: calc(g, ard, n) << endl;
 	return 0;
 }
