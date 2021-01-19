@@ -81,7 +81,7 @@ void NTT(poly &a, int n, int flag, bool NEED = 1)
 		REP(i, 0, n - 1) a[i] = 1ll * a[i] * invn % MOD;
 	}
 }
-inline int deg(const poly &a) {return a.size() - 1;}
+inline int deg(const poly &a) {return (int)a.size() - 1;}
 inline poly operator * (poly a, poly b)
 {
 	int l = 1, n = deg(a), m = deg(b);
@@ -92,9 +92,9 @@ inline poly operator * (poly a, poly b)
 	a.resize(n + m + 1);
 	return a;
 }
-void output(poly a)
+void output(poly a, const char Split = ' ', const char End = '\n')
 {
-	REP(i, 0, (int)a.size() - 1) printf("%d%c", a[i], i == end_i ? '\n' : ' ');
+	REP(i, 0, (int)a.size() - 1) printf("%d%c", a[i], i == end_i ? End : Split);
 }
 template <typename T>
 inline T read()
@@ -361,14 +361,85 @@ namespace FASTER_CDQ
 	}
 }
 
+pair <poly, poly> DIV(poly f, poly g)
+{
+	int n = deg(f), m = deg(g);
+	poly rf = f;reverse(rf.begin(), rf.end());
+	poly rg = g;reverse(rg.begin(), rg.end());
+	rf.resize(n - m + 1);rg.resize(n - m + 1);
+	poly d = rf * Inv(rg);
+	d.resize(n - m + 1);
+	reverse(d.begin(), d.end());
+	poly r = f - g * d;
+	r.resize(m);
+	return make_pair(d, r);
+}
+
+poly operator / (poly f, poly g) {return DIV(f, g).first;}
+poly operator % (poly f, poly g) {return DIV(f, g).second;}
+int calc(const poly &f, i64 x)
+{
+	int ans = 0;
+	DEP(i, deg(f), 0)
+		ans = (ans * x + f[i]) % MOD;
+	return ans;
+}
+
+namespace ddqz
+{
+	const int MAXN = 64000 + 10;
+	poly MEM[maxn << 2];
+#define ls p << 1
+#define rs p << 1 | 1
+#define lson ls, l, mid
+#define rson rs, mid + 1, r
+#define mid (l + r >> 1)
+	int ask[MAXN], n, m;
+	void init(int p, int l, int r)
+	{
+		MEM[p].clear();
+		if (l == r)
+		{
+			MEM[p].resize(2);
+			MEM[p][0] = MOD - ask[l];
+			MEM[p][1] = 1;
+			return;
+		}
+		init(lson);init(rson);
+		MEM[p] = MEM[ls] * MEM[rs];
+	}
+	poly ans;
+	const int B = 64;
+	void work(int p, int l, int r, poly f)
+	{
+		if (r - l + 1 <= B)
+		{
+			REP(i, l, r) ans[i - 1] = calc(f, ask[i]);
+			return;
+		}
+		work(lson, f % MEM[ls]);
+		work(rson, f % MEM[rs]);
+	}
+	poly solve(poly f, poly g) // unique g
+	{
+		n = deg(f);m = g.size();
+		REP(i, 1, m) ask[i] = g[i - 1];
+		init(1, 1, m);
+		ans.resize(m);
+		work(1, 1, m, f);
+		return ans;
+	}
+}
+
 int main()
 {
 #ifdef CraZYali
 	file("qaq");
 #endif
-	int n = read<int>() - 1;
-	poly f(n + 1);
+	int n = read<int>(), m = read<int>();
+	poly f(n + 1), g(m);
 	REP(i, 0, n) f[i] = read<int>();
-	output(Exp_log2(f));
+	REP(i, 0, m - 1) g[i] = read<int>();
+	output(ddqz :: solve(f, g), '\n');
 	return 0;
 }
