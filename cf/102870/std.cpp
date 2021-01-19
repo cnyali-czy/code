@@ -65,6 +65,7 @@ namespace run{
 			//    cout<<ret<<endl;
 			ret=1LL*ret*qpow(_mn,(1LL*_m*x+1LL*_n*y-1LL*x*y)%(mod-1))%mod;
 			ans=1LL*ans*ret%mod;
+			cout << i << ' ' << _i << ' ' << j << ' ' << _j << ' ' << ret << endl;
 			i=_i,j=_j;
 		}
 		printf("%d\n",ans);
@@ -72,9 +73,7 @@ namespace run{
 	}
 }
 int main(){
-#ifdef my
-	freopen("delta.in","r",stdin);
-	freopen(".out","w",stdout);
-#endif
+	freopen("J.in","r",stdin);
+	freopen("std.out","w",stdout);
 	return run::main();
 }
