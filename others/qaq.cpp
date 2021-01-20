@@ -466,10 +466,10 @@ int main()
 #ifdef CraZYali
 	file("qaq");
 #endif
-	int n = read<int>(), k = read<int>();
-	poly g(k + 1, 0), ard(k);
-	REP(i, 1, k) g[i] = (MOD + read<int>()) % MOD;
-	REP(i, 0, k - 1) ard[i] = (MOD + read<int>()) % MOD;
-	cout << linear_recurrence :: calc(g, ard, n) << endl;
+	int n = read<int>(), m = read<int>();
+	poly f(n + 1), g(m + 1);
+	REP(i, 0, n) f[i] = read<int>();
+	REP(i, 0, m) g[i] = read<int>();
+	output(f * g);
 	return 0;
 }
