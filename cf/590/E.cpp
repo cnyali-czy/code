@@ -143,12 +143,6 @@ int main()
 		str[i][strlen(tmp + 1) + 1] = '\0';
 	}
 	AC :: build();
-#ifdef CraZYali
-	REP(i, 1, n) REP(j, 1, n) printf("%d%c", G[j][i], j == end_j ? '\n' : ' ' );
-//	static string ssr[maxn];
-//	REP(i, 1, n) ssr[i] = (str[i] + 1);
-//	REP(i, 1, n) REP(j, 1, n) if (ssr[i].find(ssr[j])!=string::npos) G[j][i]=1;
-#endif
 	REP(i, 1, n) REP(j, 1, n) if (i ^ j && G[i][j])
 		B[i].emplace_back(j + n);
 	int tot = 0;
@@ -157,33 +151,12 @@ int main()
 		memset(vis, 0, sizeof vis);
 		if (dfs(i)) tot++;
 	}
-//	cout << "match = " << tot << endl;
 	memset(vis, 0, sizeof vis);
 	REP(i, 1, n + n) inmat[mat[i]] = 1;
 	REP(i, 1, n) if (!inmat[i] && !vis[i]) dfs2(i);
-/*
-	   REP(i, 1, n)
-	   {
-	   printf("%s in: ", str[i] + 1);
-	   REP(j, 1, n) if (G[i][j])
-	   printf("(%d, %s) ", j, str[j] + 1);
-	   puts("");
-	   }
-
-	   printf("Binograph:\n");
-	   REP(i, 1, n + n) for (int x : B[i]) printf("%d %d\n", i, x);puts("");
-	   REP(i, 1, n) if (mat[i]) printf("%d %d\n", mat[i], i);
-//	   REP(i, 1, n) REP(j, 1, n) printf("%d%c", G[j][i], j== end_j ? '\n' :  ' ');
-	   */
 	vector <int> ans;
 	REP(i, 1, n) if (vis[i] && !vis[i + n]) ans.emplace_back(i);
 	cout << ans.size() << endl;
 	REP(i, 0, (int)ans.size() - 1) printf("%d%c", ans[i], i == end_i ? '\n' : ' ');
-	for(auto i:ans)for(auto j:ans)if(i^j)
-		if(G[i][j]||G[j][i])
-		{
-			puts("jasiojfkasfldksjlkdf");
-			return 0;
-		}
 	return 0;
 }
