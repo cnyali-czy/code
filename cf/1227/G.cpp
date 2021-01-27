@@ -20,16 +20,17 @@ int main()
 	REP(i, 1, n) scanf("%d", a + i);
 	static int id[maxn];
 	REP(i, 1, n) id[i] = i;
-	sort(id + 1, id + 1 + n, [&](int x, int y) {return a[x] < a[y];});
+	sort(id + 1, id + 1 + n, [&](int x, int y) {return a[x] > a[y];});
 	REP(i, 1, n)
 	{
 		int x = a[id[i]];
-		for (int j = i; x--;)
+		for (int j = n + 1 - (i - 1); x--;)
 		{
 			c[j][id[i]] = 1;
-			j++;if (j > n + 1) j = 1;
+			j--;if (!j) j = n + 1;
 		}
 	}
+	cout << n + 1 << endl;
 	REP(i, 1, n + 1)
 	{
 		REP(j, 1, n) putchar(c[i][j] + 48);
