@@ -181,9 +181,15 @@ inline poly operator - (poly f, int x) {f[0] = (f[0] + MOD - x) % MOD;return f;}
 int cdqLIM, inEXP;
 poly f, g, mem[30];
 const ui64 LIM = 17e18;
+poly haha;
 void cdq(int l, int r, int L)
 {
 	if (l > cdqLIM) return;
+	if (r <= deg(haha))
+	{
+		REP(i, l, min(cdqLIM, r)) f[i] = haha[i];
+		return;
+	}
 	if (r - l + 1 <= 64)
 	{
 		f[0] = 1;
@@ -263,7 +269,8 @@ namespace run
 			poly ard = a;
 			a.resize(N);
 			poly tf = f;tf.resize(N);
-			tf = poly(1, 1) - tf * Exp_log2(a);tf.resize(N);
+			tf = poly(1, 1) - tf * (haha = Exp_log2(a));tf.resize(N);
+			haha.resize(N / 2);
 			tf = Inv(tf);tf[0]--;
 
 			NTT(a, N, 1);REP(i, 0, N - 1) a[i] = 1 + MOD - a[i];
