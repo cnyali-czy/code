@@ -12,6 +12,7 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <ctime>
 #include <cmath>
 #include <cassert>
 #include <cstdlib>
@@ -526,8 +527,10 @@ namespace real
 #define mid (l + r >> 1)
 #define ls p << 1
 #define rs p << 1 | 1
-	void fix(int p, int l, int r, int L, int R)
+	int tag[maxn << 2];
+	void build(int p, int l, int r)
 	{
+		tag[p] = 1;
 		if (l == r)
 		{
 			F[p].resize(2);
@@ -537,14 +540,44 @@ namespace real
 		}
 		else
 		{
-			if (L <= mid) fix(lson, L, R);
-			if (R >  mid) fix(rson, L, R);
+			build(lson);
+			build(rson);
 			F[p] = F[ls] * F[rs];
 		}
+	}
+	bool vis[maxn << 2];int stk[maxn << 2], Top;
+	void maintain(int p, int l, int r, int c)
+	{
+		tag[p] = 1ll * tag[p] * c % MOD;
+		for (int i = 0, bin = 1; i <= r - l + 1; i++, bin = 1ll * bin * c % MOD)
+			F[p][i] = 1ll * F[p][i] * bin % MOD;
+	}
+	void pushdown(int p, int l, int r)
+	{
+		maintain(lson, tag[p]);
+		maintain(rson, tag[p]);
+		tag[p] = 1;
+	}
+	void fix(int p, int l, int r, int L, int R, int val)
+	{
+		if (L <= l && r <= R) return maintain(p, l, r, val);
+		if (tag[p] != 1) pushdown(p, l, r);
+		if (L <= mid) fix(lson, L, R, val);
+		if (R >  mid) fix(rson, L, R, val);
+		stk[++Top] = p;
 	}
 
 	int solve()
 	{
+		sort(stk + 1, stk + 1 + Top);
+		stk[Top + 1] = 0;
+		DEP(i, Top, 1)
+		{
+			int p = stk[i];if (p == stk[i + 1]) continue;
+			F[p] = F[ls] * F[rs];
+		}
+		
+		Top = 0;
 		i64 ans = 0;
 		REP(i, 0, n) (ans += 1ll * v[i] * F[1][i]) %= MOD;
 		return ans;
@@ -556,10 +589,10 @@ namespace real
 		REP(i, 1, n) a[i] = read<int>(), b[i] = read<int>();
 		REP(i, 0, n) v[i] = read<int>();
 		REP(i, 2, n) G[fa[i] = read<int>()].emplace_back(i);
-		dfs(1);
-		
-		dfs2(1, 1);
-		fix(1, 1, n, 1, n);
+
+		dfs(1);dfs2(1, 1);
+		build(1, 1, n);
+
 		int lastans = 0;
 		printf("%d\n", lastans = solve());
 		while (q--)
@@ -575,11 +608,12 @@ namespace real
 			x = X;
 			while (x)
 			{
-				fix(1, 1, n, dfn[top[x]], dfn[x]);
+				fix(1, 1, n, dfn[top[x]], dfn[x], c);
 				x = fa[top[x]];
 			}
 			printf("%d\n", lastans = solve());
 		}
+		cerr << clock() * 1. / CLOCKS_PER_SEC << endl;
 		return 0;
 	}
 }
