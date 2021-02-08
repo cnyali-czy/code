@@ -12,6 +12,7 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <cmath>
 #include <cassert>
 #include <cstdlib>
 #include <algorithm>
@@ -460,16 +461,43 @@ namespace linear_recurrence
 		return Ans;
 	}
 }
+poly fhn(poly f)
+{
+	int n = deg(f);
+	prepare(n);
+	const int block = sqrt(n);
+	static poly p1[1 << 10 | 10], p2[1 << 10 | 10];
+	REP(i, 0, n - 1) f[i] = f[i + 1];f.resize(n);
+	f = Inv(f);
+	p1[0] = poly(1, 1);REP(i, 1, block)
+	{
+		p1[i] = p1[i - 1] * f;
+		p1[i].resize(n);
+	}p1[0].resize(n);
+	p2[0] = poly(1, 1);REP(i, 1, n / block + 1)
+	{
+		p2[i] = p2[i - 1] * p1[block];
+		p2[i].resize(n);
+	}p2[0].resize(n);
+	poly g(n + 1, 0);
+	REP(i, 1, n)
+	{
+		i64 res = 0;
+		int id1 = i % block, id2 = i / block;
+		REP(j, 0, i - 1) (res += 1ll * p1[id1][j] * p2[id2][i - 1 - j]) %= MOD;
+		g[i] = res * invs[i] % MOD;
+	}
+	return g;
+}
 
 int main()
 {
 #ifdef CraZYali
 	file("qaq");
 #endif
-	int n = read<int>(), m = read<int>();
-	poly f(n + 1), g(m + 1);
+	int n = read<int>() - 1;
+	poly f(n + 1);
 	REP(i, 0, n) f[i] = read<int>();
-	REP(i, 0, m) g[i] = read<int>();
-	output(f * g);
+	output(fhn(f));
 	return 0;
 }
