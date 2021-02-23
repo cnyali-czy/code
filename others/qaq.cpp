@@ -495,9 +495,9 @@ int main()
 #ifdef CraZYali
 	file("qaq");
 #endif
-	int n = read<int>() - 1;
-	poly f(n + 1);
+	int n = read<int>(), m = read<int>();
+	poly f(m, 0);
 	REP(i, 0, n) f[i] = read<int>();
-	output(fhn(f));
+	output(Inv(f));
 	return 0;
 }
