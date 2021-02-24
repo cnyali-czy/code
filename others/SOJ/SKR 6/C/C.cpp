@@ -266,7 +266,7 @@ int main()
 	file("C");
 #endif
 	L = read<int>() ;
-	init(max(500, L));
+	init(L);
 	g1.init();poly f1 = g1.solve();
 	g2.init();poly f2 = g2.solve();
 	poly ans = f1 * f2;
