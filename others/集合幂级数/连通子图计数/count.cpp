@@ -146,7 +146,7 @@ poly BitLn(poly f)
 	{
 		poly g(n + 1, 0);
 		REP(j, 0, n) g[j] = mem[j][i];
-		g[0]++;
+//		g[0]++;
 		g = Ln(g);
 		REP(j, 0, n) mem[j][i] = g[j];
 	}
@@ -163,13 +163,13 @@ int main()
 	n = read<int>();m = read<int>();
 	REP(i, 1, m) u[i] = read<int>(), v[i] = read<int>();
 	bf :: work();
+	DEBUG;
 
 	init(n);
 	const int N = 1 << n;
 	poly f(N, 0);
 
-//	f[0] = 1;
-	REP(S, 1, N - 1)
+	REP(S, 0, N - 1)
 	{
 		int res = 1;
 		REP(i, 1, m) if ((S >> (u[i] - 1) & 1) && (S >> (v[i] - 1) & 1))
