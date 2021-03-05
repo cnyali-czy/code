@@ -37,7 +37,7 @@ namespace bf
 		return 0;
 	}
 }
-const int FUCK_ = 1e5, FUCK = 5e6;
+const int FUCK_ = 2e4, FUCK = 3e6;
 int pl[FUCK_], *cur = pl;
 struct vi
 {
@@ -81,7 +81,7 @@ struct vvb
 
 namespace blk
 {
-	const int B = 1500, maxTOT = maxn / B + 5;
+	const int B = 1024, maxTOT = maxn / B + 5;
 	int blg[maxn], L[maxn], R[maxn], t[maxn], tot;
 
 	vi num[B << 2];
@@ -107,7 +107,7 @@ namespace blk
 #define mid (l + r >> 1)
 
 	int cnt;
-	const int fuck = 20;
+	const int fuck = 10;
 	void build(int p, int l, int r)
 	{
 		if (r - l + 1 <= fuck)
@@ -117,15 +117,14 @@ namespace blk
 			REP(i, l, r) v[m++] = t[i];
 			sort(v, v + m);m = unique(v, v + m) - v;v[m++] = inf;
 			num[p].resize(m);REP(i, 0, m - 1) num[p].a[i] = v[i];
-			keep[p].resize(m);
 			REP(i, 0, m - 1)
 			{
-				keep[p].a[i].resize(m);
+				keep[p][i].resize(m);
 				REP(j, 0, m - 1)
 				{
 					int va = v[i], vb = v[j], flg = 1;
 					REP(k, l, r) if (va <= t[k]) flg ^= 1, swap(va, vb);
-					keep[p].a[i].a[j] = flg;
+					keep[p][i].a[j] = flg;
 				}
 			}
 			return;

@@ -37,7 +37,7 @@ namespace bf
 		return 0;
 	}
 }
-const int FUCK_ = 1e5, FUCK = 5e6;
+const int FUCK_ = 1e4, FUCK = 1e6;
 int pl[FUCK_], *cur = pl;
 struct vi
 {
@@ -54,9 +54,8 @@ struct vb
 {
 	bool *a;
 	int n;
-	void resize(int N)
+	void resize(unsigned N)
 	{
-		n = N;
 		a = bcur;bcur += N;
 	}
 	vb() {}
@@ -81,7 +80,7 @@ struct vvb
 
 namespace blk
 {
-	const int B = 1500, maxTOT = maxn / B + 5;
+	const int B = 700, maxTOT = maxn / B + 5;
 	int blg[maxn], L[maxn], R[maxn], t[maxn], tot;
 
 	vi num[B << 2];
@@ -102,69 +101,61 @@ namespace blk
 	}
 #define lson ls, l, mid
 #define rson rs, mid + 1, r
-#define ls p << 1
-#define rs p << 1 | 1
+#define ls (p << 1)
+#define rs (p << 1 | 1)
 #define mid (l + r >> 1)
 
-	int cnt;
-	const int fuck = 20;
 	void build(int p, int l, int r)
 	{
-		if (r - l + 1 <= fuck)
+		static pair <int, pair <int, int> > stk[6666];int TOP = 0;
+		stk[++TOP] = make_pair(p << 1, make_pair(l, r));
+		while (TOP)
 		{
-			static int v[maxn];
-			int m = 0;
-			REP(i, l, r) v[m++] = t[i];
-			sort(v, v + m);m = unique(v, v + m) - v;v[m++] = inf;
-			num[p].resize(m);REP(i, 0, m - 1) num[p].a[i] = v[i];
-			keep[p].resize(m);
-			REP(i, 0, m - 1)
+			int &tp = stk[TOP].first, p = tp >> 1, l = stk[TOP].second.first, r = stk[TOP].second.second;
+			if (l == r)
 			{
-				keep[p].a[i].resize(m);
-				REP(j, 0, m - 1)
+				num[p].resize(2);
+				num[p].a[0] = t[l];num[p].a[1] = inf;
+				keep[p].resize(2);
+				//			keep[p].clear();
+				REP(i, 0, 1) keep[p].a[i] = vb(2, i);
+				TOP--;
+				continue;
+			}
+			if (tp % 2 == 0)
+			{
+				tp |= 1;
+				stk[++TOP] = make_pair(ls << 1, make_pair(l, mid));
+				stk[++TOP] = make_pair(rs << 1, make_pair(mid + 1, r));
+				continue;
+			}
+			TOP--;
+			num[p] = merge(num[ls], num[rs]);int siz = num[p].n;
+			keep[p].resize(siz);
+			static int Li[B], Ri[B];
+
+			for (int i = 0, li = 0, ri = 0; i < siz; i++)
+			{
+				int x = num[p].a[i];
+				while (num[ls].a[li] < x) li++;Li[i] = li;
+				while (num[rs].a[ri] < x) ri++;Ri[i] = ri;
+			}
+
+			int lai = 0, rai = 0;
+			REP(i, 0, siz - 1)
+			{
+				vb res;res.resize(siz);
+				REP(j, 0, siz - 1)
 				{
-					int va = v[i], vb = v[j], flg = 1;
-					REP(k, l, r) if (va <= t[k]) flg ^= 1, swap(va, vb);
-					keep[p].a[i].a[j] = flg;
+					bool flg = 1;
+
+					int li = Li[i], ri = Ri[i], lj = Li[j], rj = Ri[j];
+
+					if (!keep[ls].a[li].a[lj]) swap(ri, rj), flg = 0;
+					res.a[j] = flg ^ (!keep[rs].a[ri].a[rj]);
 				}
+				keep[p].a[i] = res;//.emplace_back(res);
 			}
-			return;
-		}	
-		if (l == r)
-		{
-			num[p].resize(2);
-			num[p].a[0] = t[l];num[p].a[1] = inf;
-			keep[p].resize(2);
-			REP(i, 0, 1) keep[p].a[i] = vb(2, i);
-			return;
-		}
-		build(lson);build(rson);
-		num[p] = merge(num[ls], num[rs]);int siz = num[p].n;
-		keep[p].resize(siz);
-		static int Li[B], Ri[B];
-
-		for (int i = 0, li = 0, ri = 0; i < siz; i++)
-		{
-			int x = num[p].a[i];
-			while (num[ls].a[li] < x) li++;Li[i] = li;
-			while (num[rs].a[ri] < x) ri++;Ri[i] = ri;
-		}
-
-		cnt += siz * siz;
-		int lai = 0, rai = 0;
-		REP(i, 0, siz - 1)
-		{
-			vb res;res.resize(siz);
-			REP(j, 0, siz - 1)
-			{
-				bool flg = 1;
-
-				int li = Li[i], ri = Ri[i], lj = Li[j], rj = Ri[j];
-
-				if (!keep[ls].a[li].a[lj]) swap(ri, rj), flg = 0;
-				res.a[j] = flg ^ (!keep[rs].a[ri].a[rj]);
-			}
-			keep[p].a[i] = res;//.emplace_back(res);
 		}
 	}
 	pair <int, int> tb[maxn << 1];int m;
@@ -186,8 +177,7 @@ namespace blk
 		static int flg[maxn];
 		REP(j, 1, tot)
 		{
-			if (j == 2) cerr << cur - pl << ' ' << cnt << ' ' << bcur - bpl << ' ' << vcur - vpl << ' ' << FUCK << endl;
-			cnt = 0;
+			if (j == 2) cerr << cur - pl << ' ' << bcur - bpl << ' ' << vcur - vpl << ' ' << FUCK << endl;
 			cur = pl;bcur = bpl;vcur = vpl;
 			build(1, L[j], R[j]);
 			static int Id[maxn][2];
