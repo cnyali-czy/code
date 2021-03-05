@@ -88,16 +88,14 @@ const u64 LIM = 17e18;
 poly operator * (poly a, poly b)
 {
 	int n = deg(a), m = deg(b);
-	static u64 res[66666];
+	static u64 res[20];
 	REP(i, 0, n) if (a[i]) REP(j, 0, m) if (b[j])
-	{
 		res[i + j] += (u64) a[i] * b[j];
-		if (res[i + j] >= LIM) res[i + j] %= MOD;
-	}
 	a.resize(n + m + 1);
 	REP(i, 0, n + m)
 	{
-		a[i] = res[i] % MOD;
+		if (res[i] >= MOD) res[i] %= MOD;
+		a[i] = res[i];
 		res[i] = 0;
 	}
 	return a;
@@ -120,13 +118,12 @@ poly P(int x)
 poly Inv(poly f)
 {
 	int n = deg(f);
-	const i64 iv = inv(f[0]);
-	poly g(n + 1, 0);g[0] = iv;
+	poly g(n + 1, 0);g[0] = 1;
 	REP(i, 1, n)
 	{
 		i64 res = 0;
-		REP(j, 0, i - 1) (res += 1ll * g[j] * f[i - j]) %= MOD;
-		g[i] = (MOD - res) * iv % MOD;
+		REP(j, 0, i - 1) res += 1ll * g[j] * f[i - j];
+		g[i] = MOD - res % MOD;
 	}
 	return g;
 }
@@ -134,10 +131,9 @@ poly Mod(poly f, const poly &g) // return f % g
 {
 	int n(deg(f)), m(deg(g));
 	if (m > n) return f;
-	const i64 Invs = inv(g[m]);
 	DEP(i, n, m) if (f[i])
 	{
-		const i64 qaq = Invs * f[i] % MOD;
+		const i64 qaq = f[i];
 		REP(j, 0, m)
 			f[j - m + i] = (f[j - m + i] - g[j] * qaq) % MOD;
 	}
@@ -169,11 +165,14 @@ namespace far
 			N >>= 1;
 		}
 		i64 ans = 0;
-		REP(i, 0, deg(xs)) (ans += 1ll * xs[i] * g[i]) %= MOD;
-		return ans;
+		REP(i, 0, deg(xs)) ans += 1ll * xs[i] * g[i];
+		return ans % MOD;
 	}
 }
 
+int n1, n2;
+i64 ans1, ans2;
+poly fuck;
 void calc()
 {
 //	REP(i, 1, m) printf("%d%c", a[i], i == end_i ? '\n' : ' ');
@@ -189,17 +188,17 @@ void calc()
 		if (x % (k + 1) == 0) (xs *= (MOD - k)) %= MOD;
 	}
 	poly up = down;//need ^ (x + 1)
-	if (ty >= 2) down = down * (P(1) * P(1));
+	down = down * fuck;
 	far :: init(down);
-	i64 res = 0;
+	i64 res1 = 0, res2 = 0;
 	REP(i, 0, deg(up))
 	{
-		int vi = up[i];
 		i64 ri = i * (x + 1ll);
-		if (ri > N) break;
-		(res += 1ll * vi * (far :: calc(N - ri))) %= MOD;
+		if (ri <= n1) res1 += 1ll * up[i] * far :: calc(n1 - ri);
+		if (ri <= n2) res2 += 1ll * up[i] * far :: calc(n2 - ri);
 	}
-	(ans += res * xs) %= MOD;
+	(ans1 += res1 % MOD * xs) %= MOD;
+	(ans2 += res2 % MOD * xs) %= MOD;
 }
 void dfs(int x, int lst = 1)
 {
@@ -216,14 +215,6 @@ void dfs(int x, int lst = 1)
 	}
 }
 
-int f(i64 x, int T)
-{
-	ans = 0;
-	ty = T;
-	N = x;
-	dfs(0);
-	return ans;
-}
 //0 : origin ~ useless now
 //1 : sum ~ useless now
 //2 : sum of sum
@@ -236,7 +227,7 @@ inline i64 s(i64 N)
 	return mem[N] = f(N, 1);
 }
 */
-inline i64 s2(i64 N) {return f(N, 2);}
+//inline i64 s2(i64 N) {return f(N, 2);}
 /*
 inline i64 ss(i64 N)
 {
@@ -250,6 +241,7 @@ int main()
 	file("B");
 #endif
 	cin >> n >> l >> y >> x >> k;
+	fuck.resize(3);fuck[0] = fuck[2] = 1;fuck[1] = MOD - 2;
 	init(n);
 /*	
 	REP(i, 0, 20)
@@ -268,7 +260,9 @@ int main()
 		sum += res;
 	}
 	sum %= MOD;
-	i64 ans = (l - y + 1) * sum - (s2(l) - s2(y - 1));
+	n1 = l;n2 = y - 1;
+	dfs(0);
+	i64 ans = (l - y + 1) * sum - (ans1 - ans2);
 	cout << (ans % MOD + MOD) % MOD << endl;
 	return 0;
 }
