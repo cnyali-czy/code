@@ -24,7 +24,7 @@ using namespace std;
 const int MOD = 998244353, inv3 = (MOD + 1) / 3, inv2 = MOD + 1 >> 1;
 #define poly vector <int> 
 #define i64 long long
-#define ui64 unsigned i64
+#define u64 unsigned i64
 
 i64 power_pow(i64 base, int b)
 {
@@ -39,8 +39,8 @@ i64 power_pow(i64 base, int b)
 }
 #define inv(x) power_pow(x, MOD - 2)
 
-const int maxn = 1 << 21;
-ui64 NTTtmp[maxn];
+const int maxn = 1 << 18;
+u64 NTTtmp[maxn];
 int R[maxn];
 void NTT(poly &a, int n, int flag, bool NEED = 1)
 {
@@ -55,7 +55,6 @@ void NTT(poly &a, int n, int flag, bool NEED = 1)
 		if (i < R[i]) swap(a[i], a[R[i]]);
 	}
 	REP(i, 0, n - 1) NTTtmp[i] = a[i];
-	bool fff = (flag > 0);
 	for (int i = 1, ccc = 0; i < n; i <<= 1, ccc++)
 	{
 		if (!vis[ccc])
@@ -69,7 +68,7 @@ void NTT(poly &a, int n, int flag, bool NEED = 1)
 		for (int k = 0; k < n; k += i + i)
 			for (int l = 0; l < i; l++)
 			{
-				ui64 x(NTTtmp[k + l]), y(NTTtmp[k + l + i] * w[ccc][l] % MOD);
+				u64 x(NTTtmp[k + l]), y(NTTtmp[k + l + i] * w[ccc][l] % MOD);
 				NTTtmp[k + l] = x + y;
 				NTTtmp[k + l + i] = MOD + x - y;
 			}
@@ -201,6 +200,12 @@ poly Exp(poly f)
 	a.resize(n + 1);
 	return a;
 }
+inline poly operator - (poly f, poly g)
+{
+	if (f.size() < g.size()) f.resize(g.size());
+	REP(i, 0, (int)g.size() - 1) f[i] = (f[i] + MOD - g[i]) % MOD;
+	return f;
+}
 namespace Less
 {
 	int II;
@@ -225,6 +230,7 @@ namespace Less
 	}
 	int solve(int n)
 	{
+		if (n == 1) return 1;
 		int a = MOD - 1;
 		while (1)
 		{
@@ -244,10 +250,20 @@ poly Sqrt(poly f)
 	poly a(1, Less :: solve(f[0]));
 	for (int N = 2; N <= l; N <<= 1)
 	{
-		poly tmp(f.begin(), f.begin() + min(N, n + 1));
+		const int hf = N / 2;
+		
+		poly t(hf, 0), ta = a;
+		NTT(ta, hf, 1);
+		REP(i, 0, hf - 1) ta[i] = 1ll * ta[i] * ta[i] % MOD;
+		NTT(ta, hf, -1);
+		REP(i, 0, hf - 1) t[i] = f[i];
+		REP(i, hf, min(N - 1, n)) (t[i - hf] += f[i]) %= MOD;
+		t = t - ta;
+		
+		t = t * Inv(a);
+		
 		a.resize(N);
-		tmp = tmp * Inv(a);
-		REP(i, N / 2, N - 1) a[i] = 1ll * inv2 * tmp[i] % MOD;
+		REP(i, hf, N - 1) a[i] = 1ll * inv2 * t[i - hf] % MOD;
 	}
 	a.resize(n + 1);
 	return a;
@@ -264,19 +280,13 @@ inline poly operator + (poly f, poly g)
 	REP(i, 0, (int)g.size() - 1) (f[i] += g[i]) %= MOD;
 	return f;
 }
-inline poly operator - (poly f, poly g)
-{
-	if (f.size() < g.size()) f.resize(g.size());
-	REP(i, 0, (int)g.size() - 1) f[i] = (f[i] + MOD - g[i]) % MOD;
-	return f;
-}
 inline poly operator + (poly f, int x) {(f[0] += x) %= MOD;return f;}
 inline poly operator + (int x, poly f) {(f[0] += x) %= MOD;return f;}
 inline poly operator - (poly f, int x) {f[0] = (f[0] + MOD - x) % MOD;return f;}
 
 int cdqLIM, inEXP;
 poly f, g, mem[30];
-const ui64 LIM = 17e18;
+const u64 LIM = 17e18;
 void cdq(int l, int r, int L)
 {
 	if (l > cdqLIM) return;
@@ -285,7 +295,7 @@ void cdq(int l, int r, int L)
 		f[0] = 1;
 		REP(i, l, min(cdqLIM, r))
 		{
-			ui64 res = 0;
+			u64 res = 0;
 			REP(j, l, i - 1)
 			{
 				res += 1ull * f[j] * g[i - j];
@@ -495,9 +505,8 @@ int main()
 #ifdef CraZYali
 	file("qaq");
 #endif
-	int n = read<int>(), m = read<int>();
-	poly f(m, 0);
-	REP(i, 0, n) f[i] = read<int>();
-	output(Inv(f));
+	int n(read<int>() - 1);
+	poly f(n + 1);REP(i, 0, n) f[i] = read<int>();
+	output(Sqrt(f));
 	return 0;
 }
