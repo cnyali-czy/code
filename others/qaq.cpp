@@ -92,11 +92,27 @@ inline poly operator * (poly a, poly b)
 	a.resize(n + m + 1);
 	return a;
 }
+inline poly operator + (poly f, int x) {(f[0] += x) %= MOD;return f;}
+inline poly operator + (int x, poly f) {(f[0] += x) %= MOD;return f;}
+inline poly operator - (poly f, int x) {f[0] = (f[0] + MOD - x) % MOD;return f;}
+inline poly operator + (poly f, poly g)
+{
+	if (f.size() < g.size()) f.resize(g.size());
+	REP(i, 0, (int)g.size() - 1) (f[i] += g[i]) %= MOD;
+	return f;
+}
+inline poly operator - (poly f, poly g)
+{
+	if (f.size() < g.size()) f.resize(g.size());
+	REP(i, 0, (int)g.size() - 1) f[i] = (f[i] + MOD - g[i]) % MOD;
+	return f;
+}
+
 void output(poly a, const char Split = ' ', const char End = '\n')
 {
 	REP(i, 0, (int)a.size() - 1) printf("%d%c", a[i], i == end_i ? End : Split);
 }
-template <typename T>
+	template <typename T>
 inline T read()
 {
 	T ans = 0, flag = 1;
@@ -124,17 +140,25 @@ poly Inv(poly f)
 	poly a(1, inv(f[0]));
 	for (int N = 2; N <= l; N <<= 1)
 	{
-		poly tmp(f.begin(), f.begin() + min(N, n + 1));
-		NTT(a, N + N, 1);
-		NTT(tmp, N + N, 1);
-		REP(i, 0, N + N - 1)
-		{
-			a[i] = (2 - 1ll * a[i] * tmp[i]) % MOD * a[i] % MOD;
-			if (a[i] < 0) a[i] += MOD;
-		}
-//		REP(i, 0, N + N - 1) a[i] = 1ll * a[i] * (2 + MOD - 1ll * a[i] * tmp[i] % MOD) % MOD;
-		NTT(a, N + N, -1);
+		const int hf = N / 2;
+		poly tf(N, 0), ta = a;
+		REP(i, 0, min(n, N - 1)) tf[i] = f[i];
+
+		NTT(ta, N, 1);
+		NTT(tf, N, 1);
+		REP(i, 0, N - 1) tf[i] = 1ll * ta[i] * tf[i] % MOD;
+		NTT(tf, N, -1);
+		(tf[0] += MOD - 1) %= MOD;
+
+		poly tta(hf, 0);
+		REP(i, hf, N - 1) tta[i - hf] = tf[i];
+		NTT(tta, N, 1);
+		REP(i, 0, N - 1) tta[i] = 1ll * tta[i] * ta[i] % MOD;
+		NTT(tta, N, -1);
+
+		//		tta = tta * a;
 		a.resize(N);
+		REP(i, hf, min(n, N - 1)) a[i] = (MOD - tta[i - hf]) % MOD;
 	}
 	a.resize(n + 1);
 	return a;
@@ -200,12 +224,6 @@ poly Exp(poly f)
 	a.resize(n + 1);
 	return a;
 }
-inline poly operator - (poly f, poly g)
-{
-	if (f.size() < g.size()) f.resize(g.size());
-	REP(i, 0, (int)g.size() - 1) f[i] = (f[i] + MOD - g[i]) % MOD;
-	return f;
-}
 namespace Less
 {
 	int II;
@@ -251,7 +269,7 @@ poly Sqrt(poly f)
 	for (int N = 2; N <= l; N <<= 1)
 	{
 		const int hf = N / 2;
-		
+
 		poly t(hf, 0), ta = a;
 		NTT(ta, hf, 1);
 		REP(i, 0, hf - 1) ta[i] = 1ll * ta[i] * ta[i] % MOD;
@@ -259,30 +277,15 @@ poly Sqrt(poly f)
 		REP(i, 0, hf - 1) t[i] = f[i];
 		REP(i, hf, min(N - 1, n)) (t[i - hf] += f[i]) %= MOD;
 		t = t - ta;
-		
+
 		t = t * Inv(a);
-		
+
 		a.resize(N);
 		REP(i, hf, N - 1) a[i] = 1ll * inv2 * t[i - hf] % MOD;
 	}
 	a.resize(n + 1);
 	return a;
 }
-inline poly operator ^ (poly f, int x)
-{
-	f = Ln(f);
-	REP(i, 0, (int)f.size() - 1) f[i] = 1ll * f[i] * x % MOD;
-	return Exp(f);
-}
-inline poly operator + (poly f, poly g)
-{
-	if (f.size() < g.size()) f.resize(g.size());
-	REP(i, 0, (int)g.size() - 1) (f[i] += g[i]) %= MOD;
-	return f;
-}
-inline poly operator + (poly f, int x) {(f[0] += x) %= MOD;return f;}
-inline poly operator + (int x, poly f) {(f[0] += x) %= MOD;return f;}
-inline poly operator - (poly f, int x) {f[0] = (f[0] + MOD - x) % MOD;return f;}
 
 int cdqLIM, inEXP;
 poly f, g, mem[30];
@@ -317,7 +320,7 @@ void cdq(int l, int r, int L)
 	if (mid + 1 > cdqLIM) return;
 
 	int len = 1;
-//	while (len <= (r - l + mid - l)) len <<= 1; unnecessary?
+	//	while (len <= (r - l + mid - l)) len <<= 1; unnecessary?
 	while (len <= r - l) len <<= 1;
 
 	poly a(mid - l + 1), b;
@@ -354,6 +357,12 @@ poly Exp_log2(const poly &f)
 	::f.resize(n + 1);
 	return ::f;
 }
+inline poly operator ^ (poly f, int x)
+{
+	f = Ln(f);
+	REP(i, 0, (int)f.size() - 1) f[i] = 1ll * f[i] * x % MOD;
+	return Exp(f);
+}
 
 namespace FASTER_CDQ
 {
@@ -387,8 +396,8 @@ pair <poly, poly> DIV(poly f, poly g)
 	return make_pair(d, r);
 }
 
-poly operator / (poly f, poly g) {return DIV(f, g).first;}
-poly operator % (poly f, poly g) {return DIV(f, g).second;}
+inline poly operator / (poly f, poly g) {return DIV(f, g).first;}
+inline poly operator % (poly f, poly g) {return DIV(f, g).second;}
 int calc(const poly &f, i64 x)
 {
 	int ans = 0;
@@ -459,7 +468,7 @@ namespace linear_recurrence
 		reverse(g.begin(), g.end());
 		poly base(2, 0), ans(1, 1);
 		base[1] = 1;
-	
+
 		while (n)
 		{
 			if (n & 1) ans = ans * base % g;
@@ -507,6 +516,6 @@ int main()
 #endif
 	int n(read<int>() - 1);
 	poly f(n + 1);REP(i, 0, n) f[i] = read<int>();
-	output(Sqrt(f));
+	output(Inv(f));
 	return 0;
 }

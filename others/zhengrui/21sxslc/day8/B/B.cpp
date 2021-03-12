@@ -145,17 +145,25 @@ poly Inv(poly f)
 	poly a(1, inv(f[0]));
 	for (int N = 2; N <= l; N <<= 1)
 	{
-		poly tmp(f.begin(), f.begin() + min(N, n + 1));
-		NTT(a, N + N, 1);
-		NTT(tmp, N + N, 1);
-		REP(i, 0, N + N - 1)
-		{
-			a[i] = (2 - 1ll * a[i] * tmp[i]) % MOD * a[i] % MOD;
-			if (a[i] < 0) a[i] += MOD;
-		}
-//		REP(i, 0, N + N - 1) a[i] = 1ll * a[i] * (2 + MOD - 1ll * a[i] * tmp[i] % MOD) % MOD;
-		NTT(a, N + N, -1);
+		const int hf = N / 2;
+		poly tf(N, 0), ta = a;
+		REP(i, 0, min(n, N - 1)) tf[i] = f[i];
+
+		NTT(ta, N, 1);
+		NTT(tf, N, 1);
+		REP(i, 0, N - 1) tf[i] = 1ll * ta[i] * tf[i] % MOD;
+		NTT(tf, N, -1);
+		(tf[0] += MOD - 1) %= MOD;
+
+		poly tta(hf, 0);
+		REP(i, hf, N - 1) tta[i - hf] = tf[i];
+		NTT(tta, N, 1);
+		REP(i, 0, N - 1) tta[i] = 1ll * tta[i] * ta[i] % MOD;
+		NTT(tta, N, -1);
+
+		//		tta = tta * a;
 		a.resize(N);
+		REP(i, hf, min(n, N - 1)) a[i] = (MOD - tta[i - hf]) % MOD;
 	}
 	a.resize(n + 1);
 	return a;
