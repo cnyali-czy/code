@@ -34,12 +34,13 @@ inline P operator * (P p, double B) {return P(B * p.x, B * p.y);}
 inline P operator * (double B, P p) {return P(B * p.x, B * p.y);}
 #define fi first
 #define se second
+double L[maxn * 3];
 pair <P, int> go(P x, int cur, double need = C / 2)
 {
 	need += (x - a[cur]).len();
 	while (need > eps)
 	{
-		double full = (a[cur + 1] - a[cur]).len();
+		double full = L[cur];
 		if (need > full)
 		{
 			need -= full;
@@ -75,7 +76,8 @@ int main()
 #endif
 	cin >> n;
 	REP(i, 0, n - 1) a[i].input(), a[i + n + n] = a[i + n] = a[i];
-	REP(i, 0, n - 1) C += (a[i] - a[i + 1]).len();
+	REP(i, 0, n - 1) L[i] = L[i + n] = L[i + n + n] = (a[i + 1] - a[i]).len();
+	REP(i, 0, n - 1) C += L[i];//(a[i] - a[i + 1]).len();
 	REP(i, 1, n - 2) S += (a[i] - a[0]) * (a[i + 1] - a[0]);S /= 2;
 	cerr << C << ' ' << S << endl;
 
