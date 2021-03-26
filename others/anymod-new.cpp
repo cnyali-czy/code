@@ -5,6 +5,7 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
+#include <cassert>
 #include <map>
 #include <ctime>
 #include <cstring>
@@ -43,7 +44,7 @@ const u64 LIM = 17e18;
 inline int deg(const poly &f) {return (int)f.size() - 1;}
 
 int p;
-const int p1 = 998244353, p2 = 104857601, p3 = 1004535809;
+const int p1 = (5 << 25) + 1, p2 = (7 << 26) + 1, p3 = 998244353;
 
 i64 power_pow(i64 base, int b, const int MOD)
 {
@@ -56,23 +57,23 @@ i64 power_pow(i64 base, int b, const int MOD)
 	return ans;
 }
 #define inv(x, P) power_pow(x, P - 2, P)
-const __int128 i1 = inv(1ll * p2 * p3 % p1, p1);
-const __int128 i2 = inv(1ll * p1 * p3 % p2, p2);
-const __int128 i3 = inv(1ll * p1 * p2 % p3, p3);
-const __int128 lcm = (__int128)p1 * p2 * p3;
-const __int128 w1 = i1 * p2 * p3 % lcm, w2 = i2 * p1 * p3 % lcm, w3 = i3 * p1 * p2 % lcm; 
 struct num
 {
 	u64 v1, v2, v3;
 	num() {}
-	num(const u64 &v1, const u64 &v2, const u64 &v3) : v1(v1), v2(v2), v3(v3) {}
-	inline num operator + (num B) {return num(v1 + B.v1, v2 + B.v2, v3 + B.v3);}
-	inline num operator - (num B) {return num(v1 - B.v1, v2 - B.v2, v3 - B.v3);}
-	inline num operator * (num B) {return num(v1 * B.v1 % p1, v2 * B.v2 % p2, v3 * B.v3 % p3);}
-	int real()
+	inline num(const u64 &v1, const u64 &v2, const u64 &v3) : v1(v1), v2(v2), v3(v3) {}
+	inline num operator + (const num &B) {return num(v1 + B.v1, v2 + B.v2, v3 + B.v3);}
+	inline num operator - (const num &B) {return num(v1 - B.v1, v2 - B.v2, v3 - B.v3);}
+	inline num operator * (const num &B) {return num(v1 * B.v1 % p1, v2 * B.v2 % p2, v3 * B.v3 % p3);}
+	inline int real()
 	{
 		static const int MOD = p;
-		return (v1 * w1 + v2 * w2 + v3 * w3) % lcm % MOD;
+
+		static const i64 mod_1_2 = 1ll * p1 * p2, moded_1_2 = mod_1_2 % MOD;
+		static const int inv_1 = inv(p1, p2), inv_2 = inv(mod_1_2 % p3, p3);
+
+		u64 x = (v2 + p2 - v1) % p2 * inv_1 % p2 * p1 + v1;
+		return ((v3 + p3 - x % p3) * inv_2 % p3 * moded_1_2 + x) % MOD;
 	}
 };
 const num M(p1, p2, p3);
@@ -126,7 +127,6 @@ using Poly :: NTT;
 
 poly operator * (poly f, poly g)
 {
-	static const int MOD = p;
 	int N = deg(f), M = deg(g), K = N + M;
 	int len = 1;
 	while (len <= N + M) len <<= 1;
