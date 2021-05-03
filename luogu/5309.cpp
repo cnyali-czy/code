@@ -68,10 +68,10 @@ namespace SUM
 		return res % MOD;
 	}
 }
-int s[450][450], fklty[maxn], all;
+int s[60][60], fklty[60], all;
 inline int sum(int x, int y, const int B)
 {
-	i64 res = SUM :: query(y) + MOD - SUM :: query(x);
+	u64 res = SUM :: query(y) + MOD - SUM :: query(x);
 	if (y <= B)
 	{
 		REP(i, x + 1, y) res += fklty[i];
@@ -81,13 +81,13 @@ inline int sum(int x, int y, const int B)
 	{
 		REP(i, 1, x) res += MOD - fklty[i];
 		REP(k, 1, B) REP(b, 1, k) if (s[k][b])
-			(res += 1ll * (y - b) / k * s[k][b]) %= MOD;
+			res += 1llu * (y - b) / k * s[k][b];
 		res += all;
 	}
 	else
 	{
 		REP(k, 1, B) REP(b, 1, k) if (s[k][b])
-			(res += 1ll * ((y - b) / k - (x - b) / k + MOD) * s[k][b]) %= MOD;
+			res += 1llu * ((y - b) / k - (x - b) / k) * s[k][b];
 	}
 	return res % MOD;
 }
