@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <bitset>
 #include <cstdio>
+#define i64 long long
 
 using namespace std;
 const int maxn = 100000 + 10;
@@ -22,31 +23,6 @@ void file(string s)
 }
 
 int n, d, k, x;
-/*
-   namespace violence
-   {
-   bitset <21> b[maxn];
-   void work()
-   {
-   REP(i, 1, n)
-   REP(j, 1, d)
-   {
-   scanf("%d", &x);
-   x %= k;
-   if (x * x % k) b[i].set(j);
-   }
-   REP(i, 1, n)
-   REP(j, i+1, n)
-   if ((b[id[i]] & b[id[j]]).count() % k == 0)
-   {
-   cout << b[id[i]] << '\n' << b[id[j]] << endl;
-   printf("%d %d\n", min(id[i], id[j]), max(id[i], id[j]));
-   return;
-   }
-   cout << -1 << endl;
-   }
-   }
- */
 struct vector
 {
 	int *x;
@@ -61,9 +37,9 @@ struct vector
 	vector operator += (vector B) {return *this = *this + B;}
 	int operator * (vector B)
 	{
-		int res = 0;
-		REP(i, 1, d) res += x[i] * B.x[i];
-		return res;
+		int sum = 0;
+		REP(i, 1, d) sum += x[i] * B.x[i];
+		return sum;
 	}
 }v[maxn], s;
 namespace two
@@ -78,8 +54,8 @@ namespace two
 			}
 		REP(i, 1, n)
 		{
-			int res = v[i] * s & 1;
-			if (res ^ ((i-1) & 1))
+			int sum = v[i] * s & 1;
+			if (sum ^ ((i-1) & 1))
 				REP(j, 1, i-1)
 					if (v[i] * v[j] % 2 == 0)
 					{
@@ -95,6 +71,39 @@ namespace three
 {
 	void work()
 	{
+		REP(i, 1, n)
+			REP(j, 1, d)
+			{
+				scanf("%d", v[i].x + j);
+				v[i].x[j] %= 3;
+			}
+		REP(i, 1, n)
+		{
+			i64 sum = 0;
+			/*
+			REP(j, 1, i - 1)
+			{
+				int x = 0;
+				REP(l, 1, d) x += v[i].x[l] * v[j].x[l];
+				sum += x * x;
+			}*/
+			static int s[105][105];
+			REP(l1, 1, d) REP(l2, 1, d)
+			{
+				i64 res = s[l1][l2];
+//				REP(j, 1, i - 1)
+//					res += v[j].x[l1] * v[j].x[l2];
+				(sum += res * v[i].x[l1] * v[i].x[l2]) %= 3;
+			}
+			if (sum % 3 != (i - 1) % 3)
+				REP(j, 1, i - 1) if (v[i] * v[j] % 3 == 0)
+				{
+					printf("%d %d\n", j, i);
+					return;
+				}
+			REP(l1, 1, d) REP(l2, 1, d)
+				(s[l1][l2] += v[i].x[l1] * v[i].x[l2]) %= 3;
+		}
 		cout << -1 << endl;
 	}
 }
