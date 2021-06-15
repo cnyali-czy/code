@@ -4,16 +4,30 @@
 #include <vector>
 #include <iostream>
 #include <cstdio>
+#define i64 long long
 
 using namespace std;
 inline int read() {int x;scanf("%d", &x);return x;}
 
 const int maxn = 1e5 + 10, maxm = 2e5 + 10;
 
-int n, m;
+int n, m, A, B, C;
 vector <int> G[maxn];
-vector <int> fk[2333];
 inline int id(int x, int y) {return (x - 1) * n + y;}
+int col[maxn];
+bool dfs(int x)
+{
+	bool flg = 1;
+	for (int y : G[x])
+		if (!col[y])
+		{
+			col[y] = 3 - col[x];
+			flg &= dfs(y);
+		}
+		else flg &= (col[y] == 3 - col[x]);
+	return flg;
+}
+
 int main()
 {
 #ifdef CraZYali
@@ -27,9 +41,31 @@ int main()
 		G[x].emplace_back(y);
 		G[y].emplace_back(x);
 	}
-	REP(a, 1, n) for (int c : G[a])
-		REP(b, 1, n) for (int d : G[b])
-			fk[id(a, b)].emplace_back(id(c, d));
-	REP(x, 1, id(n, n)) for (int y : fk[x]) if (x < y) printf("%d %d\n", x, y);
+	REP(i, 1, n) if (!col[i])
+		if (!G[i].size()) C++;
+		else
+		{
+			col[i] = 1;
+			if (dfs(i)) B++;
+			else A++;
+		}
+	i64 ans = 0, s = 0;
+	REP(i, 1, A)
+	{
+		ans += 1 + 2 * s;
+		s++;
+	}
+	REP(i, 1, B)
+	{
+		ans += (1 + s << 1);
+		s += 2;
+	}
+	s = n - C;
+	REP(i, 1, C)
+	{
+		ans += 1 + 2 * s;
+		s++;
+	}
+	cout << ans << endl;
 	return 0;
 }
