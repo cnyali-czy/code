@@ -69,6 +69,11 @@ void uni(int x, int y)
 bool vis[maxn];
 vector <int> vec[maxn];
 
+int stk[maxn], top, cir[maxm], c;
+void findcircle(int x, int fa = 0)
+{
+}
+
 signed main()
 {
 #ifdef CraZYali
@@ -85,7 +90,13 @@ signed main()
 	}
 	REP(i, 1, n + n) vec[find(i)].emplace_back(i);
 	REP(i, 1, n + n) if (find(i) == i)
-	{
-	}
+		if (ed[i] == sz[i] - 1) // tree
+		{
+		}
+		else // tree on circle
+		{
+			c = 0;
+			findcircle(i);
+		}
 	return 0;
 }
