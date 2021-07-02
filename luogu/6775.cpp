@@ -1,6 +1,6 @@
 /*
 	Problem:	6775.cpp
-	Time:		2020-08-30 18:58
+	Time:		2021-07-02 15:36
 	Author:		CraZYali
 	E-Mail:		yms-chenziyang@outlook.com 
 */
@@ -12,13 +12,16 @@
 #define chkmax(a, b) (a < (b) ? a = (b) : a)
 #define chkmin(a, b) (a > (b) ? a = (b) : a)
 
-#include <cassert>
+#include <bitset>
+#include <vector>
 #include <algorithm>
+#include <set>
 #include <iostream>
 #include <cstdio>
+#define int long long
 
 using namespace std;
-const int maxn = 500 + 5, maxm = 5000 + 10;
+const int maxn = 500 + 5, maxk = 5000 + 5;
 
 	template <typename T>
 inline T read()
@@ -32,7 +35,7 @@ inline T read()
 	}
 	while (isdigit(c))
 	{
-		ans = ans * 10 + c - 48;
+		ans = ans * 10 + (c - 48);
 		c = getchar();
 	}
 	return ans * flag;
@@ -41,99 +44,53 @@ inline T read()
 #define file(FILE_NAME) freopen(FILE_NAME".in", "r", stdin), freopen(FILE_NAME".out", "w", stdout)
 
 int n, m, k, a[maxn];
-bool flag;
 
-bool t[maxm];
-int I[maxm], X[maxm], J[maxm], Y[maxm];
+bool ist2;
+bool del[maxn];int deled;
 
-void output(int End = m)
+namespace greedy
 {
-	REP(i, 1, End)
-		if (t[i]) printf("%d %d %d %d\n", I[i], X[i], J[i], Y[i]);
-		else printf("%d %d\n", I[i], X[i]);
-}
-
-void dfs(int x)
-{
-	if (flag) return;
-//	REP(i, 1, n) printf("%d%c", a[i], i == end_i ? '\n' : ' ');
-//	output(x);puts("");
-	if (x == m)
+	struct cmp
 	{
-		flag = 1;
-		output();
-	}
-	else
-	{
-		x++;
-		int Min = 0;
-		REP(i, 1, n) if (a[i] && (!Min || a[i] < a[Min])) Min = i;
-		if (a[Min] > k) return;
-		if (a[Min] == k)
-		{
-			t[x] = 0;
-			I[x] = Min;
-			X[x] = k;
-			a[Min] = 0;
-			dfs(x);
-			if (flag) return;
-			a[Min] = k;
-		}
-		REP(i, 1, n) if (i != Min && a[i] && a[i] + a[Min] >= k)
-		{
-			t[x] = 1;
-			I[x] = Min;
-			J[x] = i;
-			X[x] = a[Min];a[Min] -= X[x];
-			Y[x] = k - X[x];a[i] -= Y[x];
-			dfs(x);
-			if (flag) return;
-			a[Min] += X[x];a[i] += Y[x];
-/*
-			if (a[i] > k) continue;
-			Y[x] = a[i];a[i] -= Y[x];
-			X[x] = k - Y[x];a[Min] -= X[x];
-			dfs(x);
-			if (flag) return;
-			a[Min] += X[x];a[i] += Y[x];
-			*/
-		}
-	}
-}
-
-namespace shit
-{
+		inline bool operator () (int x, int y) {return a[x] > a[y];}
+	};
+	multiset <int, cmp> s;
 	void work()
 	{
-		int N = 0;
-		REP(i, 1, n)
-			while (a[i] >= k)
-			{
-				++N;
-				if (N > m) goto gg;
-				I[N] = i;
-				X[N] = k;
-				a[i] -= k;
-			}
-		while (1)
+		int sum = 0;REP(i, 1, n) if (!del[i]) sum += a[i];
+		if (sum != m * k) cerr << ist2 << endl, DEBUG;
+		s.clear();REP(i, 1, n) if (!del[i]) s.emplace(i);
+		REP(i, n - deled, m)
 		{
-			int Min = 0, Max = 0;
-			REP(i, 1, n) if (a[i] && (!Min || a[i] < a[Min])) Min = i;
-			REP(i, 1, n) if (a[i] && (!Max || a[i] > a[Max]) && Max != Min) Max = i;
-			++N;
-			if (N > m) goto gg;
-			if (a[Min] + a[Max] < k) goto gg;
-			I[N] = Min;J[N] = Max;
-			X[N] = a[Min];Y[N] = k - a[Min];
-			a[Min] -= X[N];a[Max] -= Y[N];
+			int x = *s.begin();s.erase(s.begin());
+			printf("%d %d\n", x, k);
+			a[x] -= k;
+			if (a[x]) s.emplace(x);
 		}
-		if (N == m) output();
-		
-gg:		puts("-1");
+		REP(i, 1, n - deled - 1)
+		{
+			int x = *s.begin();s.erase(s.begin());
+			if (s.size())
+			{
+				int y = *(--s.end());s.erase(--s.end());
+				printf("%d %d %d %d\n", x, k - a[y], y, a[y]);
+				a[x] -= k - a[y];a[y] = 0;
+				if (a[x]) s.emplace(x);
+			}
+			else
+			{
+				printf("%d %d\n", x, k);
+				a[x] -= k;
+				if (a[x]) s.emplace(x);
+			}
+		}
 	}
 }
 
-int main()
+const int N = maxn * maxk - 5;
+bitset <N + N + 10> f[maxn];
+
+signed main()
 {
 #ifdef CraZYali
 	file("6775");
@@ -141,18 +98,51 @@ int main()
 	register int T = read<int>();
 	REP(Case, 1, T)
 	{
-		n = read<int>();
-		m = read<int>();
-		k = read<int>();
+		n = read<int>();m = read<int>();k = read<int>();
 		REP(i, 1, n) a[i] = read<int>();
-		if (m > n - 2)
+		if (m >= n - 1) ist2 = 0, greedy :: work();
+		else
 		{
-			shit :: work();
-			continue;
+			ist2 = 1;
+			if (n <= 3) {puts("-1");continue;}
+			f[0][N] = 1;
+			REP(i, 1, n) f[i].reset();
+			REP(i, 1, n)
+			{
+				if (a[i] >= k) f[i] = f[i - 1] | (f[i - 1] << (a[i] - k));
+				else f[i] = f[i - 1] | (f[i - 1] >> (k - a[i]));
+			}
+			REP(i, 1, n) if (f[i][N - k])
+			{
+				vector <int> vec;
+				int x = -k;
+				static bool vis[maxn];
+				REP(i, 1, n) vis[i] = 0;
+				DEP(j, i, 1) if (x - (a[j] - k) + N >= 0 && f[j - 1][x - (a[j] - k) + N])
+				{
+					vis[j] = 1;
+					vec.emplace_back(j);
+					x -= (a[j] - k);
+				}
+
+				for (auto i : vec) del[i] = 1, deled++;
+				m = n - deled - 1;
+				greedy :: work();
+				REP(i, 1, n) del[i] = 0;deled = 0;
+
+				vec.clear();
+				REP(i, 1, n) if (!vis[i]) vec.emplace_back(i);
+
+				for (auto i : vec) del[i] = 1, deled++;
+				m = n - deled - 1;
+				greedy :: work();
+				REP(i, 1, n) del[i] = 0;deled = 0;
+
+				goto ok;
+			}
+gg:			puts("-1");
+ok:;
 		}
-		flag = 0;
-		dfs(0);
-		if (!flag) puts("-1");
 	}
 	return 0;
 }
